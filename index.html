@@ -289,6 +289,59 @@ svg{display:block}
 .clues button::before{counter-increment:c;content:counter(c);position:absolute;left:13px;top:9px;color:var(--mut);font-variant-numeric:tabular-nums}
 .clues button.done{opacity:.45;text-decoration:line-through}
 .cluehint{font-size:13px;color:var(--mut);margin-top:8px;text-align:center}
+/* ---------- Neue Antwortformen ---------- */
+.seq .qslot{cursor:pointer}
+.qslot.act{box-shadow:0 0 0 3px var(--acc-soft);border-width:2px!important}
+.prow b.qslot.inl{display:inline-block;min-width:44px;padding:1px 8px;margin:0 2px;border-radius:8px;font-weight:500;text-align:center}
+.xv,.prow i.xv{font-style:normal;color:var(--amb);font-weight:600}
+table.chain{border-collapse:separate;border-spacing:6px;font-size:20px;font-variant-numeric:tabular-nums;margin:0 auto}
+table.chain th{font-size:13px;font-weight:500;color:var(--mut);padding:0 2px}
+table.chain td{min-width:64px;padding:6px 8px;border:1px solid var(--line2);border-radius:10px;text-align:center;background:var(--bg2)}
+table.chain td.hid{color:var(--mut);border-style:dashed;background:transparent}
+table.chain tr.last td{border-top-width:2px}
+@media(max-width:420px){table.chain{font-size:18px;border-spacing:4px}table.chain td{min-width:0;padding:5px 6px}}
+.views{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:14px 20px}
+.views figure{margin:0;display:grid;justify-items:center;gap:4px}
+.views figcaption{font-size:13px;color:var(--mut)}
+.views svg{max-width:100%;height:auto}
+.vsq{fill:#2b3d6b;stroke:var(--acc);stroke-width:1.2}
+.vgr{stroke:var(--line2);stroke-width:1.2}
+.vtop{fill:transparent;stroke:var(--line2);stroke-dasharray:3 3}.vtop.on{fill:#2b3d6b;stroke:var(--acc);stroke-dasharray:none}
+.vlab{fill:var(--mut);font-size:10px}
+.polyfig svg{width:min(100%,340px);margin:0 auto}
+.opt.sel::after{content:"✓";position:absolute;right:10px;top:3px;color:var(--acc);font-weight:700;font-size:15px}
+.opt .ord{position:absolute;right:8px;top:5px;min-width:24px;height:24px;border-radius:12px;background:var(--acc);color:var(--ink);font-size:14px;font-weight:700;display:grid;place-items:center}
+.opt .ord[hidden]{display:none}
+.opt:has(.ord:not([hidden]))::after{content:none}
+.netc{margin:0 auto}
+.arw{fill:none;stroke:#07101f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.matrix>.hole.set{border-style:solid;background:var(--bg2)}
+.matrix>button.hole{font:inherit;color:var(--acc);font-size:26px;padding:0;cursor:pointer;background:var(--acc-soft);border:1.5px dashed var(--acc);border-radius:10px}
+.matrix>.hole.set{background:var(--bg2)}
+.matrix>.hole.act{box-shadow:0 0 0 2px var(--acc),0 0 18px var(--acc-soft)}
+.matrix>.hole svg{width:100%;height:100%}
+.bld{display:grid;gap:10px;max-width:340px;margin:12px auto 0}
+.brow{display:grid;gap:4px}
+.brow>span{font-size:13px;color:var(--mut)}
+.bseg{display:flex;gap:6px;flex-wrap:wrap}
+.bopt{width:50px;height:50px;border-radius:10px;border:1px solid var(--line2);background:var(--bg3);display:grid;place-items:center;padding:0;font-size:19px}
+.bopt[aria-pressed="true"]{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc);background:var(--acc-soft)}
+.bopt svg{width:34px;height:34px}
+.sw4{display:block;width:26px;height:26px;border-radius:50%}
+.lar{color:var(--mut);font-weight:400}
+.lnote{font-style:italic}
+/* ---------- Testmodus ---------- */
+.lablead{margin:0 0 16px}
+.labf{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.labf label{display:grid;gap:4px;font-size:13px;color:var(--mut)}
+.labf select{min-height:48px;border-radius:10px;border:1px solid var(--line2);background:var(--bg2);color:var(--txt);font:inherit;font-size:16px;padding:0 10px;width:100%}
+.tblwrap{overflow-x:auto}
+.labt{width:100%;border-collapse:collapse;font-size:14px}
+.labt th,.labt td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.labt th{color:var(--mut);font-weight:500;font-size:13px}
+.labt .r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.labt small{display:block;color:var(--mut);font-size:11px}
+a.ico{color:var(--txt)}
 
 /* ---------- Daily-Ergebnis, Fortschritt, Einstellungen ---------- */
 .sub{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-bottom:26px}
@@ -405,68 +458,128 @@ const SEQ=[
 function genSeq(R,d,opt){
   const fam=R.pick(SEQ[d])(R),t=fam.t,n=t.length;
   if(t.some(v=>!Number.isInteger(v)||Math.abs(v)>99999))return null;
-  let gap=d===0?n-1:d===1?R.pick([n-1,n-1,n-2]):R.int(2,n-1);
-  if(opt&&opt.end)gap=n-1;
-  return{sub:'seq',kind:'number',rating:[1.5,3.5,6,8.5][d]+(gap<n-1?.5:0),
-    prompt:'Welche Zahl gehört an die Stelle des Fragezeichens?',
-    rules:['Die Folge gehorcht von Anfang bis Ende derselben Regel.'],
-    view:{fig:'seq',terms:t.map((v,i)=>i===gap?null:v)},solution:t[gap],
-    hints:['Schau dir an, wie sich die Zahlen von Schritt zu Schritt verändern.',fam.h,fam.x],
-    explain:`${fam.x} Die gesuchte Zahl ist ${t[gap]}.`,sig:'seq:'+t.join(',')+'@'+gap};
-}
-const OPS2=[
- {f:(a,b)=>2*a+b,s:'2 × a + b',h:'Die beiden Zahlen werden unterschiedlich stark gewichtet.',t:1},
- {f:(a,b)=>a+2*b,s:'a + 2 × b',h:'Die beiden Zahlen werden unterschiedlich stark gewichtet.',t:1},
- {f:(a,b)=>a*b+1,s:'a × b + 1',h:'Das Produkt der beiden Zahlen liegt ganz in der Nähe.',t:1},
- {f:(a,b)=>(a+b)*2,s:'(a + b) × 2',h:'Fasse die beiden Zahlen erst zusammen, bevor du weiterrechnest.',t:1},
- {f:(a,b)=>a*b+a,s:'a × b + a',h:'Das Produkt spielt eine Rolle, aber eine der Zahlen kommt noch einmal vor.',t:1},
- {f:(a,b)=>a*b-b,s:'a × b − b',h:'Das Produkt spielt eine Rolle, aber eine der Zahlen kommt noch einmal vor.',t:2},
- {f:(a,b)=>a*a+b,s:'a × a + b',h:'Eine der Zahlen wird mit sich selbst multipliziert.',t:2},
- {f:(a,b)=>a*a-b,s:'a × a − b',h:'Eine der Zahlen wird mit sich selbst multipliziert.',t:2},
- {f:(a,b)=>3*a-b,s:'3 × a − b',h:'Die beiden Zahlen werden unterschiedlich stark gewichtet, eine zählt sogar negativ.',t:2},
- {f:(a,b)=>a*b+a+b,s:'a × b + a + b',h:'Produkt und Summe arbeiten zusammen.',t:2},
- {f:(a,b)=>(a+b)*a,s:'(a + b) × a',h:'Fasse die beiden Zahlen erst zusammen, bevor du weiterrechnest.',t:2},
- {f:(a,b)=>2*a*b,s:'2 × a × b',h:'Das Produkt der beiden Zahlen wird noch einmal verändert.',t:2},
- {f:(a,b)=>a*a+b*b,s:'a × a + b × b',h:'Beide Zahlen werden zuerst einzeln verändert und dann zusammengeführt.',t:3},
- {f:(a,b)=>(a+b)*(a+b),s:'(a + b) × (a + b)',h:'Fasse die beiden Zahlen erst zusammen – das Ergebnis ist eine besondere Zahl.',t:3},
- {f:(a,b)=>a*a-b*b,s:'a × a − b × b',h:'Beide Zahlen werden zuerst einzeln verändert und dann zusammengeführt.',t:3},
- {f:(a,b)=>a*b-a-b,s:'a × b − a − b',h:'Produkt und Summe arbeiten gegeneinander.',t:3},
- {f:(a,b)=>(a+b)*b,s:'(a + b) × b',h:'Fasse die beiden Zahlen erst zusammen, bevor du weiterrechnest.',t:3},
- {f:(a,b)=>a*b+a-b,s:'a × b + a − b',h:'Das Produkt stimmt fast – der Rest hängt vom Unterschied der Zahlen ab.',t:3}
-];
-function genOp(R,d){
-  if(d===0||(d===1&&R.chance(.4))){            // einstellige Maschine
-    const sq=d===1&&R.chance(.5),m=R.int(2,6),c=sq?R.int(-3,9):R.int(d?-4:0,9);
-    const f=sq?x=>x*x+c:x=>m*x+c,xs=R.shuffle(range(9).map(i=>i+1)).slice(0,5);
-    const ex=xs.slice(0,d?3:4);if(!d)ex.sort((a,b)=>a-b);const q=xs[4];
-    const s=sq?`x × x ${c?sg(c).replace(/^([+−])/,'$1 '):''}`.trim():`${m} × x ${c?sg(c).replace(/^([+−])/,'$1 '):''}`.trim();
-    return{sub:'machine',kind:'number',rating:d?3.5:2,prompt:'Die Maschine verwandelt jede Zahl nach derselben Regel. Was kommt unten heraus?',
-      rules:['Links steht, was hineingeht – rechts, was herauskommt.'],
-      view:{fig:'pairs',rows:ex.map(x=>[String(x),String(f(x))]),q:String(q),sym:'→'},solution:f(q),
-      hints:['Vergleiche, wie stark das Ergebnis wächst, wenn die Eingabe um 1 größer wird.',sq?'Die Eingabe wird mit sich selbst multipliziert.':'Die Eingabe wird erst vervielfacht, dann wird etwas addiert oder abgezogen.',`Die Regel hat die Form „${s}“. Setze ${q} ein.`],
-      explain:`Die Regel lautet ${s}. Für ${q} ergibt das ${f(q)}.`,sig:'mach:'+s+'@'+ex.join(',')+'>'+q};
+  let gaps;
+  if(d===0||(opt&&opt.single)){let gap=d===0?n-1:R.pick([n-1,n-1,n-2]);if(opt&&opt.end)gap=n-1;gaps=[gap];}
+  else{                                          // ab Normal: zwei Lücken, eine davon im Inneren
+    if(n<6)return null;
+    const inner=R.int(1,n-2),other=R.shuffle(range(n).filter(i=>i>0&&Math.abs(i-inner)>1))[0];
+    if(other==null)return null;gaps=[inner,other].sort((a,b)=>a-b);
   }
-  const pool=OPS2.filter(o=>d===1?o.t===1:d===2?o.t<=2:o.t>=2);
-  for(let t=0;t<60;t++){
-    const op=R.pick(pool),pairs=[],seen=new Set();
-    while(pairs.length<6){const a=R.int(2,9),b=R.int(2,9);if(a===b||seen.has(a+','+b))continue;seen.add(a+','+b);pairs.push([a,b]);}
-    const q=pairs[5];
-    for(let n=d===3?3:4;n<=5;n++){
-      const ex=pairs.slice(0,n);
-      const rivals=OPS2.filter(o=>o!==op&&ex.every(([a,b])=>o.f(a,b)===op.f(a,b)));
-      if(rivals.every(o=>o.f(q[0],q[1])===op.f(q[0],q[1])))
-        return{sub:'op',kind:'number',rating:[0,4,6.5,9][d],prompt:'Das Zeichen ◇ steht für eine geheime Rechenregel. Was ergibt die letzte Zeile?',
-          rules:['In jeder Zeile gilt dieselbe Regel.','Die Reihenfolge der beiden Zahlen kann eine Rolle spielen.'],
-          view:{fig:'pairs',rows:ex.map(([a,b])=>[`${a} ◇ ${b}`,String(op.f(a,b))]),q:`${q[0]} ◇ ${q[1]}`,sym:'='},solution:op.f(q[0],q[1]),
-          hints:['Probiere einfache Kombinationen: Wie weit liegt das Ergebnis von a × b oder a + b entfernt?',op.h,`Die Regel hat die Form „${op.s}“. Setze die Zahlen der letzten Zeile ein.`],
-          explain:`Die Regel lautet a ◇ b = ${op.s}. Also ${q[0]} ◇ ${q[1]} = ${op.f(q[0],q[1])}.`,sig:'op:'+op.s+'@'+ex.join('|')+'>'+q};
+  const two=gaps.length>1,vals=gaps.map(g=>t[g]),list=vals.join(' und ');
+  return{sub:'seq',kind:'number',rating:[0.4,1.5,3,4.5][d]+(two?.2:0),
+    prompt:two?'Welche Zahlen gehören an die Stellen der beiden Fragezeichen?':'Welche Zahl gehört an die Stelle des Fragezeichens?',
+    rules:two?['Die Folge gehorcht von Anfang bis Ende derselben Regel.','Tippe ein Fragezeichen an, um es auszuwählen.']:['Die Folge gehorcht von Anfang bis Ende derselben Regel.'],
+    view:{fig:'seq',terms:t.map((v,i)=>gaps.includes(i)?null:v)},solution:two?vals:vals[0],
+    hints:['Schau dir an, wie sich die Zahlen von Schritt zu Schritt verändern.',fam.h,two?`Die ${gaps[0]+1}. Zahl der Folge ist ${t[gaps[0]]}.`:fam.x],
+    explain:`${fam.x} ${two?'Die gesuchten Zahlen sind':'Die gesuchte Zahl ist'} ${list}.`,sig:'seq:'+t.join(',')+'@'+gaps.join(',')};
+}
+/* Verborgene Regeln: Die Formelfamilie steht im Rätsel. Eindeutig heißt: Jede Regel der ganzen
+   (unendlichen) Familie, die zu allen Zeilen passt, liefert dieselbe Antwort. Geprüft wird das
+   exakt mit ganzzahliger linearer Algebra, nicht gegen einen Katalog. */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;};
+function rankInt(M){
+  const A=M.map(r=>r.slice()),cols=A.length?A[0].length:0;let rk=0;
+  for(let c=0;c<cols&&rk<A.length;c++){
+    let p=-1;for(let i=rk;i<A.length;i++)if(A[i][c]!==0){p=i;break;}
+    if(p<0)continue;[A[rk],A[p]]=[A[p],A[rk]];
+    for(let i=rk+1;i<A.length;i++){const f=A[i][c];if(!f)continue;const g=A[rk][c];
+      for(let j=c;j<cols;j++)A[i][j]=A[i][j]*g-A[rk][j]*f;
+      const gg=A[i].reduce((x,y)=>gcd(x,y),0);if(gg>1)for(let j=c;j<cols;j++)A[i][j]/=gg;}
+    rk++;
+  }
+  return rk;
+}
+const MACH_RULE='Jede Maschine rechnet: Eingabe mal eine feste ganze Zahl, dann plus eine feste ganze Zahl (beide dürfen negativ sein, die erste ist nie 0).';
+const linStr=(a,b,v)=>`${a===1?'':a===-1?'−':String(a).replace('-','−')+' × '}${v}${b?' '+sg(b).replace(/^([+−])/,'$1 '):''}`;
+function linFam(pts){                          // alle Regeln a·x+b (ganz, a≠0) durch die Punkte: genau eine, keine oder unbestimmt
+  const xs=[...new Set(pts.map(p=>p[0]))];if(xs.length<2)return null;
+  const [p,q]=[pts[0],pts.find(r=>r[0]!==pts[0][0])],a=(q[1]-p[1])/(q[0]-p[0]),b=p[1]-a*p[0];
+  if(!Number.isInteger(a)||!Number.isInteger(b)||!a||!pts.every(([x,y])=>a*x+b===y))return[];
+  return[{a,b}];
+}
+function genMachine(R,d){
+  if(d===0){                                     // eine Maschine, vier sortierte Beispiele
+    const a=R.int(2,6),b=R.int(0,9),f=x=>a*x+b,xs=R.shuffle(range(9).map(i=>i+1)).slice(0,5),ex=xs.slice(0,4).sort((x,y)=>x-y),q=xs[4];
+    const fam=linFam(ex.map(x=>[x,f(x)]));if(!fam||fam.length!==1)return null;
+    return{sub:'machine',kind:'number',rating:0.5,prompt:'Die Maschine verwandelt jede Zahl nach derselben Regel. Was kommt unten heraus?',
+      rules:['Links steht, was hineingeht – rechts, was herauskommt.',MACH_RULE],
+      view:{fig:'pairs',rows:ex.map(x=>[String(x),String(f(x))]),q:String(q),sym:'→'},solution:f(q),
+      hints:['Vergleiche, wie stark das Ergebnis wächst, wenn die Eingabe um 1 größer wird.',`Die Eingabe wird mit ${a} multipliziert.`,`Die Regel lautet „${linStr(a,b,'x')}“. Setze ${q} ein.`],
+      explain:`Die Regel lautet ${linStr(a,b,'x')}. Für ${q} ergibt das ${f(q)}.`,sig:'mach:'+a+','+b+'@'+ex.join(',')+'>'+q};
+  }
+  for(let t=0;t<80;t++){                         // zwei Maschinen hintereinander, Zwischenwerte teils verdeckt
+    const a=R.pick([2,3,4,5,-2]),b=R.int(-5,9),c=R.pick([2,3,4,-1,-2]),e=R.int(-9,9),A=x=>a*x+b,B=y=>c*y+e;
+    const xs=R.shuffle(range(9).map(i=>i+1)).slice(0,5);
+    const rows=[[xs[0],A(xs[0]),B(A(xs[0]))],[xs[1],A(xs[1]),null],[null,A(xs[2]),B(A(xs[2]))]];
+    if(R.chance(.5))rows.push([xs[3],A(xs[3]),null]);else rows.push([null,A(xs[3]),B(A(xs[3]))]);
+    const q=xs[4],sol=B(A(q));
+    if(rows.some(r=>r.some(v=>v!=null&&Math.abs(v)>400))||Math.abs(sol)>400)continue;
+    const fa=linFam(rows.filter(r=>r[0]!=null&&r[1]!=null).map(r=>[r[0],r[1]])),fb=linFam(rows.filter(r=>r[1]!=null&&r[2]!=null).map(r=>[r[1],r[2]]));
+    if(!fa||!fb||fa.length!==1||fb.length!==1)continue;   // jede Maschine ist durch ihre Zeilen festgelegt
+    if(rows.filter(r=>r[0]!=null&&r[2]!=null).length>1)continue; // keine Abkürzung über die Gesamtmaschine
+    const view=R.shuffle(rows);
+    return{sub:'chain',kind:'number',rating:1.6,prompt:'Zwei Maschinen arbeiten hintereinander: Erst verwandelt A die Zahl, dann B. Was kommt am Ende heraus?',
+      rules:[MACH_RULE,'Ein Strich bedeutet: Dieser Wert wird nicht verraten.'],
+      view:{fig:'chain',rows:view,q},solution:sol,
+      hints:['Bestimme die Maschinen einzeln: A aus den Zeilen mit Eingabe und Zwischenwert, B aus den Zeilen mit Zwischenwert und Ergebnis.',`Maschine A multipliziert mit ${a}.`,`Maschine A rechnet „${linStr(a,b,'x')}“.`],
+      explain:`A rechnet ${linStr(a,b,'x')}, B rechnet ${linStr(c,e,'y')}. Aus ${q} wird erst ${A(q)}, dann ${sol}.`,sig:'chain:'+[a,b,c,e]+'@'+xs.join(',')};
+  }
+  return null;
+}
+const OP_FAM=['','◇ rechnet immer p × a + q × b + s mit festen ganzen Zahlen p, q und s (auch negativ oder 0).',
+  '◇ rechnet immer p × a + q × b + r × a × b + s mit festen ganzen Zahlen p, q, r und s (auch negativ oder 0).'];
+function opStr(p,q,r,s){const t=[];const term=(k,v)=>{if(!k)return;t.push((t.length?(k>0?' + ':' − '):(k<0?'−':''))+(Math.abs(k)===1?'':Math.abs(k)+' × ')+v);};
+  term(p,'a');term(q,'b');term(r,'a × b');if(s||!t.length)t.push(t.length?(s>0?' + ':' − ')+Math.abs(s):String(s));return t.join('');}
+function genOp(R,d){
+  const full=d>=2;
+  for(let t=0;t<120;t++){
+    const p=full?R.int(-2,4):R.int(1,4),q=full?R.int(-2,4):R.int(1,4),r=full?R.pick([1,1,2,-1]):0,s=R.int(-6,9);
+    if(!full&&p===q)continue;if(full&&!p&&!q)continue;
+    const f=(a,b)=>p*a+q*b+r*a*b+s,vec=(a,b)=>full?[a,b,a*b,1]:[a,b,1],npar=full?4:3;
+    const [a1,a2,a3]=R.shuffle(range(8).map(i=>i+2)).slice(0,3),[b1,b2,b3]=R.shuffle(range(8).map(i=>i+2)).slice(0,3);
+    const pairs=full?[[a1,b1],[a1,b2],[a2,b1],[a2,b2],[a3,b3]]:[[a1,b1],[a1,b2],[a2,b1],[a3,b3]];
+    if(pairs.some(([a,b])=>Math.abs(f(a,b))>300))continue;
+    const mode=d===1?'fwd':d===2?(R.chance(.6)?'rev':'fwd'):'x';
+    const rows=pairs.map(([a,b])=>[`${a} ◇ ${b}`,String(f(a,b))]),M=pairs.map(([a,b])=>vec(a,b));
+    if(rankInt(M)<npar)continue;                    // die Zeilen legen die Regel vollständig fest
+    let view,sol,sig,rules=[OP_FAM[full?2:1],'In jeder Zeile gilt dieselbe Regel.'],prompt,h3,explain;
+    const rule=opStr(p,q,r,s);
+    if(mode==='fwd'){
+      let qa,qb;do{qa=R.int(2,9);qb=R.int(2,9);}while(pairs.some(([a,b])=>a===qa&&b===qb));
+      sol=f(qa,qb);if(Math.abs(sol)>300)continue;
+      if(rankInt(M.concat([vec(qa,qb)]))!==rankInt(M))continue;   // Antwort folgt aus den Zeilen (hier immer, da Regel festgelegt)
+      view={fig:'pairs',rows,q:`${qa} ◇ ${qb}`,sym:'='};prompt='Das Zeichen ◇ steht für eine geheime Rechenregel. Was ergibt die letzte Zeile?';
+      explain=`Die Regel lautet a ◇ b = ${rule}. Also ${qa} ◇ ${qb} = ${sol}.`;sig='op:'+[p,q,r,s]+'@'+pairs.join('|')+'>'+qa+','+qb;
+    }else if(mode==='rev'){                         // fehlende Eingabe: eindeutig, wenn ihr Faktor nicht 0 ist
+      const left=R.chance(.5),k=R.int(2,9),x=R.int(3,30);
+      const coef=left?p+r*k:q+r*k;if(!coef)continue;
+      const val=left?f(x,k):f(k,x);if(Math.abs(val)>400)continue;
+      sol=x;view={fig:'pairs',rows,q:left?`? ◇ ${k}`:`${k} ◇ ?`,res:String(val),sym:'='};
+      prompt='Das Zeichen ◇ steht für eine geheime Rechenregel. Welche Zahl fehlt in der letzten Zeile?';
+      rules.push('Gesucht ist eine ganze Zahl.');
+      explain=`Die Regel lautet a ◇ b = ${rule}. Nur mit ${x} ergibt die letzte Zeile ${val}.`;sig='opr:'+[p,q,r,s]+'@'+pairs.join('|')+'>'+left+k+'='+val;
+    }else{                                           // Insane: eine Zeile enthält x; erst Regel, dann x, dann die Frage
+      const xa=R.chance(.5),k=R.int(2,9),x=R.int(2,12),coef=xa?p+r*k:q+r*k;if(!coef)continue;
+      const xv=xa?f(x,k):f(k,x),k2=R.int(2,9),qx=!xa;sol=qx?f(x,k2):f(k2,x);
+      if(Math.abs(xv)>300||Math.abs(sol)>300)continue;
+      const qcoef=qx?p+r*k2:q+r*k2;if(!qcoef)continue;       // sonst hinge die Antwort nicht von x ab
+      view={fig:'pairs',rows:rows.concat([[xa?`x ◇ ${k}`:`${k} ◇ x`,String(xv)]]),q:qx?`x ◇ ${k2}`:`${k2} ◇ x`,sym:'='};
+      rules.push('x steht in beiden Zeilen für dieselbe ganze Zahl.');
+      prompt='Das Zeichen ◇ steht für eine geheime Rechenregel, x für eine unbekannte Zahl. Was ergibt die letzte Zeile?';
+      explain=`Die Regel lautet a ◇ b = ${rule}. Daraus folgt x = ${x}, und die letzte Zeile ergibt ${sol}.`;sig='opx:'+[p,q,r,s]+'@'+pairs.join('|')+'>'+xa+k+','+k2;
+      h3=`x ist ${x}.`;
     }
+    const h2=full?(r?`Das Produkt a × b kommt in der Regel ${r===1?'einmal':r===-1?'mit Minus':r+'-mal'} vor.`:'Das Produkt a × b kommt in der Regel nicht vor.'):`Wird a um 1 größer, wächst das Ergebnis um ${p}.`;
+    if(!h3)h3=full?`Außerdem: p = ${p} und q = ${q}.`:`Wird b um 1 größer, wächst das Ergebnis um ${q}.`;
+    return{sub:'op',kind:'number',rating:[0,1.7,3.2,4.8][d],prompt,rules,view,solution:sol,
+      hints:['Vergleiche zwei Zeilen, in denen eine Zahl gleich bleibt: Um wie viel ändert sich das Ergebnis?',h2,h3],explain,sig};
   }
   return null;
 }
 function genRiddle(R,d){
-  for(let t=0;t<60;t++){
-    const three=d===3||(d===2&&R.chance(.35)),lo=three?100:10,hi=three?999:99;
+  for(let t=0;t<160;t++){
+    const relax=t>=110,three=d===3||(d===2&&R.chance(.35)),lo=three?100:10,hi=three?999:99;
+    const need=[2,3,3,4][d],maxC=d===3?5:4,minBest=relax?0:three?[0,0,60,80][d]:[0,8,10,10][d];
     const n=R.int(lo,hi),dg=String(n).split('').map(Number),C=[];
     const add=(t,f)=>C.push({t,f});
     [3,4,6,7,8,9,11,12,13].forEach(k=>{if(n%k===0)add(`Sie ist durch ${k} teilbar.`,x=>x%k===0);});
@@ -494,16 +607,17 @@ function genRiddle(R,d){
       add(`Genau ${new Set(dg).size===3?'drei':new Set(dg).size===2?'zwei':'eine'} verschiedene Ziffer${new Set(dg).size===1?'':'n'} kommen in ihr vor.`.replace('eine verschiedene Ziffer kommen','eine einzige Ziffer kommt'),x=>new Set(D(x)).size===new Set(dg).size);
     }
     const all=[];for(let x=lo;x<=hi;x++)all.push(x);
+    const pool=minBest?C.filter(c=>all.filter(c.f).length>=minBest):C;   // keine Bedingung schränkt allein zu stark ein
     let cand=all,chosen=[];
-    for(const c of R.shuffle(C)){const nc=cand.filter(c.f);if(nc.length<cand.length){chosen.push(c);cand=nc;}if(cand.length===1)break;}
+    for(const c of R.shuffle(pool)){const nc=cand.filter(c.f);if(nc.length<cand.length){chosen.push(c);cand=nc;}if(cand.length===1)break;}
     if(cand.length!==1)continue;
     for(const c of R.shuffle(chosen)){const rest=chosen.filter(q=>q!==c);if(rest.length&&all.filter(x=>rest.every(q=>q.f(x))).length===1)chosen=rest;}
-    if(chosen.length<(d>=2?3:2)||chosen.length>5)continue;
+    if(chosen.length<(relax?need-1:need)||chosen.length>maxC)continue;
     const best=chosen.map(c=>({c,n:all.filter(c.f).length})).sort((a,b)=>a.n-b.n)[0];
     let h2=`Starte mit „${best.c.t}“ Das erfüllen nur ${best.n} Zahlen – gehe sie mit den übrigen Bedingungen durch.`;
     if(best.n>15){let bp=null;chosen.forEach((x,i)=>chosen.forEach((y,j)=>{if(i<j){const m=all.filter(q=>x.f(q)&&y.f(q)).length;if(!bp||m<bp.m)bp={x,y,m};}}));
       if(bp)h2=`Kombiniere „${bp.x.t}“ mit „${bp.y.t}“ Beides zusammen ${bp.m===1?'erfüllt nur eine einzige Zahl':'erfüllen nur '+bp.m+' Zahlen'}.`;}
-    return{sub:'riddle',kind:'number',rating:[0,4,6+chosen.length*.3,8.5+chosen.length*.2][d]+(three&&d===2?.8:0),
+    return{sub:'riddle',kind:'number',rating:[0,1.6,3+chosen.length*.1+(three?.4:0),4.6+chosen.length*.1][d],
       prompt:`Gesucht ist eine ${three?'dreistellige':'zweistellige'} Zahl.`,rules:['Alle Bedingungen gelten gleichzeitig.','Es gibt genau eine Zahl, die passt.'],
       view:{fig:'riddle',lines:chosen.map(c=>c.t)},solution:n,
       hints:['Beginne mit der Bedingung, die die wenigsten Zahlen übrig lässt.',h2,`Die Zahl beginnt mit der Ziffer ${dg[0]}.`],
@@ -513,13 +627,14 @@ function genRiddle(R,d){
 }
 function genNumber(R,d){
   const x=R();
-  if(d===0)return x<.65?genSeq(R,d):genOp(R,d);
-  if(d===1)return x<.45?genSeq(R,d):x<.8?genOp(R,d):genRiddle(R,d);
-  return x<.35?genSeq(R,d):x<.65?genOp(R,d):genRiddle(R,d);
+  if(d===0)return x<.65?genSeq(R,d):genMachine(R,d);
+  if(d===1)return x<.35?genSeq(R,d):x<.6?genMachine(R,d):x<.8?genOp(R,d):genRiddle(R,d);
+  return x<.3?genSeq(R,d):x<.65?genOp(R,d):genRiddle(R,d);
 }
 
 /* ---------------------------------------------------------------- C · EQUATION BUILDER */
-const TPL={a:'N O N O N',b:'( N O N ) O N',c:'N O ( N O N )',d:'N O N O N O N',e:'( N O N ) O N O N',f:'N O ( N O N ) O N',g:'( N O N ) O ( N O N )',h:'N O N O ( N O N )',i:'( N O N O N ) O N'};
+const TPL={a:'N O N O N',b:'( N O N ) O N',c:'N O ( N O N )',d:'N O N O N O N',e:'( N O N ) O N O N',f:'N O ( N O N ) O N',g:'( N O N ) O ( N O N )',h:'N O N O ( N O N )',i:'( N O N O N ) O N',
+  j:'( N O N ) O N O N O N',k:'N O ( N O N ) O N O N',l:'( N O N ) O ( N O N ) O N',m:'( N O N O N ) O N O N',n:'N O ( N O N O N ) O N',o:'N O N O ( N O N ) O N'};
 Object.keys(TPL).forEach(k=>TPL[k]=TPL[k].split(' '));
 function evalTokens(tk){
   let i=0;
@@ -529,62 +644,107 @@ function evalTokens(tk){
   return expr();
 }
 function fillTpl(tpl,vals){let k=0;return tpl.map(t=>t==='N'||t==='O'?vals[k++]:t);}
-function eqSolutions(tpl,nums,ops,target,cap){
-  const slots=tpl.filter(t=>t==='N'||t==='O'),un=nums.map(()=>false),uo=ops.map(()=>false),cur=[],out=[];
-  (function rec(k){
-    if(out.length>=cap)return;
-    if(k===slots.length){if(Math.abs(evalTokens(fillTpl(tpl,cur))-target)<1e-9)out.push(cur.slice());return;}
-    const isN=slots[k]==='N',pool=isN?nums:ops,used=isN?un:uo,tried=new Set();
-    for(let i=0;i<pool.length;i++){if(used[i]||tried.has(pool[i]))continue;tried.add(pool[i]);used[i]=true;cur.push(pool[i]);rec(k+1);cur.pop();used[i]=false;}
-  })(0);
+/* Vorlage mit festen Rechenzeichen in Postfix-Form übersetzen; Zahlen bleiben Platzhalter (Index). */
+function tplRPN(tpl,ops){
+  const out=[],st=[],prec=o=>o==='+'||o==='−'?1:2;let n=0,k=0;
+  for(const t of tpl){
+    if(t==='N')out.push(n++);
+    else if(t==='O'){const o=ops[k++];while(st.length&&st[st.length-1]!=='('&&prec(st[st.length-1])>=prec(o))out.push(st.pop());st.push(o);}
+    else if(t==='(')st.push(t);
+    else{while(st[st.length-1]!=='(')out.push(st.pop());st.pop();}
+  }
+  while(st.length)out.push(st.pop());
   return out;
 }
+const STK=new Float64Array(16);
+function evalRPN(rpn,v){let s=0;for(let i=0;i<rpn.length;i++){const x=rpn[i];
+  if(typeof x==='number')STK[s++]=v[x];else{const b=STK[--s],a=STK[--s];STK[s++]=x==='+'?a+b:x==='−'?a-b:x==='×'?a*b:a/b;}}return STK[0];}
+/* Normalform einer Rechnung: Summen und Produkte werden flachgeklopft und sortiert. Zwei Belegungen
+   gelten als dieselbe Lösung, wenn sie sich nur durch Vertauschen oder Umklammern unterscheiden. */
+function eqCanon(tk){
+  let i=0;
+  const fac=()=>{const t=tk[i++];if(t==='('){const v=expr();i++;return v;}return{n:t};};
+  const term=()=>{const k=[[1,fac()]];while(tk[i]==='×'||tk[i]==='÷'){const o=tk[i++];k.push([o==='×'?1:-1,fac()]);}return k.length>1?{p:k}:k[0][1];};
+  const expr=()=>{const k=[[1,term()]];while(tk[i]==='+'||tk[i]==='−'){const o=tk[i++];k.push([o==='+'?1:-1,term()]);}return k.length>1?{s:k}:k[0][1];};
+  const str=x=>{
+    if(x.n!=null)return String(x.n);
+    const key=x.s?'s':'p',flat=[];
+    (function walk(list,sg){for(const [e,c] of list){if(c[key])walk(c[key],sg*e);else flat.push((sg*e>0?'+':'-')+str(c));}})(x[key],1);
+    return(key==='s'?'(':'[')+flat.sort().join('')+(key==='s'?')':']');
+  };
+  return str(expr());
+}
+function eqSolve(tpl,nums,ops,target,canonCap){
+  const nN=tpl.filter(x=>x==='N').length,nO=tpl.filter(x=>x==='O').length,canon=new Map(),opSeqs=[];
+  (function rec(cur,used){if(cur.length===nO){opSeqs.push(cur.slice());return;}const tried=new Set();
+    for(let i=0;i<ops.length;i++){if(used[i]||tried.has(ops[i]))continue;tried.add(ops[i]);used[i]=true;cur.push(ops[i]);rec(cur,used);cur.pop();used[i]=false;}})([],ops.map(()=>false));
+  const rpns=opSeqs.map(o=>tplRPN(tpl,o)),cur=new Float64Array(nN),un=nums.map(()=>false),pick=[];let stop=false;
+  (function rec(k){
+    if(stop)return;
+    if(k===nN){for(let r=0;r<rpns.length;r++){const v=evalRPN(rpns[r],cur);if(Math.abs(v-target)<1e-9){
+        const sol=[];let a=0,b=0;tpl.forEach(t=>{if(t==='N')sol.push(pick[a++]);if(t==='O')sol.push(opSeqs[r][b++]);});
+        const tk=fillTpl(tpl,sol),c=eqCanon(tk);if(!canon.has(c))canon.set(c,sol);if(canon.size>canonCap){stop=true;return;}}}return;}
+    const tried=new Set();
+    for(let i=0;i<nums.length;i++){if(un[i]||tried.has(nums[i]))continue;tried.add(nums[i]);un[i]=true;cur[k]=nums[i];pick[k]=nums[i];rec(k+1);un[i]=false;}
+  })(0);
+  return[...canon.values()];
+}
+function eqSolutions(tpl,nums,ops,target,cap){return eqSolve(tpl,nums,ops,target,cap);}   // für den Massentest
 const exprStr=(tpl,vals)=>fillTpl(tpl,vals).join(' ').replace(/\( /g,'(').replace(/ \)/g,')');
+const EQ_CFG=[{tp:['a'],hi:9,dn:0,ops:['+','−','×'],dop:1,lo:3,max:60,cap:99,kinds:2},
+  {tp:['d','e','f','h'],hi:9,dn:1,ops:['+','−','×'],dop:1,lo:10,max:99,cap:2,kinds:2},
+  {tp:['e','f','g','h','i'],hi:12,dn:2,ops:['+','−','×','÷'],dop:1,lo:12,max:200,cap:2,kinds:3,near:true},
+  {tp:['j','k','l','m','n','o'],hi:12,dn:1,ops:['+','−','×','÷'],dop:1,lo:20,max:300,cap:1,kinds:3,near:true}];
 function genEquation(R,d,forced){
-  const cfg=[{tp:['a'],hi:9,dn:0,ops:['+','−','×'],dop:1,lo:3,max:60,lim:99},
-             {tp:['a','a','b','c'],hi:9,dn:1,ops:['+','−','×'],dop:1,lo:5,max:90,lim:8},
-             {tp:['d','b','c','e','f','h'],hi:10,dn:1,ops:['+','−','×','÷'],dop:2,lo:8,max:160,lim:5},
-             {tp:['e','f','g','h','i','d'],hi:12,dn:2,ops:['+','−','×','÷'],dop:2,lo:10,max:240,lim:3}][d];
-  for(let t=0;t<260;t++){
+  const cfg=EQ_CFG[d];
+  for(let t=0;t<220;t++){
+    const cap=t>=160?cfg.cap+1:cfg.cap;                 // nach fester Versuchszahl gelockert, damit jedes Gerät dasselbe Rätsel bekommt
     const tpl=TPL[R.pick(cfg.tp)],nN=tpl.filter(x=>x==='N').length,nO=tpl.filter(x=>x==='O').length;
-    const lim=t>160?cfg.lim*3:cfg.lim;
     const nums=R.shuffle(range(cfg.hi).map(i=>i+1)).slice(0,nN+cfg.dn);
-    if(d>=2&&R.chance(.4))nums[R.int(0,nums.length-1)]=R.pick([12,15,20,25]);
+    if(d>=2&&R.chance(.4)){const sp=R.pick([15,20,25]);if(!nums.includes(sp))nums[R.int(0,nums.length-1)]=sp;}
     const ops=series(nO+cfg.dop,()=>R.pick(cfg.ops));
-    if(new Set(ops).size<(d>=2?3:2))continue;
-    let target=forced,sol;
-    if(forced==null){
-      const vals=[];let a=0,b=0;tpl.forEach(x=>{if(x==='N')vals.push(nums[a++]);if(x==='O')vals.push(ops[b++]);});
-      target=evalTokens(fillTpl(tpl,vals));
-      if(!Number.isInteger(target)||target<cfg.lo||target>cfg.max)continue;
-      if(nums.includes(target)&&d<3)continue;
+    if(new Set(ops).size<cfg.kinds)continue;
+    const rpn=tplRPN(tpl,ops.slice(0,nO));
+    if(forced!=null){                                    // Ziel vorgegeben: eine Zahl so wählen, dass es aufgeht
+      let hit=false;
+      for(const k of R.shuffle(range(nN))){for(const v of R.shuffle(range(30).map(i=>i+1))){if(nums.includes(v)&&nums[k]!==v)continue;
+        const tmp=nums.slice();tmp[k]=v;if(Math.abs(evalRPN(rpn,tmp)-forced)<1e-9){nums[k]=v;hit=true;break;}}if(hit)break;}
+      if(!hit)continue;
     }
-    const sols=eqSolutions(tpl,nums,ops,target,lim+1);
-    if(!sols.length||sols.length>lim)continue;
-    sol=sols[0];
-    const sn=R.shuffle(nums),so=R.shuffle(ops),used=sol.filter(x=>typeof x==='string');
-    const uniq=[...new Set(used)];
-    return{sub:'build',kind:'equation',rating:[2,4,6.5,9][d]+(sols.length===1?.7:0),
+    // die gedachte Lösung rechnet nur mit aufgehenden Divisionen
+    let clean=true;{const s=[];for(const x of rpn){if(typeof x==='number')s.push(nums[x]);else{const b=s.pop(),a=s.pop();if(x==='÷'&&(b===0||a%b!==0))clean=false;s.push(x==='+'?a+b:x==='−'?a-b:x==='×'?a*b:a/b);}}}
+    if(!clean)continue;
+    const target=forced!=null?forced:evalRPN(rpn,nums);
+    if(forced==null&&(!Number.isInteger(target)||target<cfg.lo||target>cfg.max))continue;
+    if(forced==null&&nums.includes(target)&&d<3)continue;
+    if(cfg.near&&nums.some((a,i)=>nums.some((b,j)=>i<j&&(Math.abs(a*b-target)<=2||Math.abs(a+b-target)<=2))))continue;  // keine Abkürzung über zwei Kacheln
+    const sols=eqSolve(tpl,nums,ops,target,cap);
+    if(!sols.length||sols.length>cap)continue;
+    const sol=sols[0],sn=R.shuffle(nums),so=R.shuffle(ops),uniq=[...new Set(sol.filter(x=>typeof x==='string'))];
+    return{sub:'build',kind:'equation',rating:[0.5,1.6,3.2,5][d]+(sols.length===1&&d?.2:0),
       prompt:'Setze Zahlen und Rechenzeichen so in die Felder, dass das Ziel herauskommt.',
       rules:['Jede Kachel darf höchstens einmal verwendet werden.',cfg.dn?'Nicht alle Kacheln werden gebraucht.':'Ein Rechenzeichen bleibt übrig.','Punkt vor Strich; Klammern werden zuerst gerechnet.'],
       view:{tpl,nums:sn,ops:so,target},solution:sol,
       hints:['Überlege zuerst die Größenordnung: Kommst du eher durch Malnehmen oder durch Addieren in die Nähe des Ziels?',
         `In einer Lösung ${uniq.length>1?'kommen diese Rechenzeichen vor':'kommt nur dieses Rechenzeichen vor'}: ${uniq.join(' und ')}.`,
         `Eine Lösung beginnt so: ${fillTpl(tpl,sol).slice(0,tpl[0]==='('?3:2).join(' ')} …`],
-      explain:`Eine mögliche Lösung: ${exprStr(tpl,sol)} = ${target}.`,sig:'eq:'+tpl.join('')+':'+sn.slice().sort()+':'+so.slice().sort()+'='+target,
+      explain:`${sols.length===1&&d?'Die einzige Lösung':'Eine mögliche Lösung'}: ${exprStr(tpl,sol)} = ${target}.`,sig:'eq:'+tpl.join('')+':'+sn.slice().sort()+':'+so.slice().sort()+'='+target,
       validate(ans){return Array.isArray(ans)&&ans.length===sol.length&&Math.abs(evalTokens(fillTpl(tpl,ans))-target)<1e-9;}};
   }
   return null;
 }
 function genFusion(R,d){
-  let src=null;const useCubes=R.chance(.45);
-  for(let t=0;t<80&&!src;t++){
-    const s=useCubes?genCubes(R,Math.min(d-1,1),'count'):genSeq(R,d-1);
-    if(s&&s.solution>=6&&s.solution<=(useCubes?30:72))src=s;
+  let src=null,eq=null;const useCubes=R.chance(.45);
+  for(let a=0;a<3&&!eq;a++){                         // drei Anläufe mit neuer Quelle
+    src=null;
+    for(let t=0;t<80&&!src;t++){
+      const s=useCubes?genCubes(R,Math.min(d-1,1),'count'):genSeq(R,d-1,{single:true});
+      if(s&&s.solution>=6&&s.solution<=(useCubes?30:90))src=s;
+    }
+    if(src)eq=genEquation(R,d,src.solution);
   }
-  if(!src)return null;
-  const eq=genEquation(R,d-1,src.solution);if(!eq)return null;
-  eq.sub='fusion';eq.rating+=2.2;eq.view.src=src.view;eq.fusion=useCubes?'Spatial Logic':'Number Logic';
+  if(!eq)return null;
+  eq.sub='fusion';eq.rating+=.8;eq.view.src=src.view;eq.fusion=useCubes?'Spatial Logic':'Number Logic';
   eq.prompt=useCubes?'Das Ziel ist verschlüsselt: Zähle zuerst die Würfel. Ihre Anzahl ist das Ergebnis deiner Gleichung.':'Das Ziel ist verschlüsselt: Finde zuerst die fehlende Zahl der Folge. Sie ist das Ergebnis deiner Gleichung.';
   eq.rules=eq.rules.concat(src.rules);
   eq.hints=[src.hints[1],eq.hints[1],`Das Ziel der Gleichung ist ${src.solution}.`];
@@ -626,6 +786,59 @@ function foldNet(cells){
 }
 function randNet(R,pred){for(let t=0;t<4000;t++){const c=randPoly(R,6);const l=foldNet(c);if(l&&(!pred||pred(c)))return c;}return null;}
 
+/* ---------------------------------------------------------------- Würfel falten (Farben außen)
+   Koordinaten: x nach rechts, y nach unten (wie im Netz), z nach oben. Das Netz liegt mit der bedruckten
+   Seite nach oben, die Klappen werden nach unten gefaltet; so liegen die Farben außen.
+   Drei unabhängige Verfahren:
+   1  Abrollen (foldNet) und Spiegeln an der Netzebene: liefert die Außennormale jeder Fläche.
+   A  Rahmen: jede Fläche trägt ihre Achsen (ex, ey, Normale), Klappen drehen den Rahmen.
+   B  Scharniere: echte Punkte werden um die Faltkanten gedreht (für Pfeile: Mitte und Pfeilspitze).
+   Ansichten: oben = +z, links vorn = +y, rechts vorn = +x. */
+const vneg=v=>v.map(x=>-x),vkey=v=>v.join(','),vdot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const vcross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const N_ROLL=[[0,0,-1],[0,0,1],[0,-1,0],[0,1,0],[1,0,0],[-1,0,0]];          // Abroll-Etikett -> Außennormale (gespiegelt)
+function foldFrames(cells){
+  const idx=new Map(cells.map((c,i)=>[c[0]+','+c[1],i])),F=cells.map(()=>null);F[0]={ex:[1,0,0],ey:[0,1,0],n:[0,0,1]};const q=[0];
+  while(q.length){const i=q.shift(),[x,y]=cells[i],f=F[i];
+    for(const [dx,dy] of DIRS){const j=idx.get((x+dx)+','+(y+dy));if(j===undefined||F[j])continue;
+      F[j]=dx===1?{ex:vneg(f.n),ey:f.ey,n:f.ex}:dx===-1?{ex:f.n,ey:f.ey,n:vneg(f.ex)}:dy===1?{ex:f.ex,ey:vneg(f.n),n:f.ey}:{ex:f.ex,ey:f.n,n:vneg(f.ey)};q.push(j);}}
+  return F;
+}
+function foldHinge(cells,arrows){
+  const idx=new Map(cells.map((c,i)=>[c[0]+','+c[1],i])),T=cells.map(()=>null);
+  const mul=(A,B)=>({m:[0,1,2].map(r=>[0,1,2].map(c=>A.m[r][0]*B.m[0][c]+A.m[r][1]*B.m[1][c]+A.m[r][2]*B.m[2][c])),t:[0,1,2].map(r=>A.m[r][0]*B.t[0]+A.m[r][1]*B.t[1]+A.m[r][2]*B.t[2]+A.t[r])});
+  const app=(A,p)=>[0,1,2].map(r=>A.m[r][0]*p[0]+A.m[r][1]*p[1]+A.m[r][2]*p[2]+A.t[r]);
+  const hinge=(a,u,s)=>{                         // Drehung um 90°·s um die Achse durch a mit Richtung u (Rodrigues, sin = s, cos = 0)
+    const K=[[0,-u[2],u[1]],[u[2],0,-u[0]],[-u[1],u[0],0]],m=[0,1,2].map(r=>[0,1,2].map(c=>u[r]*u[c]+s*K[r][c]));
+    return{m,t:[0,1,2].map(r=>a[r]-(m[r][0]*a[0]+m[r][1]*a[1]+m[r][2]*a[2]))};};
+  T[0]={m:[[1,0,0],[0,1,0],[0,0,1]],t:[0,0,0]};const q=[0];
+  while(q.length){const i=q.shift(),[x,y]=cells[i];
+    for(const [dx,dy] of DIRS){const j=idx.get((x+dx)+','+(y+dy));if(j===undefined||T[j])continue;
+      const H=dx===1?hinge([x+1,0,0],[0,1,0],1):dx===-1?hinge([x,0,0],[0,1,0],-1):dy===1?hinge([0,y+1,0],[1,0,0],-1):hinge([0,y,0],[1,0,0],1);
+      T[j]=mul(T[i],H);q.push(j);}}
+  const C=cells.map(([x,y],i)=>app(T[i],[x+.5,y+.5,0])),mid=[0,1,2].map(k=>C.reduce((s,p)=>s+p[k],0)/6);
+  return cells.map(([x,y],i)=>{const n=C[i].map((v,k)=>Math.round(2*(v-mid[k])));let a=null;
+    if(arrows){const tip=app(T[i],[x+.5+.25*arrows[i][0],y+.5+.25*arrows[i][1],0]);a=tip.map((v,k)=>Math.round(4*(v-C[i][k])));}
+    return{n,a};});
+}
+const ROT24=(()=>{const out=[],seen=new Set(),ap=(M,v)=>M.map(r=>vdot(r,v)),cols=M=>[0,1,2].map(c=>M.map(r=>r[c]));
+  const G=[[[0,-1,0],[1,0,0],[0,0,1]],[[1,0,0],[0,0,-1],[0,1,0]]],q=[[[1,0,0],[0,1,0],[0,0,1]]];
+  while(q.length){const M=q.shift(),k=JSON.stringify(M);if(seen.has(k))continue;seen.add(k);out.push(M);
+    for(const g of G)q.push(g.map(r=>cols(M).map(c=>vdot(r,c))));}
+  return out.map(M=>v=>ap(M,v));})();                                      // Verfahren B: Erzeugung über zwei Vierteldrehungen
+const ROT24B=(()=>{const out=[];for(const p of [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]])for(let s=0;s<8;s++){
+    const M=[0,1,2].map(r=>{const row=[0,0,0];row[p[r]]=s>>r&1?-1:1;return row;});
+    const det=vdot(M[0],vcross(M[1],M[2]));if(det===1)out.push(v=>M.map(r=>vdot(r,v)));}return out;})();  // Verfahren A: vorzeichenbehaftete Permutationen
+const UP=[0,0,1],LEFT=[0,1,0],RIGHT=[1,0,0];
+function viewsOf(faces,rots){                    // faces: [{n, a}] je Netzfeld -> Menge aller Ansichten als Schlüssel
+  const out=new Set();
+  for(const Q of rots){const pick=w=>faces.findIndex(f=>vkey(Q(f.n))===vkey(w)),f=[pick(UP),pick(LEFT),pick(RIGHT)];
+    out.add(f.join(':')+(faces[0].a?'|'+f.map(i=>vkey(Q(faces[i].a))).join('/'):''));}
+  return out;
+}
+const viewKey=v=>v.f.join(':')+(v.a?'|'+v.a.map(vkey).join('/'):'');
+const FACE_COL=['Cyan','Violett','Magenta','Gelb','Weiß','Grün'];
+
 /* ---------------------------------------------------------------- D · SPATIAL LOGIC */
 function genNetOpp(R,d){
   const line4=q=>[0,1].some(ax=>{const m={};q.forEach(p=>m[p[1-ax]]=(m[p[1-ax]]||0)+1);return Object.values(m).includes(4);});
@@ -634,30 +847,31 @@ function genNetOpp(R,d){
   const lab=foldNet(c),m=R.int(0,5),opp=lab.findIndex(l=>l===(lab[m]^1));
   const adj=range(6).filter(i=>i!==m&&i!==opp),two=R.shuffle(adj).slice(0,2).sort();
   const pairs=[];range(6).forEach(i=>{const j=lab.findIndex(l=>l===(lab[i]^1));if(i<j)pairs.push(LETTERS[i]+'–'+LETTERS[j]);});
-  return{sub:'netopp',kind:'net',rating:d?4:2,prompt:`Dieses Netz wird zu einem Würfel gefaltet. Welche Fläche liegt dann der Fläche ${LETTERS[m]} genau gegenüber?`,
+  return{sub:'netopp',kind:'net',rating:0.5,prompt:`Dieses Netz wird zu einem Würfel gefaltet. Welche Fläche liegt dann der Fläche ${LETTERS[m]} genau gegenüber?`,
     rules:['Tippe die Fläche im Netz an.'],view:{cells:c,mark:m},solution:opp,
     hints:['Lass eine Fläche als Boden liegen und klappe die anderen gedanklich hoch.','Gegenüberliegende Flächen berühren sich nie. In einer geraden Reihe liegt immer genau eine Fläche dazwischen.',`Die Flächen ${LETTERS[two[0]]} und ${LETTERS[two[1]]} grenzen am Würfel an ${LETTERS[m]} – sie scheiden aus.`],
     explain:`Gegenüber von ${LETTERS[m]} liegt ${LETTERS[opp]}. Die drei Paare sind ${pairs.join(', ')}.`,sig:'net:'+pKey(c)+'@'+m};
 }
-function genNetValid(R,d){
-  const wantValid=d!==2,near=d>=2,opts=[],keys=new Set();
-  const invalid=()=>{for(let t=0;t<800;t++){const c=randPoly(R,6);if(foldNet(c))continue;if(near&&(has2x2(c)||Math.max(...pDims(c))>4))continue;return c;}return null;};
-  const push=c=>{if(!c)return false;const k=canonFree(c);if(keys.has(k))return false;keys.add(k);let v=c;for(let i=R.int(0,3);i>0;i--)v=P_ROT(v);opts.push(pNorm(v));return true;};
+const MULTI_RULE='Es kann mehr als eine Antwort richtig sein. Wähle alle passenden aus.';
+function genNetMulti(R,d){
+  const near=d>=2,opts=[],valid=[],keys=new Set(),nValid=R.int(1,4);
+  const invalid=()=>{const nr=near||valid.some(x=>!x);for(let t=0;t<800;t++){const c=randPoly(R,6);if(foldNet(c))continue;if(nr&&(has2x2(c)||Math.max(...pDims(c))>4))continue;return c;}return null;};   // ab dem zweiten ungültigen Netz kein sichtbarer Fehler mehr
+  const push=(c,ok)=>{if(!c)return false;const k=canonFree(c);if(keys.has(k))return false;keys.add(k);let v=c;for(let i=R.int(0,3);i>0;i--)v=P_ROT(v);if(R.chance(.5))v=P_MIR(v);opts.push(pNorm(v));valid.push(ok);return true;};
   let guard=0;
-  if(!push(wantValid?randNet(R):invalid()))return null;
-  while(opts.length<4&&guard++<200)push(wantValid?invalid():randNet(R));
-  if(opts.length<4)return null;
-  const order=R.shuffle(range(4)),view=order.map(i=>opts[i]),ans=order.indexOf(0),other=order.indexOf(1);
-  return{sub:'netvalid',kind:'choice',rating:[0,4.5,6.5,8.5][d],
-    prompt:wantValid?'Nur eines dieser Netze lässt sich zu einem geschlossenen Würfel falten. Welches?':'Drei dieser Netze ergeben einen Würfel, eines nicht. Welches lässt sich nicht falten?',
-    rules:['Beim Falten darf keine Fläche auf einer anderen landen.'],view:{fig:'polys',opts:view,cols:2},solution:ans,
+  while(opts.length<6&&guard++<300)push(opts.length<nValid?randNet(R):invalid(),opts.length<nValid);
+  if(opts.length<6)return null;
+  const order=R.shuffle(range(6)),view=order.map(i=>opts[i]),sol=order.map((i,k)=>valid[i]?k:-1).filter(k=>k>=0),wrong=order.map((i,k)=>valid[i]?-1:k).filter(k=>k>=0);
+  const h=R.pick(wrong);
+  return{sub:'netvalid',kind:'multi',rating:[0,1.6,3,4.5][d],
+    prompt:'Welche dieser Netze lassen sich zu einem geschlossenen Würfel falten?',
+    rules:['Beim Falten darf keine Fläche auf einer anderen landen.',MULTI_RULE],view:{fig:'polys',opts:view,cols:3},solution:sol,
     hints:['Wähle in jedem Netz eine Bodenfläche und klappe die übrigen gedanklich hoch.','Ein Netz scheitert, wenn zwei Flächen auf derselben Würfelseite landen. Vier Quadrate an einem gemeinsamen Punkt oder fünf in einer Reihe gehen nie.',
-      wantValid?`Netz ${LETTERS[other]} scheidet aus: Dort würden sich zwei Flächen überdecken.`:`Netz ${LETTERS[other]} lässt sich falten – es ist nicht das gesuchte.`],
-    explain:wantValid?`Nur Netz ${LETTERS[ans]} schließt sich zu einem Würfel. Bei den anderen landen zwei Flächen auf derselben Seite.`:`Bei Netz ${LETTERS[ans]} landen zwei Flächen auf derselben Würfelseite. Die anderen drei schließen sich sauber.`,
+      `Netz ${LETTERS[h]} lässt sich nicht falten.`],
+    explain:`Falten lassen sich ${sol.map(i=>LETTERS[i]).join(', ')}. Bei ${wrong.map(i=>LETTERS[i]).join(', ')} landen zwei Flächen auf derselben Seite.`,
     sig:'nv:'+[...keys].sort().join('/')};
 }
-function genRotate(R,d){
-  const n=[5,6,7,8][d],marks=d>=2?2:1;
+function genRotate(R,d){                          // Easy: eine aus vier
+  const n=5,marks=1;
   for(let t=0;t<300;t++){
     let c=randPoly(R,n);const dm=pDims(c);if(Math.max(...dm)>5||Math.min(...dm)<2)continue;
     R.shuffle(range(n)).slice(0,marks).forEach((i,k)=>c[i][2]=k+1);
@@ -665,16 +879,46 @@ function genRotate(R,d){
     const markMove=s=>{const a=s.map(p=>p.slice()),mk=a.filter(p=>p[2]),pl=a.filter(p=>!p[2]);const x=R.pick(mk),y=R.pick(pl);y[2]=x[2];x[2]=0;return a;};
     const cellMove=s=>{for(let k=0;k<40;k++){const a=s.map(p=>p.slice()),pl=range(a.length).filter(i=>!a[i][2]),i=R.pick(pl);a.splice(i,1);if(!pConnected(a))continue;
         const [x,y]=R.pick(a),[dx,dy]=R.pick(DIRS);if(a.some(p=>p[0]===x+dx&&p[1]===y+dy))continue;a.push([x+dx,y+dy,0]);if(Math.max(...pDims(a))>5)continue;return a;}return null;};
-    const dis=d<2?[P_MIR(c),cellMove(c),markMove(c)]:[P_MIR(c),markMove(c),P_MIR(markMove(c))];
+    const dis=[P_MIR(c),cellMove(c),markMove(c)];
     if(dis.some(x=>!x))continue;
     const ks=dis.map(canonRot);if(ks.includes(ref)||new Set(ks).size<3)continue;
     const turn=R.int(1,3),spin=(s,k)=>{for(;k>0;k--)s=P_ROT(s);return pNorm(s);};
     const all=[spin(c,turn)].concat(dis.map(x=>spin(x,R.int(0,3)))),order=R.shuffle(range(4));
     const ans=order.indexOf(0),mir=order.indexOf(1);
-    return{sub:'rotate',kind:'choice',rating:[2,4,6.5,8.5][d],prompt:'Welche Figur ist die Vorlage – nur gedreht, nicht gespiegelt und nicht verändert?',
+    return{sub:'rotate',kind:'choice',rating:0.5,prompt:'Welche Figur ist die Vorlage – nur gedreht, nicht gespiegelt und nicht verändert?',
       rules:['Die Figur darf in der Ebene gedreht, aber nicht umgeklappt werden.'],view:{fig:'polys',ref:pNorm(c),opts:order.map(i=>all[i]),cols:2},solution:ans,
       hints:['Drehe die Vorlage gedanklich in Vierteldrehungen und vergleiche den Umriss.','Achte auf das farbige Feld: Auf welcher Seite der Figur liegt es, wenn du an ihr entlangläufst?',`Figur ${LETTERS[mir]} ist ein Spiegelbild der Vorlage – sie scheidet aus.`],
       explain:`Figur ${LETTERS[ans]} ist die Vorlage, um ${turn*90}° im Uhrzeigersinn gedreht. Die anderen sind gespiegelt oder leicht verändert.`,sig:'rot:'+ref};
+  }
+  return null;
+}
+function genRotateMulti(R,d){
+  const n=[5,6,7,8][d],marks=d>=2?2:1;
+  for(let t=0;t<300;t++){
+    let c=randPoly(R,n);const dm=pDims(c);if(Math.max(...dm)>5||Math.min(...dm)<2)continue;
+    R.shuffle(range(n)).slice(0,marks).forEach((i,k)=>c[i][2]=k+1);
+    const ref=canonRot(c);if(ref===canonRot(P_MIR(c)))continue;
+    const markMove=s=>{const a=s.map(p=>p.slice()),mk=a.filter(p=>p[2]),pl=a.filter(p=>!p[2]);const x=R.pick(mk),y=R.pick(pl);y[2]=x[2];x[2]=0;return a;};
+    const markSwap=s=>s.map(p=>[p[0],p[1],p[2]?3-p[2]:0]);
+    const cellMove=s=>{for(let k=0;k<40;k++){const a=s.map(p=>p.slice()),pl=range(a.length).filter(i=>!a[i][2]),i=R.pick(pl);a.splice(i,1);if(!pConnected(a))continue;
+        const [x,y]=R.pick(a),[dx,dy]=R.pick(DIRS);if(a.some(p=>p[0]===x+dx&&p[1]===y+dy))continue;a.push([x+dx,y+dy,0]);if(Math.max(...pDims(a))>5)continue;return a;}return null;};
+    const makers=d<2?[['gespiegelt',()=>P_MIR(c)],['gespiegelt',()=>P_MIR(c)],['verändert',()=>cellMove(c)],['verändert',()=>markMove(c)],['gespiegelt und verändert',()=>P_MIR(markMove(c))]]
+      :[['gespiegelt',()=>P_MIR(c)],['verändert',()=>markMove(c)],['gespiegelt und verändert',()=>P_MIR(markMove(c))],['verändert',()=>markSwap(c)],['gespiegelt und verändert',()=>P_MIR(markSwap(c))]];
+    const m=R.int(1,3),turns=R.shuffle([0,1,2,3]).slice(0,m),items=turns.map(k=>({ok:true,cells:c,turn:k})),seen=new Set([ref]);
+    for(let g=0;g<60&&items.length<6;g++){const [why,mk]=R.pick(makers),x=mk();if(!x)continue;const k=canonRot(x);
+      if(why==='gespiegelt'&&items.filter(i=>i.why==='gespiegelt').length<2){if(k===ref)continue;items.push({ok:false,cells:x,why,turn:R.int(0,3)});continue;}
+      if(seen.has(k))continue;seen.add(k);items.push({ok:false,cells:x,why,turn:R.int(0,3)});}
+    if(items.length<6)continue;
+    const strip=x=>canonRot(x.map(q=>[q[0],q[1],0])),sref=strip(c);
+    if(!items.some(i=>!i.ok&&i.why==='gespiegelt')||!items.some(i=>!i.ok&&strip(i.cells)===sref))continue;   // der Umriss allein darf nicht reichen
+    const spin=(s,k)=>{for(;k>0;k--)s=P_ROT(s);return pNorm(s);};
+    const order=R.shuffle(range(6)),opts=order.map(i=>spin(items[i].cells,items[i].turn));
+    if(new Set(opts.map(pKey)).size<6)continue;
+    const sol=order.map((i,k)=>items[i].ok?k:-1).filter(k=>k>=0),bad=order.map((i,k)=>items[i].ok?-1:k).filter(k=>k>=0),hb=R.pick(bad);
+    return{sub:'rotate',kind:'multi',rating:[0.5,1.6,3,4.5][d],prompt:'Welche Figuren sind die Vorlage – nur gedreht, nicht gespiegelt und nicht verändert?',
+      rules:['Die Figur darf in der Ebene gedreht, aber nicht umgeklappt werden.',MULTI_RULE],view:{fig:'polys',ref:pNorm(c),opts,cols:3},solution:sol,
+      hints:['Drehe die Vorlage gedanklich in Vierteldrehungen und vergleiche den Umriss.',`Achte auf ${marks>1?'die farbigen Felder: Wo liegen sie zueinander und':'das farbige Feld:'} auf welcher Seite der Figur, wenn du an ihr entlangläufst?`,`Figur ${LETTERS[hb]} ist ${items[order[hb]].why} – sie gehört nicht dazu.`],
+      explain:`Richtig sind ${sol.map(i=>LETTERS[i]).join(', ')}. ${bad.map(i=>LETTERS[i]+' ist '+items[order[i]].why).join(', ')}.`,sig:'rotm:'+ref+':'+opts.map(pKey).join('/')};
   }
   return null;
 }
@@ -685,36 +929,116 @@ function cubeStats(h){
   return{sum,hid,mx,W,D};
 }
 function genCubes(R,d,force){
-  const mode=force||[ 'count',R.chance(.6)?'count':'fill',R.chance(.4)?'fill':'hidden',R.chance(.65)?'hidden':'fill'][d];
-  for(let t=0;t<300;t++){
-    const [W,D]=R.pick([[[2,2],[3,2],[2,3]],[[3,2],[2,3],[3,3]],[[3,3]],[[3,3],[4,3],[3,4]]][d]),maxH=[3,3,4,5][d];
+  const mode=force||(d===0?'count':'fill'),T0=R.int(8,36);   // beim Auffüllen: Zielwert zuerst
+  for(let t=0;t<1500;t++){
+    const [W,D]=R.pick([[[2,2],[3,2],[2,3]],[[3,3],[4,3],[3,4],[4,4]],[[3,3]],[[3,3],[4,3],[3,4]]][d]),maxH=[3,5,4,5][d];
     const h=series(W,()=>Array(D).fill(0)),floor=mode==='count'?0:1;
     for(let i=0;i<W;i++)for(let j=0;j<D;j++){
-      if(!i&&!j){h[0][0]=R.int(d>=2?3:2,maxH);continue;}
+      if(!i&&!j){h[0][0]=R.int(d>=1?3:2,maxH);continue;}
       const m=Math.min(i?h[i-1][j]:99,j?h[i][j-1]:99);h[i][j]=Math.max(floor,m-R.pick([0,0,1,1,2]));}
     const s=cubeStats(h),flat=h.flat();if(new Set(flat).size<2||s.sum<4)continue;
-    const full=W*D*s.mx,sol=mode==='count'?s.sum:mode==='fill'?full-s.sum:s.hid;
-    if(mode==='fill'&&sol<2)continue;if(mode==='hidden'&&sol<(d===3?2:1))continue;
+    const full=W*D*s.mx,sol=mode==='count'?s.sum:full-s.sum;
+    if(mode==='fill'&&(sol<8||(t<1400&&sol!==T0)))continue;
     const rows=flat.filter(v=>v).sort((a,b)=>b-a).join(' + ');
     const base={sub:'cubes',kind:'number',view:{fig:'cubes',h},solution:sol,sig:'cub:'+mode+':'+flat.join(''),
       rules:['Jeder Würfel liegt auf dem Boden oder auf einem anderen Würfel.','Kein Turm versteckt sich hinter einem höheren.']};
-    if(mode==='count')return Object.assign(base,{rating:d?3.5:2,prompt:'Aus wie vielen Würfeln besteht dieses Bauwerk?',
+    if(mode==='count')return Object.assign(base,{rating:d?1.2:0.5,prompt:'Aus wie vielen Würfeln besteht dieses Bauwerk?',
       hints:['Zähle Turm für Turm statt Würfel für Würfel.','Unter jedem sichtbaren Würfel liegen weitere – bis hinunter zum Boden.',`Es gibt ${flat.filter(v=>v).length} Türme, der höchste besteht aus ${s.mx} Würfeln.`],
       explain:`Turm für Turm gezählt: ${rows} = ${s.sum} Würfel.`});
-    if(mode==='fill')return Object.assign(base,{rating:d===1?4.5:d===2?6:8,prompt:'Wie viele Würfel fehlen, damit ein lückenloser Quader entsteht, der so hoch ist wie der höchste Turm?',
+    return Object.assign(base,{rating:1.6,prompt:'Wie viele Würfel fehlen, damit ein lückenloser Quader entsteht, der so hoch ist wie der höchste Turm?',
       hints:['Wie groß wäre der volle Quader?',`Der Quader misst ${W} × ${D} × ${s.mx} Würfel.`,`Der volle Quader hätte ${full} Würfel. Ziehe die vorhandenen ab.`],
       explain:`Der volle Quader hat ${W} × ${D} × ${s.mx} = ${full} Würfel. Verbaut sind ${s.sum}, es fehlen also ${sol}.`});
-    return Object.assign(base,{rating:d===2?7:9,prompt:'Wie viele Würfel sind aus diesem Blickwinkel vollständig verdeckt – also ohne eine einzige sichtbare Fläche?',
-      hints:['Ein Würfel ist verdeckt, wenn auf ihm, rechts vor ihm und links vor ihm jeweils ein anderer Würfel sitzt.','Der oberste Würfel jedes Turms ist immer zu sehen. Suche in den unteren Schichten der hinteren Türme.',`Insgesamt sind ${s.sum} Würfel verbaut, ${s.sum-s.hid} davon sind zu sehen.`],
-      explain:`Von ${s.sum} Würfeln sind ${s.sum-s.hid} sichtbar, ${s.hid} liegen vollständig im Inneren.`});
+  }
+  return null;
+}
+/* Mindestzahl aus Ansichten. Jeder Turm ist entweder leer (bzw. 1 hoch, wenn die Draufsicht ihn zeigt)
+   oder so hoch wie min(vorn, rechts); jede andere Höhe hilft nicht. Daher reicht eine Suche über alle
+   2^Felder Möglichkeiten, und das Minimum ist exakt. */
+function viewsMin(F,S,T){
+  if(!T)return[...new Set(F.concat(S))].reduce((s,h)=>s+h*Math.max(F.filter(x=>x===h).length,S.filter(x=>x===h).length),0);   // ohne Draufsicht: je Höhe zählt die Seite mit mehr Säulen
+  const W=F.length,D=S.length,cells=[];
+  for(let i=0;i<W;i++)for(let j=0;j<D;j++){if(T&&!T[i][j])continue;const m=Math.min(F[i],S[j]);cells.push({i,j,m});}
+  const base=T?cells.length:0,lift=cells.filter(c=>T?c.m>1:c.m>=1);let best=Infinity;
+  for(let mask=0;mask<1<<lift.length;mask++){
+    let cost=base;const rowOK=F.map(()=>false),colOK=S.map(()=>false);
+    if(T)cells.forEach(c=>{if(F[c.i]===1)rowOK[c.i]=true;if(S[c.j]===1)colOK[c.j]=true;});
+    for(let b=0;b<lift.length;b++)if(mask>>b&1){const c=lift[b];cost+=T?c.m-1:c.m;if(F[c.i]===c.m)rowOK[c.i]=true;if(S[c.j]===c.m)colOK[c.j]=true;}
+    if(cost<best&&rowOK.every(Boolean)&&colOK.every(Boolean))best=cost;
+  }
+  return best;
+}
+function genViews(R,d){
+  const three=d>=3,T0=R.int(three?12:8,three?32:27);   // Zielwert zuerst: verteilt die Antworten gleichmäßig, damit Raten nicht lohnt
+  for(let t=0;t<(three?500:2000);t++){
+    const relax=t>=(three?450:1900),[W,D]=R.pick([[3,3],[4,3],[3,4],[4,4]]),h=series(W,()=>series(D,()=>R.chance(three?.7:.6)?R.int(1,5):0));
+    const F=h.map(r=>Math.max(...r)),S=range(D).map(j=>Math.max(...h.map(r=>r[j]))),T=three?h.map(r=>r.map(v=>v?1:0)):null;
+    if(F.some(v=>!v)||S.some(v=>!v)||new Set(F.concat(S)).size<3)continue;
+    const min=viewsMin(F,S,T),sF=F.reduce((a,b)=>a+b),sS=S.reduce((a,b)=>a+b),two=viewsMin(F,S,null);
+    if(min<(three?12:7)||min>(three?38:32))continue;
+    if(!relax&&min!==T0)continue;
+    if(!relax&&!three&&[sF,sS].includes(min))continue;                 // keine Abkürzung über eine Ansicht allein
+    if(!relax&&three&&(min===two||min===T.flat().reduce((a,b)=>a+b)))continue; // die Draufsicht muss etwas ändern
+    const H=Math.max(...F),cnt=v=>Math.max(F.filter(x=>x===H).length,S.filter(x=>x===H).length);
+    const levels=[...new Set(F.concat(S))].sort((a,b)=>b-a),terms=levels.map(v=>`${v} × ${Math.max(F.filter(x=>x===v).length,S.filter(x=>x===v).length)}`);
+    const nT=three?T.flat().reduce((a,b)=>a+b):0;
+    return{sub:'views',kind:'number',rating:three?5:3.2,
+      prompt:three?'So sieht ein Bauwerk aus Würfeln von vorn, von rechts und von oben aus. Aus wie vielen Würfeln besteht es mindestens?':'So sieht ein Bauwerk aus Würfeln von vorn und von rechts aus. Aus wie vielen Würfeln besteht es mindestens?',
+      rules:['Jeder Würfel liegt auf dem Boden oder auf einem anderen Würfel.','Die Ansichten zeigen, wie hoch das Bauwerk in jeder Reihe höchstens ist.',`Die Grundfläche ist ${W} × ${D} Felder groß.`],
+      view:{fig:'views',F,S,T,W,D},solution:min,
+      hints:['Jede Säule der Vorderansicht braucht irgendwo einen Turm genau dieser Höhe – ebenso jede Säule der Seitenansicht.','Ein einzelner Turm kann vorn und rechts zugleich eine Säule bedienen, wenn beide gleich hoch sind.',
+        three?`Schon die Draufsicht verlangt ${nT} Würfel am Boden.`:`Für die Höhe ${H} brauchst du ${cnt(H)} Turm${cnt(H)>1?'e':''}.`],
+      explain:three?`Jedes Feld der Draufsicht trägt mindestens einen Würfel (${nT}). Dazu kommen so wenige Türme wie möglich, die die Höhen der beiden Ansichten erreichen: zusammen ${min} Würfel.`
+        :`Je Höhe zählt die Ansicht mit mehr Säulen dieser Höhe: ${terms.join(' + ')} = ${min} Würfel.`,
+      sig:'vw:'+F+'/'+S+(T?'/'+T.flat().join(''):'')};
+  }
+  return null;
+}
+function genCView(R,d){
+  const arrows=d>=3;
+  for(let t=0;t<60;t++){
+    let c=randNet(R);if(!c)return null;
+    for(let k=R.int(0,3);k>0;k--)c=P_ROT(c);if(R.chance(.5))c=P_MIR(c);c=pNorm(c).map(p=>[p[0],p[1]]);
+    const lab=foldNet(c);if(!lab)continue;
+    const col=R.shuffle(range(6)),arr=arrows?c.map(()=>R.pick(DIRS)):null;
+    // Erzeugung: ohne Pfeile über Verfahren 1 (Abrollen + Ecken-Orientierung), mit Pfeilen über Verfahren A (Rahmen)
+    let valid=[];
+    if(!arrows){const nr=lab.map(l=>N_ROLL[l]),want=vdot(UP,vcross(LEFT,RIGHT));
+      for(let a=0;a<6;a++)for(let b=0;b<6;b++)for(let e=0;e<6;e++){if(a===b||b===e||a===e)continue;
+        if([[a,b],[b,e],[a,e]].some(([x,y])=>vkey(nr[x])===vkey(vneg(nr[y]))))continue;
+        if(vdot(nr[a],vcross(nr[b],nr[e]))===want)valid.push({f:[a,b,e],a:null});}}
+    else{const Fr=foldFrames(c),faces=Fr.map((f,i)=>({n:f.n,a:[0,1,2].map(k=>arr[i][0]*f.ex[k]+arr[i][1]*f.ey[k])}));
+      for(const Q of ROT24B){const pick=w=>faces.findIndex(f=>vkey(Q(f.n))===vkey(w)),f=[pick(UP),pick(LEFT),pick(RIGHT)];valid.push({f,a:f.map(i=>Q(faces[i].a))});}}
+    // Gegenprüfung mit Verfahren B (Scharniere, andere Drehgruppen-Erzeugung)
+    const setB=viewsOf(foldHinge(c,arr),ROT24);
+    if(valid.length!==24||!valid.every(v=>setB.has(viewKey(v)))||setB.size!==24)continue;
+    const opp=i=>lab.findIndex(l=>l===(lab[i]^1));
+    const m=R.int(arrows?1:1,arrows?2:3),good=R.shuffle(valid).slice(0,m),items=good.map(v=>({v,ok:true})),keys=new Set(good.map(viewKey));
+    const mk={
+      opp:()=>{const v=R.pick(valid),k=R.int(0,2),o=R.pick([0,1,2].filter(x=>x!==k));const f=v.f.slice();f[k]=opp(f[o]);return{f,a:v.a&&v.a.slice(),why:'zeigt zwei gegenüberliegende Flächen zugleich'};},
+      chir:()=>{const v=R.pick(valid);return{f:[v.f[0],v.f[2],v.f[1]],a:v.a&&[v.a[0],v.a[2],v.a[1]].map(x=>[x[1],x[0],x[2]]),why:'zeigt die Farben in gespiegelter Reihenfolge'};},
+      arrow:()=>{const v=R.pick(valid),k=R.int(0,2),N=[UP,LEFT,RIGHT][k],a=v.a.slice(),s=R.pick([1,2,3]);let x=a[k];for(let i=0;i<s;i++)x=vcross(N,x);a[k]=x;return{f:v.f.slice(),a,why:'hat einen Pfeil, der in die falsche Richtung zeigt'};}};
+    // die erste Falle ist fest: auf Normal und Insane gespiegelte Reihenfolge, auf Hard gegenüberliegende Flächen
+    const plan=d===1?['opp','opp','opp','chir']:d===2?['chir','chir','chir','opp']:['arrow','arrow','chir','arrow'];
+    for(let g=0;g<80&&items.length<5;g++){const x=mk[items.length===m?(d===2?'opp':'chir'):R.pick(plan)](),k=viewKey(x);if(keys.has(k)||setB.has(k))continue;keys.add(k);items.push({v:x,ok:false});}
+    if(items.length<5)continue;
+    const order=R.shuffle(range(5)),opts=order.map(i=>items[i].v),sol=order.map((i,k)=>items[i].ok?k:-1).filter(k=>k>=0),bad=order.map((i,k)=>items[i].ok?-1:k).filter(k=>k>=0);
+    if(!opts.every((v,k)=>setB.has(viewKey(v))===sol.includes(k)))continue;   // jede Antwort einzeln gegengeprüft
+    const hb=R.pick(bad);
+    return{sub:'cview',kind:'multi',rating:[0,1.7,3.2,5][d],prompt:'Dieses Netz wird zu einem Würfel gefaltet. Welche Ansichten zeigen diesen Würfel?',
+      rules:['Die Farben liegen außen auf dem Würfel.',arrows?'Die Pfeile sind außen aufgemalt und drehen sich beim Falten mit.':'Jede Farbe kommt genau einmal vor.',MULTI_RULE],
+      view:{fig:'cview',net:c,col,arr,opts:opts.map(v=>({f:v.f,a:v.a})),cols:3},solution:sol,
+      hints:['Gegenüberliegende Flächen sind am Würfel nie gleichzeitig zu sehen.',arrows?'Zeigt ein Pfeil im Netz auf eine Nachbarfläche, zeigt er am Würfel auf dieselbe Fläche.':'Achte auf die Reihenfolge der drei Farben rund um die vordere Ecke – im Netz liest du sie ab, indem du um eine gemeinsame Ecke herumgehst.',`Ansicht ${LETTERS[hb]} passt nicht.`],
+      explain:`Richtig sind ${sol.map(i=>LETTERS[i]).join(', ')}. ${bad.map(i=>`${LETTERS[i]} ${items[order[i]].v.why}`).join('; ')}.`,
+      sig:'cv:'+pKey(c)+':'+col+':'+opts.map(viewKey).join('/')};
   }
   return null;
 }
 function genSpatial(R,d){
   const x=R();
   if(d===0)return x<.35?genNetOpp(R,0):x<.7?genRotate(R,0):genCubes(R,0);
-  if(d===1)return x<.25?genNetOpp(R,1):x<.5?genRotate(R,1):x<.75?genCubes(R,1):genNetValid(R,1);
-  return x<.33?genRotate(R,d):x<.66?genCubes(R,d):genNetValid(R,d);
+  if(d===1)return x<.3?genCView(R,1):x<.55?genRotateMulti(R,1):x<.75?genNetMulti(R,1):genCubes(R,1);
+  if(d===2)return x<.3?genCView(R,2):x<.6?genViews(R,2):x<.8?genNetMulti(R,2):genRotateMulti(R,2);
+  return x<.4?genCView(R,3):x<.8?genViews(R,3):x<.9?genNetMulti(R,3):genRotateMulti(R,3);
 }
 
 /* ---------------------------------------------------------------- B · GEOMETRY LAB */
@@ -728,6 +1052,129 @@ const SYM={
   DD:{g:n=>[(r,c)=>[c,r],(r,c)=>[n-1-c,n-1-r],(r,c)=>[n-1-r,n-1-c]],p:'Ergänze das Muster so, dass es an beiden gestrichelten Diagonalen gespiegelt ist.',h:'Jedes Feld abseits der Diagonalen gehört zu einer Vierergruppe.'},
   R4:{g:n=>[(r,c)=>[c,n-1-r],(r,c)=>[n-1-r,n-1-c],(r,c)=>[n-1-c,r]],p:'Ergänze das Muster so, dass es nach jeder Vierteldrehung um den Mittelpunkt genauso aussieht.',h:'Jedes Feld gehört zu einer Vierergruppe: Drehe es dreimal um 90° weiter.'}
 };
+/* Symmetrie mit verdeckter Achse. Die Kandidaten stehen im Rätsel; „Fülle genau K Felder“ macht die Lösung
+   eindeutig: Für die richtige Symmetrie fehlen genau K Felder, jede andere bräuchte mehr. */
+const SYM_D4=n=>[(r,c)=>[r,n-1-c],(r,c)=>[n-1-r,c],(r,c)=>[n-1-r,n-1-c],(r,c)=>[c,r],(r,c)=>[n-1-c,n-1-r],(r,c)=>[c,n-1-r],(r,c)=>[n-1-c,r]];
+const SYM_NAME={V:'die Spiegelung an der senkrechten Mittelachse',H:'die Spiegelung an der waagerechten Mittelachse',D1:'die Spiegelung an der Diagonale von links oben nach rechts unten',
+  D2:'die Spiegelung an der Diagonale von rechts oben nach links unten',R2:'die halbe Drehung um den Mittelpunkt',R4:'die Vierteldrehung um den Mittelpunkt',
+  VH:'die Spiegelung an beiden Mittelachsen',DD:'die Spiegelung an beiden Diagonalen',D4:'die Spiegelung an allen vier Achsen'};
+const SYM_CAND=[null,{c:['V','H'],t:['V','H'],p:'Mache das Muster symmetrisch: Es soll an seiner senkrechten oder an seiner waagerechten Mittelachse gespiegelt sein.',k:[4,8]},
+  {c:['V','H','D1','D2','R2','R4'],t:['D1','D2','R2','R4','V','H'],p:'Mache das Muster symmetrisch: gespiegelt an einer Mittelachse oder einer Diagonale – oder unverändert nach einer halben oder einer Vierteldrehung um die Mitte.',k:[5,10]},
+  {c:['VH','DD','D4'],t:['VH','DD'],p:'Mache das Muster doppelt symmetrisch: Es soll an zwei Achsen zugleich gespiegelt sein – an beiden Mittelachsen, an beiden Diagonalen oder an allen vieren.',k:[6,12]}];
+function genSymHidden(R,d){
+  const n=6,C=SYM_CAND[d],G=k=>k==='D4'?SYM_D4(n):SYM[k].g(n);
+  const orbit=(g,i)=>{const r=Math.floor(i/n),c=i%n,s=new Set([i]);g.forEach(f=>{const [a,b]=f(r,c);s.add(a*n+b);});return[...s];};
+  const closure=(g,set)=>{const out=new Set();set.forEach(i=>orbit(g,i).forEach(j=>out.add(j)));return out;};
+  for(let t=0;t<300;t++){
+    const type=R.pick(C.t),g=G(type),orbs=new Map(),k=R.int(3,7),whole=R.int(1,3);
+    for(let i=0;i<(k+whole)*4&&orbs.size<k+whole;i++){const o=orbit(g,R.int(0,n*n-1));if(o.length>1)orbs.set(Math.min(...o),o);}
+    const given=[],miss=[];let w=0;
+    orbs.forEach(o=>{const sh=R.shuffle(o),gv=w++<whole?o.length:R.int(1,o.length-1);sh.forEach((c,i)=>(i<gv?given:miss).push(c));});   // einige Bahnen sind schon vollständig
+    const K=miss.length;if(K<C.k[0]||K>C.k[1]||given.length<4)continue;
+    const full=closure(g,given),key=s=>[...s].sort((a,b)=>a-b).join();
+    let ok=true;
+    for(const o of C.c){if(o===type)continue;const cl=closure(G(o),given),need=cl.size-given.length;
+      if(need<K||(need===K&&key(cl)!==key(full))){ok=false;break;}}
+    if(!ok)continue;
+    miss.sort((a,b)=>a-b);const gs=new Set(given),m0=R.pick(miss);
+    return{sub:'sym',kind:'sym',rating:[0,1.6,3,4.8][d],prompt:C.p,
+      rules:[`Fülle genau ${K} Felder.`,'Die Achsen sind nicht eingezeichnet – welche passt, findest du selbst heraus.','Tippe Felder an, um sie zu füllen oder wieder zu leeren.'],
+      view:{n,type,given:given.sort((a,b)=>a-b),hidden:true,K},solution:miss,
+      hints:['Prüfe jede mögliche Symmetrie: Wie viele Felder müsstest du für sie ergänzen?',`Gesucht ist ${SYM_NAME[type]}.`,`Ein fehlendes Feld liegt in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1}.`],
+      explain:`Gesucht war ${SYM_NAME[type]}. Dafür fehlten genau ${K} Felder; jede andere Symmetrie hätte mehr gebraucht.`,sig:'symh:'+type+':'+given.join(','),
+      validate(ans){if(!Array.isArray(ans))return false;const a=new Set(ans);
+        if(a.size===K&&miss.every(c=>a.has(c)))return true;
+        if(a.size!==K)return`Es müssen genau ${K} Felder gefüllt werden.`;return false;}};
+  }
+  return null;
+}
+/* Flächen: ordnen (Normal), alle gleich großen wählen (Hard), Polygon eintippen (Insane). */
+const bboxArea=p=>{const xs=p.map(q=>q[0]),ys=p.map(q=>q[1]);return(Math.max(...xs)-Math.min(...xs))*(Math.max(...ys)-Math.min(...ys));};
+const AREA_HINTS=['Zähle ganze Kästchen und setze halbe zu ganzen zusammen.','Dreiecke sind halbe Rechtecke: Grundseite × Höhe ÷ 2. Schräge Vierecke lassen sich zu Rechtecken umlegen.'];
+function genAreaOrder(R){
+  for(let t=0;t<400;t++){
+    const opts=[];for(let k=0;k<80&&opts.length<4;k++){const s=randShape(R);if(s.a>=3&&!opts.some(o=>Math.abs(o.a-s.a)<.5))opts.push(s);}
+    if(opts.length<4)continue;
+    const asc=range(4).sort((a,b)=>opts[a].a-opts[b].a),gaps=asc.slice(1).map((i,k)=>opts[i].a-opts[asc[k]].a);
+    if(Math.max(...gaps)>2.5&&t<300)continue;
+    const byBox=range(4).sort((a,b)=>bboxArea(opts[a].p)-bboxArea(opts[b].p)||a-b);
+    if(byBox.join()===asc.join()&&t<300)continue;                   // die Umrandung allein darf nicht die Reihenfolge verraten
+    return{sub:'area',kind:'order',rating:1.6,prompt:'Ordne die Formen nach ihrem Flächeninhalt: Tippe sie von der kleinsten zur größten an.',
+      rules:['Ein Kästchen im Raster ist eine Flächeneinheit.','Alle Flächen sind verschieden groß.','Tippst du eine gewählte Form noch einmal an, wird sie wieder frei.'],
+      view:{fig:'area',opts:opts.map(o=>o.p),cols:2},solution:asc,
+      hints:[AREA_HINTS[0],AREA_HINTS[1],`Die kleinste Form ist ${LETTERS[asc[0]]}.`],
+      explain:`Die Flächen: ${opts.map((o,k)=>LETTERS[k]+' = '+fmt(o.a)).join(', ')} Kästchen, also ${asc.map(i=>LETTERS[i]).join(' < ')}.`,sig:'ar:ord'+JSON.stringify(opts.map(o=>o.p))};
+  }
+  return null;
+}
+function genAreaEqual(R){
+  for(let t=0;t<400;t++){
+    const ref=randShape(R);if(ref.a<4)continue;
+    const m=R.int(1,3),opts=[];
+    for(let k=0;k<400&&opts.length<m;k++){const s=randShape(R);if(s.a===ref.a&&s.fam!==ref.fam&&!opts.some(o=>JSON.stringify(o.p)===JSON.stringify(s.p)))opts.push(s);}
+    if(opts.length<m)continue;
+    for(let k=0;k<400&&opts.length<6;k++){const s=randShape(R),df=Math.abs(s.a-ref.a);if(df>=.5&&df<=2&&!opts.some(o=>o.fam===s.fam&&o.a===s.a))opts.push(s);}
+    if(opts.length<6)continue;
+    const order=R.shuffle(range(6)),sol=order.map((i,k)=>i<m?k:-1).filter(k=>k>=0),view=order.map(i=>opts[i]);
+    const box=range(6).filter(k=>bboxArea(view[k].p)===bboxArea(ref.p));
+    if(box.join()===sol.join()&&t<300)continue;
+    const bad=range(6).filter(k=>!sol.includes(k)),hb=R.pick(bad);
+    return{sub:'area',kind:'multi',rating:3,prompt:'Welche Formen haben genau denselben Flächeninhalt wie die Vorlage?',
+      rules:['Ein Kästchen im Raster ist eine Flächeneinheit.',MULTI_RULE],
+      view:{fig:'area',ref:ref.p,opts:view.map(o=>o.p),cols:3},solution:sol,
+      hints:[AREA_HINTS[0],`Die Vorlage bedeckt ${fmt(ref.a)} Kästchen.`,`Form ${LETTERS[hb]} bedeckt ${fmt(view[hb].a)} Kästchen – sie gehört nicht dazu.`],
+      explain:`Die Vorlage bedeckt ${fmt(ref.a)} Kästchen. ${view.map((o,k)=>LETTERS[k]+' = '+fmt(o.a)).join(', ')}.`,sig:'ar:eqm:'+JSON.stringify(ref.p)+JSON.stringify(view.map(o=>o.p))};
+  }
+  return null;
+}
+function genPolyArea(R){
+  const T0=R.int(10,34);                           // Zielwert zuerst (gleichmäßig verteilte Antworten)
+  for(let t=0;t<4000;t++){
+    const k=R.int(6,8),pts=[],seen=new Set();
+    while(pts.length<k){const x=R.int(0,8),y=R.int(0,6),q=x+','+y;if(!seen.has(q)){seen.add(q);pts.push([x,y]);}}
+    const cx=pts.reduce((s,p)=>s+p[0],0)/k+.0137,cy=pts.reduce((s,p)=>s+p[1],0)/k+.0071;
+    let P=pts.map(p=>({p,a:Math.atan2(p[1]-cy,p[0]-cx)})).sort((a,b)=>a.a-b.a);
+    const ang=P.map(x=>x.a);if(ang.some((a,i)=>((ang[(i+1)%k]-a+2*Math.PI)%(2*Math.PI))>=Math.PI*.95))continue;   // Mittelpunkt im Inneren: einfaches Vieleck
+    P=P.map(x=>x.p);
+    for(let changed=true;changed;){changed=false;for(let i=0;i<P.length;i++){const a=P[(i+P.length-1)%P.length],b=P[i],c=P[(i+1)%P.length];
+      if((b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0])===0){P.splice(i,1);changed=true;break;}}}
+    if(P.length<5)continue;
+    const A2=Math.abs(P.reduce((s,[x,y],i)=>{const [u,v]=P[(i+1)%P.length];return s+x*v-u*y;},0));
+    if(A2%2||A2/2<10||A2/2>34)continue;
+    if(t<3800&&A2/2!==T0)continue;
+    const A=A2/2,edges=P.map((p,i)=>[p,P[(i+1)%P.length]]),slant=edges.filter(([p,q])=>p[0]!==q[0]&&p[1]!==q[1]).length;
+    const turn=P.map((b,i)=>{const a=P[(i+P.length-1)%P.length],c=P[(i+1)%P.length];return Math.sign((b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]));});
+    const reflex=turn.filter(s=>s!==Math.sign(turn.reduce((x,y)=>x+y,0))).length;
+    if(slant<3||reflex<1)continue;
+    const mx=Math.min(...P.map(p=>p[0])),my=Math.min(...P.map(p=>p[1])),poly=P.map(([x,y])=>[x-mx,y-my]);
+    const W=Math.max(...poly.map(p=>p[0])),H=Math.max(...poly.map(p=>p[1])),B=edges.reduce((s,[p,q])=>s+gcd(q[0]-p[0],q[1]-p[1]),0),I=A-B/2+1;
+    return{sub:'poly',kind:'number',rating:4.8,prompt:'Wie viele Kästchen bedeckt diese Form?',
+      rules:['Ein Kästchen im Raster ist eine Flächeneinheit. Die Ecken liegen auf Gitterpunkten.','Die Fläche ist eine ganze Zahl.'],
+      view:{fig:'poly',p:poly},solution:A,
+      hints:['Umrande die Form mit einem Rechteck und ziehe ab, was außerhalb liegt – oder zerlege sie in Rechtecke und rechtwinklige Dreiecke.',`Das umschließende Rechteck ist ${W} × ${H} = ${W*H} Kästchen groß.`,`Auf dem Rand der Form liegen ${B} Gitterpunkte, im Inneren ${I}.`],
+      explain:`Die Form bedeckt ${A} Kästchen. Probe mit dem Satz von Pick: ${I} innere Punkte + ${B} Randpunkte ÷ 2 − 1 = ${A}.`,sig:'poly:'+JSON.stringify(poly)};
+  }
+  return null;
+}
+/* Legepuzzle: Zerlegungen der Zielfläche zählen (nur Drehen, wie im Spiel). */
+function asmCount(target,pieces,cap){
+  const tg=new Set(target.map(([x,y])=>x+','+y)),cells=target.slice().sort((a,b)=>a[1]-b[1]||a[0]-b[0]);
+  const rots=pieces.map(pc=>{const out=[],seen=new Set();let c=pc.map(q=>[q[0],q[1],0]);
+    for(let r=0;r<4;r++){const nn=pNorm(c),k=pKey(nn);if(!seen.has(k)){seen.add(k);out.push(nn.map(q=>[q[0],q[1]]));}c=P_ROT(c);}return out;});
+  const shape=pieces.map(pc=>canonRot(pc.map(q=>[q[0],q[1],0]))),used=pieces.map(()=>false),filled=new Set();let count=0;
+  (function rec(){
+    if(count>=cap)return;
+    const first=cells.find(([x,y])=>!filled.has(x+','+y));if(!first){count++;return;}
+    for(let i=0;i<rots.length;i++){
+      if(used[i]||shape.some((k,j)=>j<i&&!used[j]&&k===shape[i]))continue;
+      for(const r of rots[i]){const dx=first[0]-r[0][0],dy=first[1]-r[0][1],ks=r.map(([a,b])=>(a+dx)+','+(b+dy));
+        if(!ks.every(k=>tg.has(k)&&!filled.has(k)))continue;
+        used[i]=true;ks.forEach(k=>filled.add(k));rec();ks.forEach(k=>filled.delete(k));used[i]=false;}
+    }
+  })();
+  return count;
+}
+
 function genSym(R,d){
   const type=R.pick([['V'],['V','H'],['D1','D2','VH','R2'],['R4','DD','VH','R4']][d]),n=[6,6,7,8][d],G=SYM[type].g(n);
   const orbit=(r,c)=>{const s=new Set([r*n+c]);G.forEach(f=>{const [a,b]=f(r,c);s.add(a*n+b);});return[...s].sort((a,b)=>a-b);};
@@ -741,7 +1188,7 @@ function genSym(R,d){
       sh.forEach((c,i)=>(i<g?given:miss).push(c));});
     if(miss.length<3||miss.length>16||given.length<3)continue;
     miss.sort((a,b)=>a-b);const full=new Set(given.concat(miss)),gs=new Set(given),m0=R.pick(miss);
-    return{sub:'sym',kind:'sym',rating:[2,3.5,6.5,8.5][d],prompt:SYM[type].p,
+    return{sub:'sym',kind:'sym',rating:0.5,prompt:SYM[type].p,
       rules:['Tippe Felder an, um sie zu füllen oder wieder zu leeren.','Fülle nur die Felder, die für die Symmetrie nötig sind.'],
       view:{n,type,given:given.sort((a,b)=>a-b)},solution:miss,
       hints:['Jedes gefüllte Feld braucht sein Gegenstück.',SYM[type].h,`Es fehlen genau ${miss.length} Felder. Eines davon liegt in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1}.`],
@@ -792,7 +1239,7 @@ function genArea(R,d){
     const sorted=opts.slice().sort((a,b)=>mode==='max'?b.a-a.a:a.a-b.a),gap=Math.abs(sorted[0].a-sorted[1].a);
     if(d===0?gap<1:gap>1.5&&t<300)continue;
     const ans=opts.indexOf(sorted[0]);
-    return{sub:'area',kind:'choice',rating:[2,4,6,8][d],prompt:mode==='max'?'Welche Form bedeckt die größte Fläche?':'Welche Form bedeckt die kleinste Fläche?',rules:['Ein Kästchen im Raster ist eine Flächeneinheit.'],
+    return{sub:'area',kind:'choice',rating:0.5,prompt:mode==='max'?'Welche Form bedeckt die größte Fläche?':'Welche Form bedeckt die kleinste Fläche?',rules:['Ein Kästchen im Raster ist eine Flächeneinheit.'],
       view:{fig:'area',opts:opts.map(o=>o.p),cols:n===3?3:2},solution:ans,
       hints:['Zähle ganze Kästchen und setze halbe zu ganzen zusammen.','Dreiecke sind halbe Rechtecke: Grundseite × Höhe ÷ 2. Schräge Vierecke lassen sich zu Rechtecken umlegen.',`Die gesuchte Form bedeckt ${fmt(sorted[0].a)} Kästchen.`],
       explain:`Die Flächen: ${opts.map((o,k)=>LETTERS[k]+' = '+fmt(o.a)).join(', ')} Kästchen.`,sig:'ar:'+mode+JSON.stringify(opts.map(o=>o.p))};
@@ -800,11 +1247,12 @@ function genArea(R,d){
   return null;
 }
 function genAssemble(R,d){
-  const cfg=[{w:4,h:3,k:3,cut:0,cols:8,min:3,max:5},{w:4,h:4,k:4,cut:0,cols:8,min:3,max:5},{w:5,h:4,k:5,cut:R.int(0,2),cols:9,min:3,max:5},{w:5,h:5,k:6,cut:R.int(0,2),cols:10,min:3,max:6}][d];
+  const cfg=[{w:4,h:3,k:3,cut:0,cols:8,min:3,max:5},{w:4,h:4,k:4,cut:0,cols:8,min:3,max:5},{w:5,h:4,k:5,cut:R.int(1,2),notch:1,cols:9,min:3,max:5},{w:5,h:5,k:6,cut:R.int(1,2),cols:10,min:3,max:6}][d];
   const key=(x,y)=>x+','+y;
   for(let t=0;t<400;t++){
     let cells=[];for(let y=0;y<cfg.h;y++)for(let x=0;x<cfg.w;x++)cells.push([x,y]);
     const cut=R.shuffle([[0,0],[cfg.w-1,0],[0,cfg.h-1],[cfg.w-1,cfg.h-1]]).slice(0,cfg.cut).map(c=>key(...c));
+    if(cfg.notch){const edge=cells.filter(([x,y])=>(x===0||y===0||x===cfg.w-1||y===cfg.h-1)&&!cut.includes(key(x,y))&&!((x===0||x===cfg.w-1)&&(y===0||y===cfg.h-1)));cut.push(key(...R.pick(edge)));}
     cells=cells.filter(c=>!cut.includes(key(...c)));
     const free=new Set(cells.map(c=>key(...c))),P=R.shuffle(cells).slice(0,cfg.k).map(s=>[s]);
     P.forEach(p=>free.delete(key(...p[0])));
@@ -816,6 +1264,7 @@ function genAssemble(R,d){
     }
     if(free.size)continue;
     if(P.some(p=>p.length<cfg.min||p.length>cfg.max||Math.max(...pDims(p))>4||Math.min(...pDims(p))>3))continue;
+    if(d>0){const lim=d===3?(t>=370?99:t>=250?4:2):(t>=340?99:t>=260?2:1);if(asmCount(cells,P,lim+1)>lim)continue;}   // ab Normal genau eine Zerlegung (nach fester Versuchszahl gelockert)
     const ox=Math.floor((cfg.cols-cfg.w)/2),target=cells.map(([x,y])=>[x+ox,y]);
     let x=0,y=cfg.h+1,rowH=0;
     const pieces=R.shuffle(P).map(p=>{
@@ -824,7 +1273,7 @@ function genAssemble(R,d){
       const [pw,ph]=pDims(c);if(x+pw>cfg.cols){x=0;y+=rowH+1;rowH=0;}
       const out={cells:c,x,y,sol};x+=pw+1;rowH=Math.max(rowH,ph);return out;});
     const tset=new Set(target.map(c=>key(...c)));
-    return{sub:'assemble',kind:'assemble',rating:[2.5,4.5,6.5,8.5][d],prompt:'Lege alle Teile so in die markierte Fläche, dass sie lückenlos gefüllt ist.',
+    return{sub:'assemble',kind:'assemble',rating:[0.6,1.6,3,4.8][d],prompt:'Lege alle Teile so in die markierte Fläche, dass sie lückenlos gefüllt ist.',
       rules:['Ziehe ein Teil, um es zu bewegen. Tippe es an, um es zu drehen.','Teile dürfen sich nicht überlappen und nicht über den Rand ragen.'],
       view:{cols:cfg.cols,rows:y+rowH,target,pieces},solution:pieces.map(p=>p.sol),
       hints:['Beginne mit dem sperrigsten Teil – es passt an die wenigsten Stellen.','Schau auf die Ecken der Zielfläche: Welches Teil kann eine Ecke ausfüllen, ohne ein einzelnes Feld abzuschneiden?','Die gestrichelte Kontur zeigt, wo eines der Teile in einer möglichen Lösung liegt.'],
@@ -838,7 +1287,12 @@ function genAssemble(R,d){
   }
   return null;
 }
-function genGeometry(R,d){const x=R();return x<.36?genSym(R,d):x<.68?genArea(R,d):genAssemble(R,d);}
+function genGeometry(R,d){
+  const x=R();
+  if(d===0)return x<.36?genSym(R,0):x<.68?genArea(R,0):genAssemble(R,0);
+  if(d<3)return x<.33?genSymHidden(R,d):x<.66?(d===1?genAreaOrder(R):genAreaEqual(R)):genAssemble(R,d);
+  return x<.45?genAssemble(R,3):x<.8?genPolyArea(R):genSymHidden(R,3);
+}
 
 /* ---------------------------------------------------------------- E · PATTERN ENGINE */
 const ATTR={s:{n:5,name:'Die Form'},c:{n:4,name:'Die Farbe'},n:{n:3,name:'Die Anzahl'},f:{n:3,name:'Die Füllung'}};
@@ -862,7 +1316,7 @@ function genMatrix(R,d){
   const order=R.shuffle(range(nOpt)),ans=order.indexOf(0);
   const txt={row:'ist in jeder Zeile gleich',col:'ist in jeder Spalte gleich',latin:'kommt in jeder Zeile und jeder Spalte in allen drei Varianten genau einmal vor'};
   const lines=vary.map(a=>`${ATTR[a].name} ${txt[spec[a].rule]}.`);
-  return{sub:'matrix',kind:'choice',rating:[1.5,3.5,6,8.5][d]+(miss!==8?.5:0),prompt:'Welches Element gehört in das leere Feld?',
+  return{sub:'matrix',kind:'choice',rating:0.4,prompt:'Welches Element gehört in das leere Feld?',
     rules:['Das Raster folgt in Zeilen und Spalten festen Regeln.'],view:{fig:'matrix',cells,miss,opts:order.map(i=>opts[i]),cols:nOpt===4?4:3},solution:ans,
     hints:['Betrachte jede Eigenschaft für sich: Form, Farbe, Anzahl und Füllung.',`Hier ${nv===1?'verändert sich nur eine Eigenschaft':'verändern sich '+nv+' Eigenschaften'}: ${vary.map(a=>ATTR[a].name.split(' ')[1]).join(', ')}.`,lines[0]],
     explain:lines.join(' '),sig:'mx:'+cells.map(K).join('')+'@'+miss};
@@ -898,57 +1352,178 @@ function genPaint(R,d){
     if(!miss)continue;
     const vis=new Set(grid.filter((v,i)=>!miss.includes(i)));if(vis.size<k)continue;
     const m0=miss[R.int(0,miss.length-1)];
-    return{sub:'paint',kind:'paint',rating:[2,4,6.5,9][d],prompt:'Färbe die leeren Felder so, dass sie das Muster fortsetzen.',
+    return{sub:'paint',kind:'paint',rating:0.5,prompt:'Färbe die leeren Felder so, dass sie das Muster fortsetzen.',
       rules:['Tippe ein leeres Feld an, um durch die Farben zu wechseln.'],view:{n,k,grid:grid.map((v,i)=>miss.includes(i)?-1:v),miss},solution:miss.map(i=>grid[i]),
       hints:['Suche nach Wiederholungen entlang von Zeilen, Spalten und Diagonalen.',PAINT[rule].h,`Das Feld in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1} ist ${PCOL_NAME[grid[m0]]}.`],
       explain:PAINT[rule].h,sig:'pt:'+rule+':'+grid.join('')+'@'+miss.join(',')};
   }
   return null;
 }
-function genPattern(R,d){return R.chance(.55)?genMatrix(R,d):genPaint(R,d);}
+/* Matrix zum Einstellen. Regelfamilie je Eigenschaft (steht im Rätsel): in jeder Zeile gleich, in jeder
+   Spalte gleich, oder jede Variante einmal je Zeile und Spalte (das sind alle 12 lateinischen 3×3-Quadrate).
+   Eindeutig heißt: Jede Regel der Familie, die zu den sichtbaren Feldern passt, sagt dasselbe voraus. */
+function matPredict(cells,holes,a,nVals){
+  const vis=range(9).filter(i=>!holes.includes(i)),out=new Set();
+  const byLine=f=>{const m={};for(const i of vis){const k=f(i),v=cells[i][a];if(k in m&&m[k]!==v)return null;m[k]=v;}
+    if(holes.some(h=>!(f(h) in m)))return'?';return holes.map(h=>m[f(h)]).join();};
+  for(const f of [i=>Math.floor(i/3),i=>i%3]){const r=byLine(f);if(r)out.add(r);}
+  for(const k of [1,2])for(let o=0;o<3;o++){
+    const cls=i=>(Math.floor(i/3)+k*(i%3)+o)%3,m={};let ok=true;
+    for(const i of vis){const c=cls(i),v=cells[i][a];if(c in m&&m[c]!==v){ok=false;break;}m[c]=v;}
+    if(!ok||new Set(Object.values(m)).size<Object.keys(m).length)continue;
+    const free=range(nVals).filter(v=>!Object.values(m).includes(v)),open=[0,1,2].filter(c=>!(c in m));
+    if(holes.some(h=>!(cls(h) in m))){if(open.length===1&&free.length===1)m[open[0]]=free[0];else{out.add('?');continue;}}
+    out.add(holes.map(h=>m[cls(h)]).join());
+  }
+  return out;
+}
+function genMatrixBuild(R,d){
+  const keys=['s','c','n','f'],nv=[0,3,3,4][d],nh=[0,1,2,2][d];
+  for(let t=0;t<200;t++){
+    const vary=R.shuffle(keys).slice(0,nv);
+    const rules=d===1?R.shuffle(['latin',R.pick(['latin','row','col']),R.pick(['row','col'])]):d===2?R.shuffle(['latin','latin',R.pick(['row','col'])]):R.shuffle(['latin','latin','col','row']);
+    const spec={};let lk=R.pick([1,2]);
+    keys.forEach(a=>{const vals=R.shuffle(range(ATTR[a].n)).slice(0,3),i=vary.indexOf(a),rule=i<0?'const':rules[i];spec[a]={vals,rule,k:lk,o:R.int(0,2)};if(rule==='latin')lk=3-lk;});
+    const val=(a,r,c)=>{const s=spec[a];return s.rule==='const'?s.vals[0]:s.rule==='row'?s.vals[r]:s.rule==='col'?s.vals[c]:s.vals[(r+s.k*c+s.o)%3];};
+    const cells=range(9).map(i=>{const o={};keys.forEach(a=>o[a]=val(a,Math.floor(i/3),i%3));return o;});
+    const holes=R.shuffle(range(9)).slice(0,nh).sort((a,b)=>a-b);
+    const right=holes.map(h=>keys.map(a=>cells[h][a]).join()).join('|');
+    if(!keys.every(a=>{const p=matPredict(cells,holes,a,ATTR[a].n);return p.size===1&&!p.has('?');}))continue;
+    const sol=holes.map(h=>Object.assign({},cells[h]));
+    const txt={row:'ist in jeder Zeile gleich',col:'ist in jeder Spalte gleich',latin:'kommt in jeder Zeile und jeder Spalte in allen drei Varianten genau einmal vor'};
+    const lines=vary.map(a=>`${ATTR[a].name} ${txt[spec[a].rule]}.`);
+    return{sub:'matrix',kind:'build',rating:[0.4,1.5,3,4.5][d],prompt:nh>1?'Stelle die beiden Elemente ein, die in die leeren Felder gehören.':'Stelle das Element ein, das in das leere Feld gehört.',
+      rules:['Jede Eigenschaft – Form, Farbe, Anzahl, Füllung – ist in jeder Zeile gleich, in jeder Spalte gleich, oder kommt in jeder Zeile und Spalte in allen drei Varianten genau einmal vor.',
+        nh>1?'Tippe ein leeres Feld an und stelle darunter seine Eigenschaften ein.':'Stelle darunter Form, Farbe, Anzahl und Füllung ein.'],
+      view:{fig:'matrix',cells,holes},solution:sol,
+      hints:['Betrachte jede Eigenschaft für sich: Form, Farbe, Anzahl und Füllung.',`Hier verändern sich ${nv} Eigenschaften: ${vary.map(a=>ATTR[a].name.split(' ')[1]).join(', ')}. Die übrigen bleiben überall gleich.`,lines[0]],
+      explain:lines.join(' '),sig:'mxb:'+cells.map(o=>keys.map(a=>o[a]).join('')).join('')+'@'+holes+'>'+right,
+      validate(ans){return Array.isArray(ans)&&ans.length===sol.length&&ans.every((o,i)=>o&&keys.every(a=>o[a]===sol[i][a]));}};
+  }
+  return null;
+}
+/* Malraster mit Verschiebung: Jede Zeile ist die vorige, um s Felder nach rechts verschoben (zyklisch),
+   ab Hard rückt jede Farbe dabei um c Stufen weiter. Eindeutig: Suche über alle s, c und alle Belegungen
+   der ersten Zeile, die zu den sichtbaren Feldern passen. */
+function shiftAnswers(n,k,grid,miss,step){
+  const out=new Set();
+  for(let s=0;s<n;s++)for(let c=0;c<(step?k:1);c++){
+    const row0={};let ok=true;
+    for(let i=0;i<n*n&&ok;i++){if(grid[i]<0)continue;const r=Math.floor(i/n),cl=((i%n-r*s)%n+n)%n,v=((grid[i]-r*c)%k+k)%k;if(cl in row0&&row0[cl]!==v)ok=false;row0[cl]=v;}
+    if(!ok)continue;
+    out.add(miss.map(i=>{const r=Math.floor(i/n),cl=((i%n-r*s)%n+n)%n;return cl in row0?(row0[cl]+r*c)%k:'?';}).join());
+  }
+  return out;
+}
+function genShift(R,d){
+  const n=[0,5,6,6][d],k=[0,3,4,4][d],nm=[0,4,5,6][d],step=d>=2;
+  for(let t=0;t<300;t++){
+    const s=R.int(1,n-1),c=step?R.int(1,k-1):0,row0=series(n,()=>R.int(0,k-1));if(new Set(row0).size<k)continue;
+    const full=range(n*n).map(i=>{const r=Math.floor(i/n);return(row0[((i%n-r*s)%n+n)%n]+r*c)%k;});
+    const miss=R.shuffle(range(n*n)).slice(0,nm).sort((a,b)=>a-b),set=new Set(miss);
+    if(miss.some(i=>(i%n<n-1&&set.has(i+1))||set.has(i+n))&&t<200)continue;
+    const grid=full.map((v,i)=>set.has(i)?-1:v);
+    if(d===3&&t<250){                               // Insane: Zeugen liegen mindestens zwei Zeilen entfernt
+      const far=miss.filter(i=>{const r=Math.floor(i/n),cl=((i%n-r*s)%n+n)%n;return!grid.some((v,j)=>v>=0&&Math.abs(Math.floor(j/n)-r)<2&&((j%n-Math.floor(j/n)*s)%n+n)%n===cl);}).length;
+      if(far<2)continue;
+    }
+    const ans=shiftAnswers(n,k,grid,miss,step);
+    if(ans.size!==1||[...ans][0].includes('?'))continue;
+    const m0=miss[R.int(0,miss.length-1)];
+    return{sub:'paint',kind:'paint',rating:[0.5,1.6,3,4.6][d],prompt:'Färbe die leeren Felder so, dass sie das Muster fortsetzen.',
+      rules:['Jede Zeile ist die Zeile darüber, um eine feste Zahl von Feldern nach rechts verschoben. Was rechts herausfällt, kommt links wieder herein.',
+        ...(step?['Dabei rückt jede Farbe um eine feste Zahl von Stufen weiter – in der Reihenfolge der Legende, nach der letzten kommt wieder die erste.']:[]),'Tippe ein leeres Feld an, um durch die Farben zu wechseln.'],
+      view:{n,k,grid,miss,order:step},solution:miss.map(i=>full[i]),
+      hints:['Vergleiche zwei benachbarte Zeilen: Wo taucht dieselbe Farbfolge wieder auf?',`Jede Zeile ist um ${s} Feld${s>1?'er':''} nach rechts verschoben${c?`, und jede Farbe rückt ${c} Stufe${c>1?'n':''} weiter`:''}.`,`Das Feld in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1} ist ${PCOL_NAME[full[m0]]}.`],
+      explain:`Jede Zeile ist die vorige, um ${s} nach rechts verschoben${c?` und mit jeder Farbe ${c} Stufe${c>1?'n':''} weiter`:''}.`,sig:'ps:'+s+','+c+':'+full.join('')+'@'+miss.join(',')};
+  }
+  return null;
+}
+function genPattern(R,d){
+  const x=R();
+  if(d===0)return x<.55?genMatrix(R,0):genPaint(R,0);
+  return x<(d===3?.3:.5)?genMatrixBuild(R,d):genShift(R,d);
+}
+
+
 
 /* ---------------------------------------------------------------- F · LOGIC GRID */
 const L_SHAPE=[{n:'Kreis',nom:'Der Kreis',dat:'dem Kreis'},{n:'Dreieck',nom:'Das Dreieck',dat:'dem Dreieck'},{n:'Quadrat',nom:'Das Quadrat',dat:'dem Quadrat'},{n:'Raute',nom:'Die Raute',dat:'der Raute'},{n:'Sechseck',nom:'Das Sechseck',dat:'dem Sechseck'}];
 const L_COLOR=[{n:'cyan',nom:'Die cyanfarbene Form',dat:'der cyanfarbenen Form'},{n:'violett',nom:'Die violette Form',dat:'der violetten Form'},{n:'magenta',nom:'Die magentafarbene Form',dat:'der magentafarbenen Form'},{n:'gelb',nom:'Die gelbe Form',dat:'der gelben Form'},{n:'weiß',nom:'Die weiße Form',dat:'der weißen Form'}];
 function perms(n){const out=[];(function rec(a,rest){if(!rest.length){out.push(a);return;}rest.forEach((x,i)=>rec(a.concat(x),rest.slice(0,i).concat(rest.slice(i+1))));})([],range(n));return out;}
-const L_RANK=[{at:0,dl:0,lo:1,na:1.5,adj:1,nadj:3,edge:2,same:0,ns:2},{at:1.2,dl:0,lo:.5,na:1,adj:.5,nadj:1.5,edge:1,same:.3,ns:1},
-              {at:3,dl:.8,lo:0,na:.6,adj:.3,nadj:.6,edge:.6,same:1.2,ns:.4},{at:5,dl:1.5,lo:0,na:.5,adj:.2,nadj:.4,edge:.5,same:2.5,ns:.3}];
+const L_RANK=[{at:0,dl:0,lo:1,na:1.5,adj:1,nadj:3,edge:2,same:0,ns:2,gap:9},{at:1.2,dl:0,lo:.5,na:1,adj:.5,nadj:1.5,edge:1,same:.3,ns:1,gap:.6},
+              {at:3,dl:.8,lo:0,na:.6,adj:.3,nadj:.6,edge:.6,same:1.2,ns:.4,gap:.3},{at:5,dl:1.5,lo:0,na:.5,adj:.2,nadj:.4,edge:.5,same:2.5,ns:.3,gap:.1}];
+/* Menschenähnlicher Löser: Einzelhinweise auf Wertebereiche anwenden, dazu „jede Form/Farbe genau einmal“
+   (nur noch ein Platz / nur noch ein Kandidat). Gezählt werden die Runden; bleibt er stecken, braucht das
+   Gitter eine Fallunterscheidung. */
+function logicDepth(N,items,clues){
+  const dom=items.map(()=>{const s=new Set();for(let p=0;p<N;p++)s.add(p);return s;});
+  const un=(c,q)=>c.ty==='at'?q===c.p:c.ty==='na'?q!==c.p:c.ty==='edge'?(q===0||q===N-1)===c.e:true;
+  const bi=(c,q,r)=>c.ty==='same'?q===r:c.ty==='ns'?q!==r:c.ty==='lo'?q<r:c.ty==='dl'?r-q===1:c.ty==='adj'?Math.abs(q-r)===1:c.ty==='nadj'?Math.abs(q-r)>1:c.ty==='gap'?Math.abs(q-r)===2:true;
+  let rounds=0;const done=()=>dom.every(d=>d.size===1);
+  while(!done()){                                  // jede Runde arbeitet auf dem Stand vom Rundenbeginn: unabhängig von der Reihenfolge der Hinweise
+    rounds++;const old=dom.map(d=>[...d]),kill=items.map(()=>new Set()),fix=items.map(()=>null);
+    for(const c of clues){
+      if(c.b==null){for(const q of old[c.a])if(!un(c,q))kill[c.a].add(q);continue;}
+      const same=items[c.a][0]===items[c.b][0];
+      for(const q of old[c.a])if(!old[c.b].some(r=>(!same||r!==q)&&bi(c,q,r)))kill[c.a].add(q);
+      for(const r of old[c.b])if(!old[c.a].some(q=>(!same||r!==q)&&bi(c,q,r)))kill[c.b].add(r);
+    }
+    for(const cat of [0,1]){const its=range(items.length).filter(k=>items[k][0]===cat);if(!its.length)continue;
+      for(const k of its)if(old[k].length===1)for(const o of its)if(o!==k)kill[o].add(old[k][0]);
+      for(let q=0;q<N;q++){const hs=its.filter(k=>old[k].includes(q));if(hs.length===1&&old[hs[0]].length>1)fix[hs[0]]=q;}}
+    let ch=false;
+    items.forEach((it,k)=>{const nd=fix[k]!=null?[fix[k]]:old[k].filter(q=>!kill[k].has(q));if(nd.length!==old[k].length)ch=true;dom[k]=new Set(nd);});
+    if(!ch||dom.some(d=>!d.size))break;
+  }
+  return{rounds,stuck:!done()};
+}
 function genLogic(R,d){
   const [N,cats]=[[3,1],R.pick([[4,1],[3,2]]),[4,2],[5,2]][d],PM=perms(N);
   const lowerFirst=s=>s[0].toLowerCase()+s.slice(1);
+  const all=[];PM.forEach(S=>(cats===2?PM:[PM[0]]).forEach(Cc=>all.push([S,Cc])));
+  const W=Math.ceil(all.length/32);
   for(let t=0;t<40;t++){
+    const relax=t>=24;
     const shapes=R.shuffle(range(5)).slice(0,N),colors=R.shuffle(range(5)).slice(0,N);
     const sp=R.pick(PM),cp=cats===2?R.pick(PM):PM[0];
     const items=range(N).map(i=>[0,i]).concat(cats===2?range(N).map(i=>[1,i]):[]);
     const nm=([c,i])=>c?L_COLOR[colors[i]]:L_SHAPE[shapes[i]],pos=([c,i],S,C)=>c?C[i]:S[i];
-    const C=[],add=(ty,t,f)=>C.push({ty,t,f});
-    if(cats===2)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const col=L_COLOR[colors[j]].n,sh=L_SHAPE[shapes[i]].nom;
-      if(sp[i]===cp[j])add('same',`${sh} ist ${col}.`,(S,Cc)=>S[i]===Cc[j]);else add('ns',`${sh} ist nicht ${col}.`,(S,Cc)=>S[i]!==Cc[j]);}
-    items.forEach(x=>{const px=pos(x,sp,cp);
-      for(let p=0;p<N;p++){if(px===p)add('at',`${nm(x).nom} steht auf Platz ${p+1}.`,(S,Cc)=>pos(x,S,Cc)===p);else add('na',`${nm(x).nom} steht nicht auf Platz ${p+1}.`,(S,Cc)=>pos(x,S,Cc)!==p);}
-      if(N>=4){const e=px===0||px===N-1;add('edge',`${nm(x).nom} steht ${e?'':'nicht '}am Rand.`,(S,Cc)=>{const q=pos(x,S,Cc);return(q===0||q===N-1)===e;});}});
+    const C=[],add=(ty,t,f,m)=>C.push(Object.assign({ty,t,f},m));
+    if(cats===2)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const col=L_COLOR[colors[j]].n,sh=L_SHAPE[shapes[i]].nom,m={a:i,b:N+j};
+      if(sp[i]===cp[j])add('same',`${sh} ist ${col}.`,(S,Cc)=>S[i]===Cc[j],m);else add('ns',`${sh} ist nicht ${col}.`,(S,Cc)=>S[i]!==Cc[j],m);}
+    items.forEach((x,xa)=>{const px=pos(x,sp,cp);
+      for(let p=0;p<N;p++){if(px===p)add('at',`${nm(x).nom} steht auf Platz ${p+1}.`,(S,Cc)=>pos(x,S,Cc)===p,{a:xa,p});else add('na',`${nm(x).nom} steht nicht auf Platz ${p+1}.`,(S,Cc)=>pos(x,S,Cc)!==p,{a:xa,p});}
+      if(N>=4){const e=px===0||px===N-1;add('edge',`${nm(x).nom} steht ${e?'':'nicht '}am Rand.`,(S,Cc)=>{const q=pos(x,S,Cc);return(q===0||q===N-1)===e;},{a:xa,e});}});
     items.forEach((x,a)=>items.forEach((y,b)=>{
-      if(a===b)return;const px=pos(x,sp,cp),py=pos(y,sp,cp);if(px===py)return;
-      if(px<py){add('lo',`${nm(x).nom} steht irgendwo links von ${nm(y).dat}.`,(S,Cc)=>pos(x,S,Cc)<pos(y,S,Cc));
-        if(py-px===1)add('dl',`${nm(x).nom} steht direkt links von ${nm(y).dat}.`,(S,Cc)=>pos(y,S,Cc)-pos(x,S,Cc)===1);}
-      if(a<b){if(Math.abs(px-py)===1)add('adj',`${nm(x).nom} steht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))===1);
-        else if(N>=4)add('nadj',`${nm(x).nom} steht nicht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))>1);}}));
+      if(a===b)return;const px=pos(x,sp,cp),py=pos(y,sp,cp);if(px===py)return;const m={a,b};
+      if(px<py){add('lo',`${nm(x).nom} steht irgendwo links von ${nm(y).dat}.`,(S,Cc)=>pos(x,S,Cc)<pos(y,S,Cc),m);
+        if(py-px===1)add('dl',`${nm(x).nom} steht direkt links von ${nm(y).dat}.`,(S,Cc)=>pos(y,S,Cc)-pos(x,S,Cc)===1,m);}
+      if(a<b){if(Math.abs(px-py)===1)add('adj',`${nm(x).nom} steht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))===1,m);
+        else if(N>=4)add('nadj',`${nm(x).nom} steht nicht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))>1,m);
+        if(N>=4&&d>=1&&Math.abs(px-py)===2)add('gap',`Zwischen ${nm(x).dat} und ${nm(y).dat} steht genau eine Form.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))===2,m);}}));
     const order=C.map(c=>({c,k:L_RANK[d][c.ty]+R()*1.5})).sort((a,b)=>a.k-b.k).map(o=>o.c);
-    const all=[];PM.forEach(S=>(cats===2?PM:[PM[0]]).forEach(Cc=>all.push([S,Cc])));
     let cand=all,chosen=[];
     for(const c of order){const nc=cand.filter(([S,Cc])=>c.f(S,Cc));if(nc.length<cand.length){chosen.push(c);cand=nc;}if(cand.length===1)break;}
     if(cand.length!==1)continue;
-    for(const c of R.shuffle(chosen)){const rest=chosen.filter(q=>q!==c);if(rest.length&&all.filter(([S,Cc])=>rest.every(q=>q.f(S,Cc))).length===1)chosen=rest;}
+    // Minimieren über Bitmengen: jeder Hinweis einmal über alle Belegungen ausgewertet
+    const bits=new Map(chosen.map(c=>{const b=new Uint32Array(W);all.forEach(([S,Cc],i)=>{if(c.f(S,Cc))b[i>>5]|=1<<(i&31);});return[c,b];}));
+    const countAnd=list=>{let n=0;for(let w=0;w<W;w++){let x=0xFFFFFFFF;for(const c of list)x&=bits.get(c)[w];if(w===W-1&&all.length%32)x&=(1<<(all.length%32))-1;
+      x=x-((x>>>1)&0x55555555);x=(x&0x33333333)+((x>>>2)&0x33333333);n+=(((x+(x>>>4))&0x0F0F0F0F)*0x01010101)>>>24;}return n;};
+    for(const c of R.shuffle(chosen)){const rest=chosen.filter(q=>q!==c);if(rest.length&&countAnd(rest)===1)chosen=rest;}
     if(chosen.length>[4,6,7,9][d]||chosen.length<2)continue;
+    const dep=logicDepth(N,items,chosen);
+    const okDepth=d===0?true:d===1?dep.rounds>=2||dep.stuck:d===2?(relax?dep.rounds>=2||dep.stuck:dep.rounds>=3||dep.stuck):(relax?dep.rounds>=4||dep.stuck:dep.rounds>=4&&dep.stuck);
+    if(!okDepth)continue;
     const solS=Array(N),solC=Array(N);sp.forEach((p,i)=>solS[p]=i);cp.forEach((p,i)=>solC[p]=i);
     const hp=R.int(0,N-1);
-    return{sub:'grid',kind:'logic',rating:[2,4,6.5,9][d]+Math.min(1,chosen.length*.1),
+    return{sub:'grid',kind:'logic',rating:[0.6,1.6,3,4.8][d]+Math.min(.4,chosen.length*.04)+(dep.stuck&&d?.2:0),
       prompt:cats===2?`${N} Formen stehen in einer Reihe, jede in einer anderen Farbe. Finde heraus, welche Form wo steht und welche Farbe sie hat.`:`${N} Formen stehen in einer Reihe. Finde heraus, welche Form auf welchem Platz steht.`,
       rules:['Platz 1 ist ganz links.',cats===2?'Jede Form und jede Farbe kommt genau einmal vor.':'Jede Form kommt genau einmal vor.'],
       view:{N,cats,shapes,colors,clues:R.shuffle(chosen).map(c=>c.t.replace(/ von dem /g,' vom '))},solution:{s:solS,c:cats===2?solC:null},
-      hints:['Suche zuerst Hinweise, die einen Platz fest vorgeben oder ausschließen.','Kombiniere zwei Hinweise, die dasselbe Objekt erwähnen. Oft bleibt dann nur eine Möglichkeit.',`Auf Platz ${hp+1} steht ${lowerFirst(L_SHAPE[shapes[solS[hp]]].nom)}.`],
+      hints:['Suche zuerst Hinweise, die einen Platz fest vorgeben oder ausschließen.',dep.stuck?'Irgendwann hilft nur eine Fallunterscheidung: Nimm eine Möglichkeit an und prüfe, ob sie zu einem Widerspruch führt.':'Kombiniere zwei Hinweise, die dasselbe Objekt erwähnen. Oft bleibt dann nur eine Möglichkeit.',`Auf Platz ${hp+1} steht ${lowerFirst(L_SHAPE[shapes[solS[hp]]].nom)}.`],
       explain:'Lösung von links nach rechts: '+range(N).map(p=>L_SHAPE[shapes[solS[p]]].n+(cats===2?' ('+L_COLOR[colors[solC[p]]].n+')':'')).join(', ')+'.',
-      sig:'lg:'+shapes+':'+colors+':'+chosen.map(c=>c.t).sort().join('|'),
+      sig:'lg:'+shapes+':'+colors+':'+chosen.map(c=>c.t).sort().join('|'),depth:dep,
       validate(ans){return!!ans&&ans.s.join()===solS.join()&&(cats===1||ans.c.join()===solC.join());}};
   }
   return null;
@@ -976,13 +1551,13 @@ function generate(seed,type,d){
     if(p&&selfCheck(finish(p,seed,type,d)))return p;
   }
   const a=R.int(2,9),s=R.int(2,6),t=series(6,i=>a+s*i);   // Notlösung, praktisch nie erreicht
-  return finish({sub:'seq',kind:'number',rating:2,prompt:'Welche Zahl gehört an die Stelle des Fragezeichens?',rules:['Die Folge gehorcht von Anfang bis Ende derselben Regel.'],
+  return finish({sub:'seq',kind:'number',rating:0.5,prompt:'Welche Zahl gehört an die Stelle des Fragezeichens?',rules:['Die Folge gehorcht von Anfang bis Ende derselben Regel.'],
     view:{fig:'seq',terms:t.map((v,i)=>i===5?null:v)},solution:t[5],hints:['Schau auf die Abstände.','Der Abstand ist immer gleich.',`Jede Zahl ist um ${s} größer.`],
     explain:`Jede Zahl ist um ${s} größer als die vorige.`,sig:'fb:'+t},seed,type,d);
 }
 
 /* ---------------------------------------------------------------- Daily */
-const DAILY_VERSION='MINDSHAPES_DAILY_V1_';
+const DAILY_VERSION='MINDSHAPES_DAILY_V2_',GEN_VERSION=2;   // Generator-Version: wird bei jeder Änderung an den Generatoren hochgezählt
 const utcDate=(t)=>new Date(t==null?Date.now():t).toISOString().slice(0,10);
 const dayNum=date=>Math.floor(Date.parse(date+'T00:00:00Z')/864e5);
 const addDays=(date,n)=>utcDate(Date.parse(date+'T00:00:00Z')+n*864e5);
@@ -1062,8 +1637,8 @@ function merge(def,obj){
 function sanitize(raw){
   const s=merge(defaults(),raw),nn=(x,lo)=>Math.max(lo||0,Number.isFinite(+x)?+x:0),isDate=k=>/^\d{4}-\d\d-\d\d$/.test(k);
   const rd=raw&&raw.daily&&raw.daily.done;s.daily.done={};
-  if(rd&&typeof rd==='object')for(const k in rd){const e=rd[k];if(isDate(k)&&e&&typeof e==='object')s.daily.done[k]={t:nn(e.t),a:nn(e.a,1),h:nn(e.h),d:Math.min(3,Math.floor(nn(e.d))),ty:TYPES[e.ty]?e.ty:''};}
-  const pr=raw&&raw.daily&&raw.daily.prog;s.daily.prog=pr&&typeof pr==='object'&&isDate(String(pr.date))?{date:pr.date,a:nn(pr.a),h:Math.min(3,nn(pr.h)),ms:nn(pr.ms)}:null;
+  if(rd&&typeof rd==='object')for(const k in rd){const e=rd[k];if(isDate(k)&&e&&typeof e==='object')s.daily.done[k]={t:nn(e.t),a:nn(e.a,1),h:nn(e.h),d:Math.min(3,Math.floor(nn(e.d))),ty:TYPES[e.ty]?e.ty:'',v:Math.floor(nn(e.v,1))};}   // v fehlt bei Ergebnissen vor Generator-Version 2
+  const pr=raw&&raw.daily&&raw.daily.prog;s.daily.prog=pr&&typeof pr==='object'&&isDate(String(pr.date))?{date:pr.date,a:nn(pr.a),h:Math.min(3,nn(pr.h)),ms:nn(pr.ms),v:Math.floor(nn(pr.v,1))}:null;
   const rc=raw&&raw.record;s.record=rc&&typeof rc==='object'&&typeof rc.text==='string'?{text:rc.text.slice(0,120),date:String(rc.date||'').slice(0,10)}:null;
   s.unlocked=s.unlocked.filter(x=>typeof x==='string'&&THEMES[x]);if(!s.unlocked.includes('signal'))s.unlocked.unshift('signal');
   if(!s.unlocked.includes(s.settings.theme))s.settings.theme='signal';
@@ -1156,8 +1731,8 @@ function polySVG(cells){
   const w=Math.max(...cells.map(c=>c[0]))+1,h=Math.max(...cells.map(c=>c[1]))+1,u=Math.min(20,96/Math.max(w,h)),ox=(110-w*u)/2,oy=(110-h*u)/2;
   return`<svg viewBox="0 0 110 110" aria-hidden="true">${cells.map(([x,y,m])=>`<rect class="pc${m?' m'+m:''}" x="${(ox+x*u+.8).toFixed(1)}" y="${(oy+y*u+.8).toFixed(1)}" width="${(u-1.6).toFixed(1)}" height="${(u-1.6).toFixed(1)}" rx="2"/>`).join('')}</svg>`;
 }
-function areaSVG(p){
-  const u=20,W=6,H=5,pad=6,w=Math.max(...p.map(q=>q[0])),h=Math.max(...p.map(q=>q[1])),ox=pad+Math.floor((W-w)/2)*u,oy=pad+Math.floor((H-h)/2)*u;let g='';
+function areaSVG(p,W=6,H=5){
+  const u=20,pad=6,w=Math.max(...p.map(q=>q[0])),h=Math.max(...p.map(q=>q[1])),ox=pad+Math.floor((W-w)/2)*u,oy=pad+Math.floor((H-h)/2)*u;let g='';
   for(let x=0;x<=W;x++)g+=`<line class="gridl" x1="${pad+x*u}" y1="${pad}" x2="${pad+x*u}" y2="${pad+H*u}"/>`;
   for(let y=0;y<=H;y++)g+=`<line class="gridl" x1="${pad}" y1="${pad+y*u}" x2="${pad+W*u}" y2="${pad+y*u}"/>`;
   return`<svg viewBox="0 0 ${W*u+2*pad} ${H*u+2*pad}" aria-hidden="true">${g}<polygon class="shape" points="${p.map(([x,y])=>(ox+x*u)+','+(oy+y*u)).join(' ')}"/></svg>`;
@@ -1174,11 +1749,48 @@ function cubesSVG(h){
     for(let z=0;z<h[i][j];z++)s+=`<polygon class="fl" points="${P(i,j+1,z+1)} ${P(i+1,j+1,z+1)} ${P(i+1,j+1,z)} ${P(i,j+1,z)}"/><polygon class="fr" points="${P(i+1,j,z+1)} ${P(i+1,j+1,z+1)} ${P(i+1,j+1,z)} ${P(i+1,j,z)}"/><polygon class="ft" points="${P(i,j,z+1)} ${P(i+1,j,z+1)} ${P(i+1,j+1,z+1)} ${P(i,j+1,z+1)}"/>`;}
   return`<svg class="cubes" style="width:min(100%,${Math.round(vw*1.55)}px)" viewBox="0 0 ${vw} ${(W+D)*ch+mx*zh+2*pad}" role="img" aria-label="Bauwerk aus Würfeln">${s}</svg>`;
 }
+function viewsSVG(v){
+  const u=20,pad=6,mh=Math.max(...v.F,...v.S);
+  const side=(cols,cap)=>{const w=cols.length*u+2*pad,h=mh*u+2*pad;let s=`<line class="vgr" x1="${pad-4}" y1="${h-pad}" x2="${w-pad+4}" y2="${h-pad}"/>`;
+    cols.forEach((c,i)=>{for(let z=0;z<c;z++)s+=`<rect class="vsq" x="${pad+i*u+1}" y="${h-pad-(z+1)*u+1}" width="${u-2}" height="${u-2}" rx="2"/>`;});
+    return`<figure><svg viewBox="0 0 ${w} ${h}" style="width:${Math.round(w*1.5)}px" aria-hidden="true">${s}</svg><figcaption>${cap}</figcaption></figure>`;};
+  const top=()=>{const w=v.W*u+2*pad+30,h=v.D*u+2*pad+16;let s='';
+    for(let i=0;i<v.W;i++)for(let j=0;j<v.D;j++)s+=`<rect class="vtop${v.T&&v.T[i][j]?' on':''}" x="${pad+i*u+1}" y="${pad+j*u+1}" width="${u-2}" height="${u-2}" rx="2"/>`;
+    s+=`<text class="vlab" x="${pad+v.W*u/2}" y="${pad+v.D*u+13}" text-anchor="middle">vorn</text><text class="vlab" x="${pad+v.W*u+4}" y="${pad+v.D*u/2+4}">rechts</text>`;
+    return`<figure><svg viewBox="0 0 ${w} ${h}" style="width:${Math.round(w*1.5)}px" aria-hidden="true">${s}</svg><figcaption>${v.T?'Von oben':'Grundfläche (von oben)'}</figcaption></figure>`;};
+  const desc=`Von vorn, von links nach rechts: ${v.F.join(', ')}. Von rechts, von vorn nach hinten: ${v.S.slice().reverse().join(', ')}.`+(v.T?` Von oben belegt: ${v.T.flat().reduce((a,b)=>a+b)} Felder.`:'');
+  return`<div class="views" role="img" aria-label="${desc}">${side(v.F,'Von vorn')}${side(v.S.slice().reverse(),'Von rechts')}${top()}</div>`;
+}
+const ISO=(cw,ch,zh,pad)=>(i,j,z)=>[pad+cw+(i-j)*cw,pad+zh+(i+j)*ch-z*zh];
+function arrowPath(pts){const f=p=>p[0].toFixed(1)+','+p[1].toFixed(1);return`<polyline class="arw" points="${f(pts[0])} ${f(pts[1])}"/><polyline class="arw" points="${f(pts[2])} ${f(pts[1])} ${f(pts[3])}"/>`;}
+function cubeViewSVG(v,o){
+  const cw=34,ch=20,zh=40,pad=6,P=ISO(cw,ch,zh,pad),pp=a=>a.map(q=>P(...q).map(x=>x.toFixed(1)).join(',')).join(' ');
+  const F=[[[0,0,1],[1,0,1],[1,1,1],[0,1,1]],[[0,1,1],[1,1,1],[1,1,0],[0,1,0]],[[1,0,1],[1,1,1],[1,1,0],[1,0,0]]],C=[[.5,.5,1],[.5,1,.5],[1,.5,.5]],NRM=[UP,LEFT,RIGHT],SH=[0,.18,.34];
+  let s='';
+  F.forEach((f,k)=>{s+=`<polygon class="cvf" points="${pp(f)}" fill="${COL[v.col[o.f[k]]]}"/><polygon points="${pp(f)}" fill="#07101f" fill-opacity="${SH[k]}" stroke="#07101f" stroke-width="1.5" stroke-linejoin="round"/>`;
+    if(o.a){const d=o.a[k],n=vcross(NRM[k],d),c=C[k],at=(t,q)=>P(c[0]+t*d[0]+q*n[0],c[1]+t*d[1]+q*n[1],c[2]+t*d[2]+q*n[2]);
+      s+=arrowPath([at(-.3,0),at(.3,0),at(.12,.13),at(.12,-.13)]);}});
+  const names=o.f.map(i=>FACE_COL[v.col[i]]);
+  return`<svg viewBox="0 0 ${2*cw+2*pad} ${2*ch+zh+2*pad}" role="img" aria-label="Würfel: oben ${names[0]}, links ${names[1]}, rechts ${names[2]}${o.a?', mit Pfeilen':''}">${s}</svg>`;
+}
+function netColorSVG(v){
+  const U=40,w=Math.max(...v.net.map(c=>c[0]))+1,h=Math.max(...v.net.map(c=>c[1]))+1;
+  const cells=v.net.map(([x,y],i)=>{let s=`<rect x="${x*U+1.5}" y="${y*U+1.5}" width="${U-3}" height="${U-3}" rx="4" fill="${COL[v.col[i]]}" stroke="#07101f" stroke-width="1.5"/>`;
+    if(v.arr){const [dx,dy]=v.arr[i],cx=x*U+U/2,cy=y*U+U/2,at=(t,q)=>[cx+(t*dx-q*dy)*U,cy+(t*dy+q*dx)*U];s+=arrowPath([at(-.3,0),at(.3,0),at(.12,.13),at(.12,-.13)]);}
+    return s;}).join('');
+  return`<div class="ref"><span class="cap">Netz (bedruckte Seite)</span><svg class="netc" style="width:min(70%,${w*60}px)" viewBox="0 0 ${w*U} ${h*U}" role="img" aria-label="Würfelnetz mit den Farben ${v.net.map((c,i)=>FACE_COL[v.col[i]]).join(', ')}">${cells}</svg></div>`;
+}
 function figHTML(v){
-  if(v.fig==='seq')return`<div class="seq">${v.terms.map(t=>t==null?'<span class="num qslot">?</span>':`<span class="num">${String(t).replace('-','−')}</span>`).join('')}</div>`;
-  if(v.fig==='pairs')return`<div class="pairs">${v.rows.map(r=>`<div class="prow"><span>${r[0]}</span><i>${v.sym}</i><b>${r[1].replace('-','−')}</b></div>`).join('')}<div class="prow last"><span>${v.q}</span><i>${v.sym}</i><b class="qslot">?</b></div></div>`;
+  if(v.fig==='seq'){let q=0;return`<div class="seq">${v.terms.map(t=>t==null?`<span class="num qslot" data-q="${q++}">?</span>`:`<span class="num">${String(t).replace('-','−')}</span>`).join('')}</div>`;}
+  if(v.fig==='pairs'){const xv=s=>s.replace(/\bx\b/g,'<i class="xv">x</i>');
+    const last=v.res!=null?`<span>${xv(v.q).replace('?','<b class="qslot inl">?</b>')}</span><i>${v.sym}</i><b>${v.res.replace('-','−')}</b>`:`<span>${xv(v.q)}</span><i>${v.sym}</i><b class="qslot">?</b>`;
+    return`<div class="pairs">${v.rows.map(r=>`<div class="prow"><span>${xv(r[0])}</span><i>${v.sym}</i><b>${r[1].replace('-','−')}</b></div>`).join('')}<div class="prow last">${last}</div></div>`;}
+  if(v.fig==='chain'){const td=x=>x==null?'<td class="hid">–</td>':`<td>${String(x).replace('-','−')}</td>`;
+    return`<table class="chain"><thead><tr><th>Eingabe</th><th>nach A</th><th>nach B</th></tr></thead><tbody>${v.rows.map(r=>`<tr>${r.map(td).join('')}</tr>`).join('')}<tr class="last"><td>${v.q}</td><td class="hid">…</td><td class="qslot">?</td></tr></tbody></table>`;}
   if(v.fig==='riddle')return`<ul class="cond">${v.lines.map(l=>`<li>${l}</li>`).join('')}</ul><div class="bigq qslot">?</div>`;
   if(v.fig==='cubes')return cubesSVG(v.h);
+  if(v.fig==='views')return viewsSVG(v);
+  if(v.fig==='poly')return`<div class="polyfig">${areaSVG(v.p,8,6)}</div>`;
   return'';
 }
 function keepFocus(host,draw){
@@ -1187,32 +1799,85 @@ function keepFocus(host,draw){
 }
 
 /* ---------------------------------------------------------------- Rätsel-Darstellung je Eingabeart */
+const optOne=(v,o)=>v.fig==='polys'?polySVG(o):v.fig==='area'?areaSVG(o):v.fig==='cview'?cubeViewSVG(v,o):cellSVG(o);
+function optHead(v){
+  if(v.fig==='matrix')return`<div class="matrix" role="img" aria-label="Raster mit einem leeren Feld">${v.cells.map((c,i)=>i===v.miss?'<div class="hole">?</div>':`<div>${cellSVG(c)}</div>`).join('')}</div>`;
+  if(v.fig==='cview')return netColorSVG(v);
+  if(v.ref)return`<div class="ref${v.fig==='area'?' wide':''}"><span class="cap">Vorlage</span>${optOne(v,v.ref)}</div>`;
+  return'';
+}
 const MOUNT={
   number(p,host,ctl){
-    let val='';const own=p.view.fig==='cubes';
+    const own=['cubes','views','poly'].includes(p.view.fig);
     host.innerHTML=`<div class="fig">${figHTML(p.view)}</div>${own?'<div class="numdisp qslot">?</div>':''}<div class="pad" role="group" aria-label="Zahleneingabe">${['1','2','3','4','5','6','7','8','9','±','0','⌫'].map(k=>`<button type="button" class="key" data-k="${k}" aria-label="${k==='±'?'Vorzeichen wechseln':k==='⌫'?'Letzte Ziffer löschen':k}">${k}</button>`).join('')}</div>`;
-    const upd=()=>host.querySelectorAll('.qslot').forEach(e=>{e.textContent=val===''?'?':val.replace('-','−');e.classList.toggle('filled',val!=='');});
-    const press=k=>{
+    const slots=[...host.querySelectorAll('.qslot')],multi=slots.length>1,vals=slots.map(()=>'');let act=0;
+    const upd=()=>slots.forEach((e,i)=>{const v=multi?vals[i]:vals[0];e.textContent=v===''?'?':v.replace('-','−');e.classList.toggle('filled',v!=='');e.classList.toggle('act',multi&&i===act);
+      if(multi){e.setAttribute('role','button');e.setAttribute('tabindex','0');e.setAttribute('aria-label',`Lücke ${i+1}: ${v===''?'leer':v}${i===act?', ausgewählt':''}`);}});
+    const press=k=>{let val=vals[act];
       if(k==='⌫')val=val.slice(0,-1);
       else if(k==='±')val=val[0]==='-'?val.slice(1):'-'+val;
       else if(val.replace('-','').length<6){const neg=val[0]==='-',dg=val.replace('-','');val=(neg?'-':'')+(dg==='0'?'':dg)+k;}
-      upd();ctl.changed('click');};
+      vals[act]=val;upd();ctl.changed('click');};
+    const pick=i=>{if(i>=0&&i<slots.length){act=i;upd();}};
     $('.pad',host).addEventListener('click',e=>{const b=e.target.closest('.key');if(b)press(b.dataset.k);});
-    return{get(){return val===''||val==='-'?{inc:'Gib zuerst eine Zahl ein.'}:Number(val);},reset(){val='';upd();},
-      key(e){if(/^\d$/.test(e.key)){press(e.key);return true;}if(e.key==='Backspace'){press('⌫');return true;}if(e.key==='-'){press('±');return true;}return false;}};
+    if(multi)host.querySelector('.fig').addEventListener('click',e=>{const q=e.target.closest('.qslot');if(q)pick(slots.indexOf(q));});
+    upd();
+    return{get(){const ok=v=>v!==''&&v!=='-';if(!vals.every(ok))return{inc:multi?'Fülle zuerst alle Lücken.':'Gib zuerst eine Zahl ein.'};return multi?vals.map(Number):Number(vals[0]);},
+      reset(){vals.fill('');act=0;upd();},
+      key(e){if(/^\d$/.test(e.key)){press(e.key);return true;}if(e.key==='Backspace'){press('⌫');return true;}if(e.key==='-'){press('±');return true;}
+        if(multi&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){pick((act+(e.key==='ArrowRight'?1:slots.length-1))%slots.length);return true;}
+        if(multi&&(e.key===' ')&&e.target.classList&&e.target.classList.contains('qslot')){pick(slots.indexOf(e.target));return true;}return false;}};
   },
   choice(p,host,ctl){
     const v=p.view,dead=new Set();let sel=-1;
-    const one=o=>v.fig==='polys'?polySVG(o):v.fig==='area'?areaSVG(o):cellSVG(o);
-    let ref='';
-    if(v.fig==='matrix')ref=`<div class="matrix" role="img" aria-label="Raster mit einem leeren Feld">${v.cells.map((c,i)=>i===v.miss?'<div class="hole">?</div>':`<div>${cellSVG(c)}</div>`).join('')}</div>`;
-    else if(v.ref)ref=`<div class="ref${v.fig==='area'?' wide':''}"><span class="cap">Vorlage</span>${one(v.ref)}</div>`;
-    host.innerHTML=`${ref}<div class="opts c${v.cols}">${v.opts.map((o,i)=>`<button type="button" class="opt" data-i="${i}" aria-pressed="false" aria-label="Antwort ${LETTERS[i]}"><span class="ol">${LETTERS[i]}</span>${one(o)}</button>`).join('')}</div>`;
+    host.innerHTML=`${optHead(v)}<div class="opts c${v.cols}">${v.opts.map((o,i)=>`<button type="button" class="opt" data-i="${i}" aria-pressed="false" aria-label="Antwort ${LETTERS[i]}"><span class="ol">${LETTERS[i]}</span>${optOne(v,o)}</button>`).join('')}</div>`;
     const paint=()=>host.querySelectorAll('.opt').forEach((b,i)=>{b.classList.toggle('sel',i===sel);b.classList.toggle('x',dead.has(i));b.disabled=dead.has(i);b.setAttribute('aria-pressed',i===sel);});
     const pick=i=>{if(i<0||i>=v.opts.length||dead.has(i))return;sel=i;paint();ctl.changed('select');};
     $('.opts',host).addEventListener('click',e=>{const b=e.target.closest('.opt');if(b)pick(+b.dataset.i);});
     return{get(){return sel<0?{inc:'Wähle zuerst eine Antwort aus.'}:sel;},reset(){sel=-1;paint();},wrong(a){dead.add(a);sel=-1;paint();},
       key(e){const i=LETTERS.indexOf(e.key.toUpperCase());if(e.key.length===1&&i>=0&&i<v.opts.length){pick(i);return true;}return false;}};
+  },
+  // „Alle wählen“: nach einem Fehlversuch bleibt die Auswahl stehen, es gibt keine Teilrückmeldung
+  multi(p,host,ctl){
+    const v=p.view,sel=new Set();
+    host.innerHTML=`${optHead(v)}<div class="opts c${v.cols}">${v.opts.map((o,i)=>`<button type="button" class="opt" data-i="${i}" aria-pressed="false" aria-label="Antwort ${LETTERS[i]}"><span class="ol">${LETTERS[i]}</span>${optOne(v,o)}</button>`).join('')}</div><p class="cluehint">Gewählt: <b class="msel">0</b> von ${v.opts.length}</p>`;
+    const paint=()=>{host.querySelectorAll('.opt').forEach((b,i)=>{b.classList.toggle('sel',sel.has(i));b.setAttribute('aria-pressed',sel.has(i));});$('.msel',host).textContent=sel.size;};
+    const tog=i=>{if(i<0||i>=v.opts.length)return;if(sel.has(i))sel.delete(i);else sel.add(i);paint();ctl.changed(sel.has(i)?'select':'click');};
+    $('.opts',host).addEventListener('click',e=>{const b=e.target.closest('.opt');if(b)tog(+b.dataset.i);});
+    return{get(){return sel.size?[...sel].sort((a,b)=>a-b):{inc:'Wähle zuerst mindestens eine Antwort aus.'};},reset(){sel.clear();paint();},
+      key(e){const i=LETTERS.indexOf(e.key.toUpperCase());if(e.key.length===1&&i>=0&&i<v.opts.length){tog(i);return true;}return false;}};
+  },
+  order(p,host,ctl){
+    const v=p.view;let seq=[];
+    host.innerHTML=`<div class="opts c${v.cols}">${v.opts.map((o,i)=>`<button type="button" class="opt" data-i="${i}" aria-label="Form ${LETTERS[i]}"><span class="ol">${LETTERS[i]}</span><span class="ord" hidden></span>${optOne(v,o)}</button>`).join('')}</div><p class="cluehint ordline">Reihenfolge: –</p>`;
+    const paint=()=>{host.querySelectorAll('.opt').forEach((b,i)=>{const k=seq.indexOf(i),o=$('.ord',b);o.hidden=k<0;o.textContent=k+1;b.classList.toggle('sel',k>=0);
+        b.setAttribute('aria-label',`Form ${LETTERS[i]}${k<0?'':', Platz '+(k+1)}`);});
+      $('.ordline',host).textContent='Reihenfolge: '+(seq.length?seq.map(i=>LETTERS[i]).join(' < '):'–');};
+    const tog=i=>{if(i<0||i>=v.opts.length)return;const k=seq.indexOf(i);if(k>=0)seq.splice(k,1);else seq.push(i);paint();ctl.changed(k>=0?'click':'select');};
+    $('.opts',host).addEventListener('click',e=>{const b=e.target.closest('.opt');if(b)tog(+b.dataset.i);});
+    return{get(){return seq.length<v.opts.length?{inc:'Ordne zuerst alle Formen.'}:seq.slice();},reset(){seq=[];paint();},
+      key(e){const i=LETTERS.indexOf(e.key.toUpperCase());if(e.key.length===1&&i>=0&&i<v.opts.length){tog(i);return true;}return false;}};
+  },
+  build(p,host,ctl){
+    const v=p.view,H=v.holes,val=H.map(()=>({s:-1,c:-1,n:-1,f:-1}));let act=0;
+    const ROWS=[['s','Form',5,k=>`<svg viewBox="0 0 60 60" aria-hidden="true">${glyph(SHAPES[k],30,30,17,'var(--txt)',0)}</svg>`,k=>['Kreis','Dreieck','Quadrat','Raute','Sechseck'][k]],
+      ['c','Farbe',4,k=>`<i class="sw4" style="background:${COL[k]}"></i>`,k=>PCOL_NAME[k]],
+      ['n','Anzahl',3,k=>`<b>${k+1}</b>`,k=>String(k+1)],
+      ['f','Füllung',3,k=>`<svg viewBox="0 0 60 60" aria-hidden="true">${glyph('circle',30,30,17,'var(--txt)',k)}</svg>`,k=>['leer','voll','mit Punkt'][k]]];
+    const full=o=>o.s>=0&&o.c>=0&&o.n>=0&&o.f>=0;
+    const draw=()=>{
+      const grid=v.cells.map((c,i)=>{const h=H.indexOf(i);if(h<0)return`<div>${cellSVG(c)}</div>`;const o=val[h];
+        const inner=full(o)?cellSVG(o):'?',lab=`Leeres Feld ${h+1}${H.length>1&&h===act?', ausgewählt':''}`;
+        return H.length>1?`<button type="button" class="hole${h===act?' act':''}${full(o)?' set':''}" data-h="${h}" aria-label="${lab}">${inner}</button>`:`<div class="hole${full(o)?' set':''}">${inner}</div>`;}).join('');
+      const o=val[act];
+      host.innerHTML=`<div class="matrix" role="group" aria-label="Raster">${grid}</div>${H.length>1?`<p class="cluehint">Du stellst gerade Feld ${act+1} ein.</p>`:''}
+        <div class="bld">${ROWS.map(([a,name,n,ic,lb])=>`<div class="brow"><span>${name}</span><div class="bseg" role="group" aria-label="${name}">${range(n).map(k=>`<button type="button" class="bopt" data-a="${a}" data-v="${k}" aria-pressed="${o[a]===k}" aria-label="${name}: ${lb(k)}">${ic(k)}</button>`).join('')}</div></div>`).join('')}</div>`;};
+    host.onclick=e=>{const h=e.target.closest('.hole[data-h]'),b=e.target.closest('.bopt');
+      if(h){act=+h.dataset.h;keepFocus(host,draw);ctl.changed('click');return;}
+      if(b){val[act][b.dataset.a]=+b.dataset.v;keepFocus(host,draw);ctl.changed('select');}};
+    draw();
+    return{get(){return val.every(full)?val.map(o=>Object.assign({},o)):{inc:H.length>1?'Stelle zuerst beide Felder vollständig ein.':'Stelle zuerst alle vier Eigenschaften ein.'};},
+      reset(){val.forEach(o=>{o.s=o.c=o.n=o.f=-1;});act=0;draw();}};
   },
   net(p,host,ctl){
     const v=p.view,U=46,w=Math.max(...v.cells.map(c=>c[0]))+1,h=Math.max(...v.cells.map(c=>c[1]))+1,dead=new Set();let sel=-1;
@@ -1226,25 +1891,26 @@ const MOUNT={
       key(e){const i=LETTERS.indexOf(e.key.toUpperCase());if(e.key.length===1&&i>=0&&i<6){pick(i);return true;}return false;}};
   },
   sym(p,host,ctl){
-    const v=p.view,n=v.n,U=40,S2=n*U,given=new Set(v.given),on=new Set(),t=v.type,ax=[];
+    const v=p.view,n=v.n,U=40,S2=n*U,given=new Set(v.given),on=new Set(),t=v.hidden?'':v.type,ax=[];
     const L=(a,b,c,d)=>`<line class="axis" x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
     if(t==='V'||t==='VH')ax.push(L(S2/2,-6,S2/2,S2+6));
     if(t==='H'||t==='VH')ax.push(L(-6,S2/2,S2+6,S2/2));
     if(t==='D1'||t==='DD')ax.push(L(-4,-4,S2+4,S2+4));
     if(t==='D2'||t==='DD')ax.push(L(S2+4,-4,-4,S2+4));
     if(t==='R2'||t==='R4')ax.push(`<circle cx="${S2/2}" cy="${S2/2}" r="5" fill="var(--amb)"/><path class="axis" d="M${S2/2+15} ${S2/2}a15 15 0 1 1-4.4-10.6" style="stroke-dasharray:none"/><path d="M${S2/2+13} ${S2/2-17}v7h-7" fill="none" stroke="var(--amb)" stroke-width="2"/>`);
-    host.innerHTML=`<svg class="symsvg" viewBox="-8 -8 ${S2+16} ${S2+16}" role="group" aria-label="Raster">${range(n*n).map(i=>`<rect class="c${given.has(i)?' g':''}" data-i="${i}" x="${(i%n)*U+1.5}" y="${Math.floor(i/n)*U+1.5}" width="${U-3}" height="${U-3}" rx="4" ${given.has(i)?'':`tabindex="0" role="button" aria-label="Zeile ${Math.floor(i/n)+1}, Spalte ${i%n+1}"`}/>`).join('')}${ax.join('')}</svg>`;
-    const svg=$('svg',host),tog=el=>{const i=+el.dataset.i;if(given.has(i))return;if(on.has(i))on.delete(i);else on.add(i);el.classList.toggle('on',on.has(i));el.setAttribute('aria-pressed',on.has(i));ctl.changed(on.has(i)?'select':'click');};
+    host.innerHTML=`<svg class="symsvg" viewBox="-8 -8 ${S2+16} ${S2+16}" role="group" aria-label="Raster">${range(n*n).map(i=>`<rect class="c${given.has(i)?' g':''}" data-i="${i}" x="${(i%n)*U+1.5}" y="${Math.floor(i/n)*U+1.5}" width="${U-3}" height="${U-3}" rx="4" ${given.has(i)?'':`tabindex="0" role="button" aria-label="Zeile ${Math.floor(i/n)+1}, Spalte ${i%n+1}"`}/>`).join('')}${ax.join('')}</svg>${v.hidden?`<p class="cluehint">Gefüllt: <b class="scnt">0</b> von ${v.K}</p>`:''}`;
+    const cnt=()=>{const c=$('.scnt',host);if(c)c.textContent=on.size;};
+    const svg=$('svg',host),tog=el=>{const i=+el.dataset.i;if(given.has(i))return;if(on.has(i))on.delete(i);else on.add(i);el.classList.toggle('on',on.has(i));el.setAttribute('aria-pressed',on.has(i));cnt();ctl.changed(on.has(i)?'select':'click');};
     svg.addEventListener('click',e=>{const c=e.target.closest('.c');if(c)tog(c);});
     svg.addEventListener('keydown',e=>{const c=e.target.closest('.c');if(c&&(e.key===' '||e.key==='Enter')){e.preventDefault();e.stopPropagation();tog(c);}});
-    return{get(){return on.size?[...on]:{inc:'Fülle zuerst mindestens ein Feld.'};},reset(){on.clear();host.querySelectorAll('.c.on').forEach(c=>c.classList.remove('on'));}};
+    return{get(){return on.size?[...on]:{inc:'Fülle zuerst mindestens ein Feld.'};},reset(){on.clear();host.querySelectorAll('.c.on').forEach(c=>{c.classList.remove('on');c.setAttribute('aria-pressed',false);});cnt();}};
   },
   paint(p,host,ctl){
     const v=p.view,n=v.n,val=v.miss.map(()=>-1),names=['Cyan','Violett','Magenta','Gelb'];
     const draw=()=>{host.innerHTML=`<div class="pgrid" style="grid-template-columns:repeat(${n},1fr)">${v.grid.map((g,i)=>{const m=v.miss.indexOf(i);
         if(m<0)return`<div class="pcell k${g}"></div>`;const c=val[m];
         return`<button type="button" class="pcell hole${c<0?'':' set k'+c}" data-m="${m}" aria-label="Zeile ${Math.floor(i/n)+1}, Spalte ${i%n+1}: ${c<0?'leer':names[c]}">${c<0?'?':''}</button>`;}).join('')}</div>
-      <div class="legend">${range(v.k).map(c=>`<span><i class="k${c}"></i>${names[c]}</span>`).join('')}</div>`;};
+      <div class="legend">${range(v.k).map(c=>`<span><i class="k${c}"></i>${names[c]}</span>`).join(v.order?'<b class="lar" aria-hidden="true">→</b>':'')}${v.order?`<span class="lnote">danach wieder ${names[0]}</span>`:''}</div>`;};
     host.onclick=e=>{const b=e.target.closest('.hole');if(!b)return;const m=+b.dataset.m;val[m]=(val[m]+1)%v.k;keepFocus(host,draw);ctl.changed('select');};
     draw();
     return{get(){return val.includes(-1)?{inc:'Färbe zuerst alle leeren Felder.'}:val.slice();},reset(){val.fill(-1);draw();}};
@@ -1377,20 +2043,20 @@ function viewMenu(){
 }
 
 function viewGame(){
-  const p=G.p,daily=G.mode==='daily',e=S.endless,run=e.run,t=daily?0:levelDiff(run.level);
+  const p=G.p,daily=G.mode==='daily',lab=G.mode==='lab',e=S.endless,run=e.run,t=daily||lab?0:levelDiff(run.level);
   let intro='',rules='';
-  if(!daily&&!e.rulesSeen){rules=e.note?`Neu: Endless spielt sich jetzt in Läufen mit drei Leben. Eine falsche Antwort, „Anderes Rätsel“ und der erste Hinweis zu einem Rätsel kosten je ein Leben, jede neue Stufe bringt eines zurück. Dein bisher höchstes Level (${e.bestLevel}) steht als Bestwert.`
+  if(G.mode==='endless'&&!e.rulesSeen){rules=e.note?`Neu: Endless spielt sich jetzt in Läufen mit drei Leben. Eine falsche Antwort, „Anderes Rätsel“ und der erste Hinweis zu einem Rätsel kosten je ein Leben, jede neue Stufe bringt eines zurück. Dein bisher höchstes Level (${e.bestLevel}) steht als Bestwert.`
       :'So geht Endless: Ein Lauf hat drei Leben. Eine falsche Antwort, „Anderes Rätsel“ und der erste Hinweis zu einem Rätsel kosten je eines – bei null ist der Lauf vorbei. Jede neue Stufe bringt ein Leben zurück.';
     e.rulesSeen=true;e.note=false;save();}
-  if(!daily&&!S.intro.includes(p.type)){intro=INTRO[p.type];S.intro.push(p.type);save();}
+  if(G.mode==='endless'&&!S.intro.includes(p.type)){intro=INTRO[p.type];S.intro.push(p.type);save();}
   show(`<div class="game" data-seed="${esc(p.seed)}" data-type="${p.type}" data-d="${p.diff}">
-    <header class="ghead${daily?'':' run'}">
-      <button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button>
-      <div class="gmode"><b>${daily?'DAILY':'ENDLESS'}</b><span>${daily?`Nr. ${dailyNo(G.date)} vom ${fmtDate(G.date)}`:`Level ${run.level} · <span id="rpts">${fmtN(run.points)}</span> P`}</span></div>
-      ${daily?'':'<span id="rlives"></span>'}
+    <header class="ghead${G.mode==='endless'?' run':''}">
+      <button type="button" class="ico" data-act="${lab?'lab':'menu'}" aria-label="${lab?'Zurück zum Testmodus':'Zurück zum Menü'}">${IC.back}</button>
+      <div class="gmode"><b>${daily?'DAILY':lab?'LAB':'ENDLESS'}</b><span>${daily?`Nr. ${dailyNo(G.date)} vom ${fmtDate(G.date)}`:lab?`Runde ${LS.n} · ${SUBNAME[p.sub]||p.sub}`:`Level ${run.level} · <span id="rpts">${fmtN(run.points)}</span> P`}</span></div>
+      ${G.mode==='endless'?'<span id="rlives"></span>':''}
       <div class="timer" id="timer" role="timer" aria-label="Zeit">00:00</div>
     </header>
-    <div class="prog" ${daily?'hidden':''}><i style="width:${daily||t===3?100:Math.round((run.level-STAGE_AT[t])/(STAGE_AT[t+1]-STAGE_AT[t])*100)}%"></i></div>
+    <div class="prog" ${daily||lab?'hidden':''}><i style="width:${daily||lab||t===3?100:Math.round((run.level-STAGE_AT[t])/(STAGE_AT[t+1]-STAGE_AT[t])*100)}%"></i></div>
     <div class="progl" id="progl"></div>
     <div class="ptype"><span><b>${p.title}</b>${p.fusion?' trifft '+p.fusion:''}</span><span class="tier d${p.diff}">${DIFF[p.diff]}</span></div>
     ${rules?`<p class="intro rulesintro">${rules}</p>`:''}${intro?`<p class="intro">${intro}</p>`:''}
@@ -1399,11 +2065,11 @@ function viewGame(){
     <div class="stage" id="stage"></div>
     <ol class="hints" id="hints" aria-label="Hinweise"></ol>
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
-    ${daily?'':'<p class="lock" id="lock" hidden>Letztes Leben: Hinweis und „Anderes Rätsel“ gesperrt.</p>'}
+    ${G.mode==='endless'?'<p class="lock" id="lock" hidden>Letztes Leben: Hinweis und „Anderes Rätsel“ gesperrt.</p>':''}
     <div class="bar" id="bar">
       <button type="button" class="btn" data-act="hint" id="bh">${IC.hint}<span>Hinweis</span></button>
       <button type="button" class="btn sq" data-act="restart" aria-label="Neustart">${IC.redo}<span>Neustart</span></button>
-      ${daily?'':`<button type="button" class="btn sq" data-act="skip" id="bskip" aria-label="Anderes Rätsel, kostet ein Leben">${IC.skip}<span>Anderes Rätsel</span></button>`}
+      ${daily?'':`<button type="button" class="btn sq" data-act="skip" id="bskip" aria-label="${lab?'Anderes Rätsel':'Anderes Rätsel, kostet ein Leben'}">${IC.skip}<span>Anderes Rätsel</span></button>`}
       <button type="button" class="btn primary" data-act="check">Prüfen</button>
     </div>
     <section class="result" id="result" hidden aria-live="polite"></section>
@@ -1418,7 +2084,7 @@ function elapsed(){return G.ms+(G.paused||G.solved?0:performance.now()-G.t0);}
 function tick(){const t=$('#timer');if(t&&G)t.textContent=mmss(elapsed());}
 function meta(){
   const l=$('#progl'),b=$('#bh span');if(!l)return;
-  if(G.mode==='daily')l.innerHTML=`<span>Versuche: ${G.attempts}</span><span>Hinweise: ${G.hints} von 3</span>`;
+  if(G.mode!=='endless')l.innerHTML=`<span>Versuche: ${G.attempts}</span><span>Hinweise: ${G.hints} von 3</span>`;
   else{const r=S.endless.run,t=levelDiff(r.level);
     l.innerHTML=`<span>Stufe ${DIFF[t]}</span><span>${t<3?`Ab Level ${STAGE_AT[t+1]}: ${DIFF[t+1]} · ${r.lives<RUN_LIVES?'+1 Leben':`+${RUN_BONUS} Punkte`}`:'Höchste Stufe erreicht'}</span>`;
     const lv=$('#rlives');if(lv)lv.innerHTML=livesHTML(r.lives);const pt=$('#rpts');if(pt)pt.textContent=fmtN(r.points);
@@ -1432,7 +2098,7 @@ function addHint(n){const li=document.createElement('li');li.dataset.n=n;li.text
 function begin(g){
   G=Object.assign({attempts:0,hints:0,ms:0,t0:performance.now(),paused:false,solved:false},g);
   if(g.mode==='endless'){const r=S.endless.run;G.attempts=r.a;G.hints=r.h;G.ms=r.ms;}
-  if(g.mode==='daily'){const pr=S.daily.prog;if(pr&&pr.date===g.date){G.attempts=pr.a;G.hints=pr.h;G.ms=pr.ms;}}
+  if(g.mode==='daily'){const pr=S.daily.prog;if(pr&&pr.date===g.date&&pr.v===GEN_VERSION){G.attempts=pr.a;G.hints=pr.h;G.ms=pr.ms;}}
   viewGame();
 }
 function runPick(r){                            // Rätsel zu Lauf, Level und salt: folgt vollständig aus dem Seed des Laufs
@@ -1482,11 +2148,11 @@ function startDaily(){
   if(S.daily.prog&&S.daily.prog.date!==date)S.daily.prog=null;
   begin({mode:'daily',p:dailyPuzzle(date),date});
 }
-function saveProg(){if(G&&G.mode==='daily'&&!G.solved){S.daily.prog={date:G.date,a:G.attempts,h:G.hints,ms:Math.round(elapsed())};save();}
+function saveProg(){if(G&&G.mode==='daily'&&!G.solved){S.daily.prog={date:G.date,a:G.attempts,h:G.hints,ms:Math.round(elapsed()),v:GEN_VERSION};save();}
   if(G&&G.mode==='endless'&&!G.solved&&S.endless.run){const r=S.endless.run;r.a=G.attempts;r.h=G.hints;r.ms=Math.round(elapsed());save();}}
 function leaveGame(){saveProg();G=null;}
 function score(p,g){
-  const base=Math.round(40+30*p.rating),mult=(g.attempts===1?1.5:Math.max(.5,1-.15*(g.attempts-1)))*(1-.2*g.hints),par=(30+14*p.rating)*1000;
+  const base=Math.round(40+45*p.rating),mult=(g.attempts===1?1.5:Math.max(.5,1-.15*(g.attempts-1)))*(1-.2*g.hints),par=60000*p.rating;   // rating = Richtzeit in Minuten
   const tb=g.ms<par?Math.round(base*.2*(1-g.ms/par)):0;
   return{total:Math.max(10,Math.round(base*mult)+tb),tb};
 }
@@ -1509,6 +2175,7 @@ function check(){
   meta();saveProg();
 }
 function solved(){
+  if(G.mode==='lab'){labSolved();return;}
   const p=G.p,st=S.stats,notes=[];let party=false;
   G.ms=elapsed();G.solved=true;clearTimers();tick();
   const setRec=t=>{S.record={text:t,date:utcDate()};};
@@ -1522,7 +2189,7 @@ function solved(){
     const D=S.daily,date=G.date;let sc={total:0,tb:0};
     if(!D.done[date]){
       sc=finishStats();
-      D.done[date]={t:Math.round(G.ms),a:G.attempts,h:G.hints,d:p.diff,ty:p.type};D.count++;
+      D.done[date]={t:Math.round(G.ms),a:G.attempts,h:G.hints,d:p.diff,ty:p.type,v:GEN_VERSION};D.count++;
       D.streak=D.last===addDays(date,-1)?D.streak+1:1;D.last=date;D.longest=Math.max(D.longest,D.streak);
       if(!D.best||G.ms<D.best){if(D.best)notes.push(`Neue Daily-Bestzeit: ${mmss(G.ms)}.`);D.best=Math.round(G.ms);}
       if(D.streak>1&&D.streak===D.longest)setRec(`Daily-Serie: ${D.streak} Tage`);
@@ -1555,11 +2222,11 @@ function solved(){
 }
 function shareText(date){const r=S.daily.done[date];return`MIND//SHAPES – DAILY ${date}\nSolved ✓\nTime: ${mmss(r.t)}\nAttempts: ${r.a}\nHints: ${r.h}\nDifficulty: ${DIFF[r.d]}\nStreak: ${curStreak()}\nhttps://mindshapes.thssn.dev`;}
 function viewDailyResult(date,fresh,notes,pts){
-  const r=S.daily.done[date],p=dailyPuzzle(date);
+  const r=S.daily.done[date],cur=r.v===GEN_VERSION,p=cur?dailyPuzzle(date):null,title=cur?p.title:(TYPES[r.ty]||'Daily');
   show(`<div class="wrap narrow">
     <div class="sub"><button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button><h2>${fresh?'Daily gelöst':'Dein Daily von heute'}</h2></div>
     <div class="card">
-      <div><h3>Daily Nr. ${dailyNo(date)}</h3><p class="big">${p.title}</p><p class="when">${fmtDate(date)} (UTC)${fresh&&pts?`, +${pts} Punkte`:''}</p></div>
+      <div><h3>Daily Nr. ${dailyNo(date)}</h3><p class="big">${title}</p><p class="when">${fmtDate(date)} (UTC)${fresh&&pts?`, +${pts} Punkte`:''}</p></div>
       ${sigilSVG(sigilData(date),true)}
       <dl class="kv"><div><dt>Zeit</dt><dd>${mmss(r.t)}</dd></div><div><dt>Versuche</dt><dd>${r.a}</dd></div><div><dt>Hinweise</dt><dd>${r.h}</dd></div><div><dt>Stufe</dt><dd>${DIFF[r.d]}</dd></div><div><dt>Serie</dt><dd>${curStreak()}</dd></div></dl>
     </div>
@@ -1569,7 +2236,7 @@ function viewDailyResult(date,fresh,notes,pts){
       <div class="rowb"><button type="button" class="btn primary" data-act="copy" data-date="${date}">Ergebnis kopieren</button><button type="button" class="btn" data-act="png" data-date="${date}">Als Bild speichern</button></div>
       <p class="hintline">Das Ergebnis verrät die Lösung nicht. Es wird nur auf diesem Gerät erzeugt.</p>
     </div>
-    <details class="sol"><summary>Lösungsweg anzeigen</summary><p>${p.explain}</p></details>
+    ${cur?`<details class="sol"><summary>Lösungsweg anzeigen</summary><p>${p.explain}</p></details>`:'<p class="hintline">Dieses Ergebnis stammt aus einer früheren Rätselversion. Den Lösungsweg kann das Spiel dafür nicht mehr anzeigen.</p>'}
     <p class="hintline">Das nächste Daily erscheint in <span id="cd"></span> – überall auf der Welt zur selben Zeit.</p>
     <div class="rowb" style="margin-top:16px"><button type="button" class="btn" data-act="endless">Endless spielen</button><button type="button" class="btn" data-act="stats">Fortschritt ansehen</button></div>
   </div>`);
@@ -1623,11 +2290,77 @@ function viewSettings(){
   </div>`);
 }
 
+/* ---------------------------------------------------------------- Testmodus (index.html?lab)
+   Rätselart, Stufe und Unterart frei wählbar. Jede Runde wird nur unter eigenem Schlüssel mitgeschrieben;
+   Spielstand, Statistik und Daily bleiben unberührt. */
+const LAB=/(?:^|[?&])lab(?:[=&]|$)/.test(location.search),LABKEY='mindshapes.lab';
+const SUBNAME={seq:'Folge',machine:'Maschine',chain:'Zwei Maschinen',op:'Geheimoperator',riddle:'Zahlenrätsel',sym:'Symmetrie',area:'Flächen',poly:'Polygonfläche',assemble:'Legepuzzle',
+  build:'Gleichung',fusion:'Fusion',netopp:'Netz: Gegenüber',netvalid:'Faltbare Netze',rotate:'Drehfigur',cubes:'Würfelbau',views:'Ansichten',cview:'Würfelansichten',matrix:'Matrix',paint:'Malraster',grid:'Logikgitter'};
+const LAB_SUBS={number:[['seq','machine'],['seq','chain','op','riddle'],['seq','op','riddle'],['seq','op','riddle']],
+  geometry:[['sym','area','assemble'],['sym','area','assemble'],['sym','area','assemble'],['assemble','poly','sym']],
+  equation:[['build'],['build'],['build','fusion'],['build','fusion']],
+  spatial:[['netopp','rotate','cubes'],['cview','rotate','netvalid','cubes'],['cview','views','netvalid','rotate'],['cview','views','netvalid','rotate']],
+  pattern:[0,1,2,3].map(()=>['matrix','paint']),logic:[0,1,2,3].map(()=>['grid'])};
+const LS={type:'number',d:1,sub:'',n:0};
+function labRows(){try{const a=JSON.parse(Store.get(LABKEY)||'[]');return Array.isArray(a)?a.filter(r=>r&&typeof r==='object'&&TYPES[r.ty]&&Number.isFinite(r.t)):[];}catch(e){return[];}}
+function labRecord(ok){
+  if(!G||G.mode!=='lab')return;const a=labRows();
+  a.push({ty:G.p.type,sub:G.p.sub,d:G.p.diff,t:Math.round(G.solved?G.ms:elapsed()),a:G.attempts,h:G.hints,ok,seed:G.p.seed,at:new Date().toISOString()});
+  Store.set(LABKEY,JSON.stringify(a.slice(-3000)));
+}
+function labPuzzle(){
+  const base='LAB|'+randId();let p=null;
+  for(let k=0;k<60;k++){p=generate(base+'|'+k,LS.type,LS.d);if(!LS.sub||p.sub===LS.sub)return p;}
+  toast('Diese Unterart kam nicht zustande – hier ist eine andere.');return p;
+}
+function startLab(){LS.n++;begin({mode:'lab',p:labPuzzle()});}
+function labSolved(){
+  G.ms=elapsed();G.solved=true;clearTimers();tick();labRecord(true);SND.play('ok');
+  const p=G.p;$('#stage').classList.add('locked','win');$('#bar').hidden=true;say('');
+  const res=$('#result');res.hidden=false;
+  res.innerHTML=`<h3>Gelöst</h3><ul class="tags"><li>Zeit ${mmss(G.ms)}</li><li>${G.attempts} ${G.attempts===1?'Versuch':'Versuche'}</li><li>${G.hints} ${G.hints===1?'Hinweis':'Hinweise'}</li><li>Richtzeit ${mmss(60000*p.rating)}</li></ul>
+    <p class="explain">${p.explain}</p><p class="hintline">Seed: ${esc(p.seed)}</p>
+    <div class="rowb"><button type="button" class="btn primary" data-act="labnext" id="bnext">Nächstes Rätsel</button><button type="button" class="btn" data-act="lab">Zur Auswertung</button></div>`;
+  const nb=$('#bnext');nb.focus({preventScroll:true});nb.scrollIntoView({block:'nearest',behavior:S.settings.motion?'smooth':'auto'});
+}
+const median=a=>{if(!a.length)return NaN;const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+function labTable(){
+  const groups=new Map();
+  labRows().forEach(r=>{const k=r.ty+'|'+r.sub+'|'+r.d;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
+  return[...groups.values()].map(rs=>{const ok=rs.filter(r=>r.ok);return{ty:rs[0].ty,sub:String(rs[0].sub),d:rs[0].d,n:ok.length,quit:rs.length-ok.length,
+      t:median(ok.map(r=>r.t)),a:median(ok.map(r=>r.a)),h:ok.length?ok.reduce((s,r)=>s+r.h,0)/ok.length:NaN};})
+    .sort((x,y)=>TYPE_KEYS.indexOf(x.ty)-TYPE_KEYS.indexOf(y.ty)||x.d-y.d||x.sub.localeCompare(y.sub));
+}
+const labNum=x=>Number.isFinite(x)?String(Math.round(x*10)/10).replace('.',','):'–';
+function labText(){
+  return['Rätselart\tUnterart\tStufe\tgelöst\tabgebrochen\tMedian Zeit\tMedian Versuche\tØ Hinweise']
+    .concat(labTable().map(r=>[TYPES[r.ty],SUBNAME[r.sub]||r.sub,DIFF[r.d],r.n,r.quit,Number.isFinite(r.t)?mmss(r.t):'–',labNum(r.a),labNum(r.h)].join('\t'))).join('\n');
+}
+function viewLab(){
+  const subs=LAB_SUBS[LS.type][LS.d];if(LS.sub&&!subs.includes(LS.sub))LS.sub='';
+  const T=labTable(),n=labRows().length,opt=(v,l,cur)=>`<option value="${v}"${String(v)===String(cur)?' selected':''}>${l}</option>`;
+  show(`<div class="wrap narrow">
+    <div class="sub"><a class="ico" href="./" aria-label="Zum normalen Spiel">${IC.back}</a><h2>Testmodus</h2></div>
+    <p class="hintline lablead">Hier lässt sich jede Rätselart auf jeder Stufe spielen. Die Runden werden nur in diesem Browser mitgeschrieben – getrennt von Spielstand, Statistik und Daily.</p>
+    <div class="labf">
+      <label>Rätselart<select data-lab="type">${TYPE_KEYS.map(k=>opt(k,TYPES[k],LS.type)).join('')}</select></label>
+      <label>Stufe<select data-lab="d">${DIFF.map((x,i)=>opt(i,x,LS.d)).join('')}</select></label>
+      <label>Unterart<select data-lab="sub">${opt('','gemischt',LS.sub)}${subs.map(k=>opt(k,SUBNAME[k],LS.sub)).join('')}</select></label>
+    </div>
+    <div class="rowb" style="margin-top:14px"><button type="button" class="btn primary" data-act="labplay">Rätsel spielen</button></div>
+    <div class="sec"><h3>Auswertung (${n} ${n===1?'Runde':'Runden'})</h3>
+      ${T.length?`<div class="tblwrap"><table class="labt"><thead><tr><th>Art</th><th>Unterart</th><th>Stufe</th><th class="r">gelöst</th><th class="r">Median</th><th class="r">Vers.</th><th class="r">Hinw.</th></tr></thead><tbody>${T.map(r=>`<tr><td>${TYPES[r.ty]}</td><td>${SUBNAME[r.sub]||esc(r.sub)}</td><td>${DIFF[r.d]}</td><td class="r">${r.n}${r.quit?` <small>+${r.quit} abgebr.</small>`:''}</td><td class="r">${Number.isFinite(r.t)?mmss(r.t):'–'}</td><td class="r">${labNum(r.a)}</td><td class="r">${labNum(r.h)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Noch keine Runden gespielt.</p>'}
+      <div class="rowb" style="margin-top:12px"><button type="button" class="btn" data-act="labcopy" ${T.length?'':'disabled'}>Tabelle kopieren</button><button type="button" class="btn danger" data-act="labclear" data-label="Testdaten löschen" ${n?'':'disabled'}>Testdaten löschen</button></div>
+      <p class="hintline">Median über gelöste Runden. Als abgebrochen zählt eine Runde, wenn „Anderes Rätsel“ gewählt oder zurückgegangen wird.</p>
+    </div>
+  </div>`);
+}
+
 /* ---------------------------------------------------------------- Teilen, Export, Import */
 function download(name,blob){try{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return true;}catch(e){return false;}}
-function copyText(t){
-  const fallback=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;left:-99px;top:0;opacity:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();toast(ok?'Ergebnis kopiert':'Markiere den Text und kopiere ihn von Hand.');}catch(e){toast('Markiere den Text und kopiere ihn von Hand.');}};
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Ergebnis kopiert'),fallback);else fallback();
+function copyText(t,msg){
+  const fallback=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;left:-99px;top:0;opacity:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();toast(ok?msg||'Ergebnis kopiert':'Markiere den Text und kopiere ihn von Hand.');}catch(e){toast('Markiere den Text und kopiere ihn von Hand.');}};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast(msg||'Ergebnis kopiert'),fallback);else fallback();
 }
 function sharePNG(date){
   const r=S.daily.done[date],c=document.createElement('canvas'),x=c.getContext('2d'),acc=THEMES[S.settings.theme].c,F=getComputedStyle(document.body).fontFamily;c.width=c.height=1080;
@@ -1706,10 +2439,11 @@ const ACT={
       if(!costArm(b,'Kostet 1 Leben','Der erste Hinweis kostet ein Leben. Zum Bestätigen noch einmal tippen.'))return;
       r.lives--;lost=`Hinweis genommen. Ein Leben weniger, noch ${r.lives}.`;
     }
-    G.hints++;S.stats.hints++;saveProg();if(G.mode!=='daily')save();
+    G.hints++;if(G.mode!=='lab')S.stats.hints++;saveProg();if(G.mode==='endless')save();
     addHint(G.hints);meta();SND.play(lost?'life':'select');if(lost)say(lost,true);
   },
   skip(b){
+    if(G&&!G.solved&&G.mode==='lab'){labRecord(false);startLab();return;}
     if(!G||G.solved||G.mode!=='endless')return;
     const e=S.endless,r=e.run;
     if(r.lives<=1){say('Mit dem letzten Leben ist „Anderes Rätsel“ gesperrt – es würde den Lauf beenden.');return;}
@@ -1718,6 +2452,11 @@ const ACT={
     SND.play('life');startEndless();say(`Anderes Rätsel. Ein Leben weniger, noch ${r.lives}.`,true);
   },
   copy(b){copyText(shareText(b.dataset.date));},
+  lab(){if(G&&!G.solved&&G.mode==='lab')labRecord(false);G=null;viewLab();},
+  labplay(){startLab();},
+  labnext(){startLab();},
+  labcopy(){copyText(labText(),'Tabelle kopiert');},
+  labclear(b){if(!armed(b))return;Store.del(LABKEY);viewLab();toast('Testdaten gelöscht');},
   png(b){sharePNG(b.dataset.date);},
   export(){exportData();},
   pickfile(){$('#impfile').click();},
@@ -1727,6 +2466,8 @@ const ACT={
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&ACT[b.dataset.act])ACT[b.dataset.act](b,e);});
 document.addEventListener('change',e=>{
+  const lk=e.target.dataset&&e.target.dataset.lab;
+  if(lk){LS[lk]=lk==='d'?+e.target.value:e.target.value;if(lk!=='sub')LS.sub='';viewLab();const f=document.querySelector(`[data-lab="${lk}"]`);if(f)f.focus();return;}
   if(e.target.id!=='impfile'||!e.target.files[0])return;
   const fr=new FileReader();fr.onload=()=>importText(String(fr.result));fr.onerror=()=>toast('Die Datei ließ sich nicht lesen.');fr.readAsText(e.target.files[0]);
 });
@@ -1744,7 +2485,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',saveProg);
 
 /* ---------------------------------------------------------------- Start */
-S=load();checkUnlocks();applySettings();viewMenu();
+S=load();checkUnlocks();applySettings();if(LAB)viewLab();else viewMenu();
 })();
 </script>
 </body>
