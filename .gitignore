@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+# Werkzeug- und Cache-Ordner der Entwicklungsumgebung, nicht Teil des Spiels
+.cache/
+.gradle/
+.npm/
+.pnpm-store/
+.venv/
+build/
+target/
+node_modules/

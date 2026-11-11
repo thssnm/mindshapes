@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- MIND//SHAPES · Zeichen, voller Schnitt: apple-touch-icon, og-Bild, Ergebnisbild. Quelle, PNGs erzeugt brand/build.py.
+       Striche: Neigung dx/dy = 0.36, Mittenabstand 12, identisch mit icon-small.svg und der Wortmarke. -->
+  <defs><filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2"/></filter></defs>
+  <rect id="bg" width="64" height="64" rx="14" fill="#0c1222"/>
+  <path id="frame" d="M49.31 11.5H52.5V52.5H26.69 M14.69 52.5H11.5V11.5H29.45 M37.31 11.5H41.45 M22.55 52.5H26.69" fill="none" stroke="#e9eefb" stroke-width="1.8" stroke-linejoin="miter"/>
+  <path id="glow-slashes" d="M17.72 55L34.28 9 M29.72 55L46.28 9" fill="none" stroke="#3ddcff" stroke-width="4.4" stroke-linecap="round" opacity=".38" filter="url(#glow)"/>
+  <path id="slashes" d="M17.72 55L34.28 9 M29.72 55L46.28 9" fill="none" stroke="#3ddcff" stroke-width="4.4" stroke-linecap="round"/>
+</svg>

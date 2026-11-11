@@ -4,8 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c1222">
+<meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
 <title>MIND//SHAPES</title>
+<meta name="description" content="One puzzle. One world. Every day. Think beyond the obvious.">
+<link rel="canonical" href="https://mindshapes.thssn.dev/">
+<!-- Favicon inline (kleiner Schnitt, brand/icon-small.svg), damit die Seite offline ohne Nachladen läuft; Zeile wird von brand/build.py erzeugt -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230c1222'/%3E%3Cpath d='M17.36 56L34.64 8 M29.36 56L46.64 8' fill='none' stroke='%233ddcff' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Linkvorschau: absolute URLs, Browser rufen sie nicht ab. Bei Änderung am Bild die Versionsnummer hochzählen (Messenger cachen lange) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MIND//SHAPES">
+<meta property="og:title" content="MIND//SHAPES">
+<meta property="og:description" content="One puzzle. One world. Every day. Think beyond the obvious.">
+<meta property="og:url" content="https://mindshapes.thssn.dev/">
+<meta property="og:image" content="https://mindshapes.thssn.dev/og-v1.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MIND//SHAPES – Think beyond the obvious.">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 :root{
   --bg:#0c1222;--bg2:#121a2f;--bg3:#18233f;--line:#232f4d;--line2:#3a4a75;
@@ -974,6 +991,16 @@ const IC={back:svgI('<path d="M15 5l-7 7 7 7"/>'),
   redo:svgI('<path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v5h5"/>'),
   skip:svgI('<path d="M5 5l7 7-7 7M13 5l7 7-7 7"/>')};
 const COL=['#3ddcff','#a593ff','#f26bd8','#ffc857','#eef2ff','#6cf0b4'];
+/* Marke: Wortmarke und Zeichen als Pfade (Quelle: brand/wordmark.svg, brand/icon.svg; Zeile erzeugt brand/build.py) */
+const BRAND={vb:'0 -848 8037 957',letters:'M68 0H205V-554L398 0H510L703 -554V0H840V-739H652L455 -179L256 -739H68Z M1088 0H1225V-739H1088Z M1488 0H1625V-537L1934 0H2087V-739H1950V-201L1644 -739H1488Z M2348 0H2520C2632 0 2699 -11 2759 -41C2873 -97 2940 -219 2940 -368C2940 -508 2882 -624 2779 -686C2721 -721 2633 -739 2517 -739H2348ZM2485 -131V-608H2512C2599 -608 2646 -600 2689 -578C2759 -542 2802 -463 2802 -368C2802 -279 2761 -200 2695 -164C2654 -141 2597 -131 2515 -131Z M3911 -211C3923 -71 4024 13 4154 13C4287 13 4390 -90 4390 -224C4390 -324 4349 -389 4199 -445C4129 -471 4127 -472 4117 -478C4090 -495 4076 -518 4076 -545C4076 -589 4107 -620 4152 -620C4198 -620 4226 -592 4230 -542H4372C4365 -672 4272 -752 4153 -752C4034 -752 3938 -659 3938 -542C3938 -449 3993 -378 4092 -341C4190 -304 4198 -301 4220 -284C4242 -267 4254 -239 4254 -209C4254 -156 4213 -119 4154 -119C4093 -119 4060 -149 4054 -211Z M4605 0H4742V-310H5006V0H5143V-739H5006V-441H4742V-739H4605Z M5344 0H5495L5577 -191H5840L5919 0H6070L5760 -739H5652ZM5627 -322 5706 -546 5785 -322Z M6265 0H6402V-281H6446C6551 -281 6599 -289 6640 -314C6700 -351 6737 -426 6737 -511C6737 -596 6701 -666 6637 -705C6595 -730 6546 -739 6448 -739H6265ZM6402 -412V-608H6448C6553 -608 6599 -587 6599 -509C6599 -445 6565 -412 6442 -412Z M6945 0H7342V-131H7082V-303H7331V-434H7082V-608H7342V-739H6945Z M7531 -211C7543 -71 7644 13 7774 13C7907 13 8010 -90 8010 -224C8010 -324 7969 -389 7819 -445C7749 -471 7747 -472 7737 -478C7710 -495 7696 -518 7696 -545C7696 -589 7727 -620 7772 -620C7818 -620 7846 -592 7850 -542H7992C7985 -672 7892 -752 7773 -752C7654 -752 7558 -659 7558 -542C7558 -449 7613 -378 7712 -341C7810 -304 7818 -301 7840 -284C7862 -267 7874 -239 7874 -209C7874 -156 7833 -119 7774 -119C7713 -119 7680 -149 7674 -211Z',slashes:'M3156 37L3449 -776 M3368 37L3661 -776',sw:72,icon:{frame:'M49.31 11.5H52.5V52.5H26.69 M14.69 52.5H11.5V11.5H29.45 M37.31 11.5H41.45 M22.55 52.5H26.69',slashes:'M17.72 55L34.28 9 M29.72 55L46.28 9',fw:1.8,sw:4.4}};
+function brandCanvas(x,ix,iy,isz,wx,wy,cap){        // Zeichen (voller Schnitt) bei ix/iy in Größe isz, Wortmarke ab wx mit Grundlinie wy und Versalhöhe cap
+  if(typeof Path2D==='undefined')return false;
+  const I=BRAND.icon,s=isz/64;x.save();x.translate(ix,iy);x.scale(s,s);x.lineJoin='miter';
+  x.strokeStyle='#e9eefb';x.lineWidth=I.fw;x.stroke(new Path2D(I.frame));
+  x.lineCap='round';x.strokeStyle='#3ddcff';x.lineWidth=I.sw;x.shadowColor='rgba(61,220,255,.45)';x.shadowBlur=3.5*s;x.stroke(new Path2D(I.slashes));x.restore();
+  const k=cap/739;x.save();x.translate(wx,wy);x.scale(k,k);x.fillStyle='#e9eefb';x.fill(new Path2D(BRAND.letters));
+  x.lineCap='round';x.strokeStyle='#3ddcff';x.lineWidth=BRAND.sw;x.stroke(new Path2D(BRAND.slashes));x.restore();return true;
+}
 const SHAPES=['circle','tri','square','diamond','hex'];
 const THEMES={
   signal:{name:'Signal',c:'#3ddcff',need:'Von Anfang an dabei',test:()=>true},
@@ -1427,7 +1454,7 @@ function solved(){
     <button type="button" class="btn primary" data-act="next" id="bnext">Nächstes Level</button>`;
   const nb=$('#bnext');nb.focus({preventScroll:true});nb.scrollIntoView({block:'nearest',behavior:S.settings.motion?'smooth':'auto'});
 }
-function shareText(date){const r=S.daily.done[date];return`MIND//SHAPES – DAILY ${date}\nSolved ✓\nTime: ${mmss(r.t)}\nAttempts: ${r.a}\nHints: ${r.h}\nDifficulty: ${DIFF[r.d]}\nStreak: ${curStreak()}`;}
+function shareText(date){const r=S.daily.done[date];return`MIND//SHAPES – DAILY ${date}\nSolved ✓\nTime: ${mmss(r.t)}\nAttempts: ${r.a}\nHints: ${r.h}\nDifficulty: ${DIFF[r.d]}\nStreak: ${curStreak()}\nhttps://mindshapes.thssn.dev`;}
 function viewDailyResult(date,fresh,notes,pts){
   const r=S.daily.done[date],p=dailyPuzzle(date);
   show(`<div class="wrap narrow">
@@ -1508,15 +1535,16 @@ function sharePNG(date){
   g=x.createRadialGradient(900,300,0,900,300,560);g.addColorStop(0,'rgba(165,147,255,.2)');g.addColorStop(1,'rgba(165,147,255,0)');x.fillStyle=g;x.fillRect(0,0,1080,1080);
   x.strokeStyle='rgba(58,74,117,.3)';x.lineWidth=1;x.beginPath();for(let i=90;i<1080;i+=90){x.moveTo(i,0);x.lineTo(i,1080);x.moveTo(0,i);x.lineTo(1080,i);}x.stroke();
   sigilCanvas(x,sigilData(date),800,360,190,acc);
-  if('letterSpacing' in x)x.letterSpacing='7px';
-  x.textBaseline='alphabetic';x.fillStyle='#e9eefb';x.font='600 62px '+F;x.fillText('MIND//SHAPES',84,150);
-  if('letterSpacing' in x)x.letterSpacing='1px';
-  x.fillStyle='#93a0bf';x.font='400 30px '+F;x.fillText('Think beyond the obvious.',86,200);
+  x.textBaseline='alphabetic';if('letterSpacing' in x)x.letterSpacing='1px';
+  if(!brandCanvas(x,62,90,120,196,150,50)){if('letterSpacing' in x)x.letterSpacing='7px';x.fillStyle='#e9eefb';x.font='600 62px '+F;x.fillText('MIND//SHAPES',84,150);if('letterSpacing' in x)x.letterSpacing='1px';}
+  x.fillStyle='#93a0bf';x.font='400 30px '+F;x.fillText('Think beyond the obvious.',198,200);
   x.fillStyle=acc;x.font='600 40px '+F;x.fillText('DAILY '+date,84,600);
   x.fillStyle='#6cf0b4';x.font='600 104px '+F;x.fillText('Solved ✓',80,715);
-  [['Time',mmss(r.t)],['Attempts',String(r.a)],['Difficulty',DIFF[r.d]],['Streak',String(curStreak())]].forEach((kv,i)=>{const px=84+i*240;
-    x.fillStyle='#93a0bf';x.font='400 28px '+F;x.fillText(kv[0],px,850);x.fillStyle='#e9eefb';x.font='600 52px '+F;x.fillText(kv[1],px,915);});
+  [['Time',mmss(r.t)],['Attempts',String(r.a)],['Hints',String(r.h)],['Difficulty',DIFF[r.d]],['Streak',String(curStreak())]].forEach((kv,i)=>{const px=[84,262,440,618,850][i];
+    x.fillStyle='#93a0bf';x.font='400 28px '+F;x.fillText(kv[0],px,850);x.fillStyle='#e9eefb';x.font='600 48px '+F;x.fillText(kv[1],px,915);});
   x.strokeStyle='rgba(58,74,117,.9)';x.beginPath();x.moveTo(84,790);x.lineTo(996,790);x.stroke();
+  if('letterSpacing' in x)x.letterSpacing='2px';
+  x.fillStyle='#93a0bf';x.font='500 32px '+F;x.fillText('mindshapes.thssn.dev',84,1004);
   c.toBlob(b=>{if(b&&download(`mindshapes-daily-${date}.png`,b))toast('Bild gespeichert');else toast('Das Bild konnte hier nicht gespeichert werden.');},'image/png');
 }
 function exportData(){

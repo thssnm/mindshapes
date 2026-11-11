@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- MIND//SHAPES · Zeichen, kleiner Schnitt: Favicon 16/32 px. Gleicher Winkel und Abstand wie icon.svg, ohne Rahmen und Glow. -->
+  <rect width="64" height="64" rx="14" fill="#0c1222"/>
+  <path d="M17.36 56L34.64 8 M29.36 56L46.64 8" fill="none" stroke="#3ddcff" stroke-width="6" stroke-linecap="round"/>
+</svg>
