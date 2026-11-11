@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c1222">
+<meta name="referrer" content="no-referrer">
+<title>MIND//SHAPES</title>
+<style>
+:root{
+  --bg:#0c1222;--bg2:#121a2f;--bg3:#18233f;--line:#232f4d;--line2:#3a4a75;
+  --txt:#e9eefb;--mut:#93a0bf;--acc:#3ddcff;--acc-soft:rgba(61,220,255,.14);
+  --vio:#a593ff;--mag:#f26bd8;--amb:#ffc857;--bad:#ff7a8c;--ok:#6cf0b4;--ink:#07101f;
+  --font:"Avenir Next","Avenir","Century Gothic","Segoe UI Variable Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--txt);font:16px/1.5 var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(58rem 38rem at 8% -12%,var(--acc-soft),transparent 62%),radial-gradient(46rem 34rem at 108% 112%,rgba(165,147,255,.11),transparent 62%)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.32;
+  background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 72px,linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/72px 100%;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 10%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 30%,#000 10%,transparent 75%)}
+#app{position:relative;z-index:1}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+button:disabled{cursor:default}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+h1,h2,h3,p,ul,ol,dl,dd{margin:0}
+ul,ol{padding:0;list-style:none}
+svg{display:block}
+
+/* ---------- Bausteine ---------- */
+.btn{min-height:48px;padding:0 18px;border-radius:10px;border:1px solid var(--line2);background:rgba(18,26,47,.6);font-weight:600;letter-spacing:.02em;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:border-color .15s,background .15s,transform .08s;text-decoration:none;color:var(--txt)}
+.btn:hover{border-color:var(--acc)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:var(--ink);box-shadow:0 0 26px var(--acc-soft)}
+.btn.danger{border-color:rgba(255,122,140,.55);color:var(--bad)}
+.btn.armed{background:var(--bad);border-color:var(--bad);color:var(--ink)}
+.btn svg{width:18px;height:18px;flex:none}
+.ico{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:rgba(18,26,47,.6);display:grid;place-items:center}
+.ico:hover{border-color:var(--acc)}
+.ico svg{width:20px;height:20px}
+.ico.off{color:var(--mut)}
+.wrap{max-width:1040px;margin:0 auto;padding:clamp(20px,4vw,52px) clamp(16px,4vw,40px) 40px}
+.narrow{max-width:720px}
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--txt);color:var(--ink);padding:10px 16px;border-radius:10px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- Menü ---------- */
+.top{display:grid;grid-template-columns:1fr auto;gap:6px 16px;align-items:start;margin-bottom:clamp(26px,5vw,56px)}
+.brand{font-size:clamp(29px,7.4vw,70px);font-weight:600;letter-spacing:.12em;line-height:1.05;white-space:nowrap}
+.brand span{color:var(--acc);font-weight:300;letter-spacing:-.04em;margin:0 .08em 0 .02em}
+.claim{grid-column:1;color:var(--mut);font-size:clamp(15px,2vw,19px);letter-spacing:.05em}
+.topact{grid-column:2;grid-row:1/3;display:flex;gap:8px}
+.modes{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.mode{position:relative;text-align:left;border-radius:22px;padding:clamp(20px,3vw,32px);min-height:clamp(300px,37vw,400px);display:flex;flex-direction:column;gap:4px;overflow:hidden;transition:border-color .2s,transform .2s}
+.mode .mname{margin-top:18px}
+.mode:hover{transform:translateY(-2px)}
+.mode.endless{background:linear-gradient(155deg,#1a2749 0%,var(--bg2) 58%);border:1px solid var(--line)}
+.mode.endless:hover{border-color:var(--acc)}
+.mode.daily{background:radial-gradient(22rem 16rem at 76% 14%,rgba(165,147,255,.2),transparent 70%),var(--bg);border:1px solid var(--line2)}
+.mode.daily:hover{border-color:var(--vio)}
+.mname{font-size:clamp(27px,4vw,40px);font-weight:600;letter-spacing:.22em;line-height:1.1}
+.mtag{color:var(--mut);font-size:17px}
+.mmeta{margin-top:10px;font-size:15px;color:var(--txt)}
+.mmeta i{font-style:normal;color:var(--mut);margin-left:.6em}
+.cta{align-self:flex-start;margin-top:16px;padding:12px 18px;border-radius:10px;font-weight:700;background:var(--acc);color:var(--ink)}
+.daily .cta{background:transparent;border:1px solid var(--vio);color:var(--txt)}
+.daily.done .cta{border-color:var(--ok);color:var(--ok)}
+.next{font-size:14px;color:var(--mut);margin-top:8px;font-variant-numeric:tabular-nums}
+.art{height:clamp(104px,13vw,148px);margin-bottom:auto;display:flex;align-items:center;flex:none}
+.stream{height:100%;width:calc(100% + 80px);max-width:none;margin-right:-80px;flex:none}
+.sigil{display:block;aspect-ratio:1}
+.art .sigil{height:100%}
+.sigil svg{width:100%;height:100%;overflow:visible}
+.sg{fill:none;stroke-width:1.5;stroke-linecap:round}
+.sigil.draw .sg{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.5s cubic-bezier(.6,.1,.2,1) forwards}
+.sigil.draw .sd{opacity:0;animation:fade .6s 1.3s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fade{to{opacity:1}}
+.facts{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:18px 28px;align-items:end;margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+.fact span{display:block;font-size:14px;color:var(--mut)}
+.fact b{display:block;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.fact b small{font-size:14px;font-weight:400;color:var(--mut);margin-left:.4em}
+.foot{margin-top:30px;font-size:14px;color:var(--mut)}
+@media(max-width:780px){
+  .modes{grid-template-columns:1fr}
+  .mode{min-height:0}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts .wide{grid-column:1/-1}
+  .facts .btn{grid-column:1/-1}
+}
+
+/* ---------- Spiel ---------- */
+.game{max-width:720px;margin:0 auto;padding:14px 16px 24px}
+.ghead{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px}
+.gmode{line-height:1.25}
+.gmode b{display:block;font-weight:600;letter-spacing:.16em;font-size:15px}
+.gmode span{font-size:14px;color:var(--mut)}
+.timer{font-variant-numeric:tabular-nums;font-size:21px;letter-spacing:.06em}
+.prog{height:3px;background:var(--line);border-radius:2px;margin:14px 0 6px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--acc);transition:width .6s}
+.progl{font-size:13px;color:var(--mut);display:flex;justify-content:space-between;gap:12px}
+.ptype{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:14px;color:var(--mut)}
+.ptype b{color:var(--acc);font-weight:600;letter-spacing:.04em}
+.tier{padding:2px 10px;border-radius:999px;border:1px solid var(--line2);font-size:13px;color:var(--txt)}
+.tier.d2{border-color:var(--vio);color:var(--vio)}
+.tier.d3{border-color:var(--mag);color:var(--mag)}
+.intro{margin-top:10px;padding:10px 14px;border-left:2px solid var(--acc);background:var(--acc-soft);border-radius:0 10px 10px 0;font-size:15px}
+.prompt{font-size:clamp(18px,2.6vw,22px);font-weight:500;line-height:1.35;margin-top:8px;max-width:38em}
+.rules{margin-top:8px;font-size:14px;color:var(--mut);max-width:44em}
+.rules li{padding-left:14px;position:relative}
+.rules li::before{content:"";position:absolute;left:0;top:.72em;width:6px;height:1px;background:var(--line2)}
+.stage{border:1px solid var(--line);border-radius:18px;background:rgba(18,26,47,.74);padding:clamp(14px,3vw,26px);margin:14px 0 10px;animation:rise .35s ease both}
+.stage.shake{animation:shake .32s}
+.stage.locked{pointer-events:none}
+.stage.win{border-color:var(--ok);box-shadow:0 0 34px rgba(108,240,180,.12)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+@keyframes shake{20%{transform:translateX(-6px)}45%{transform:translateX(5px)}70%{transform:translateX(-3px)}}
+.hints{display:grid;gap:6px;margin:0 0 6px}
+.hints li{font-size:15px;padding:8px 12px 8px 40px;border:1px solid var(--line);border-radius:10px;position:relative;background:rgba(165,147,255,.07)}
+.hints li::before{content:attr(data-n);position:absolute;left:12px;top:8px;color:var(--vio);font-weight:700}
+.msg{min-height:24px;font-size:15px;color:var(--amb)}
+.msg.bad{color:var(--bad)}
+.bar{position:sticky;bottom:0;z-index:3;display:flex;gap:8px;padding:12px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(12,18,34,0),var(--bg) 34%)}
+.bar .primary{margin-left:auto;min-width:118px}
+@media(max-width:540px){.bar .btn.sq{padding:0;width:48px}.bar .btn.sq span{display:none}.bar .btn{padding:0 14px}}
+.result{border:1px solid var(--ok);border-radius:18px;padding:20px;background:rgba(108,240,180,.06);display:grid;gap:10px;animation:rise .3s ease both;margin-bottom:24px}
+.result h3{font-size:22px;font-weight:600}
+.pts{font-size:30px;font-weight:600;color:var(--ok);font-variant-numeric:tabular-nums;line-height:1.1}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags li{font-size:13px;padding:3px 10px;border-radius:999px;border:1px solid var(--line2)}
+.tags li.good{border-color:var(--ok);color:var(--ok)}
+.explain{color:var(--txt);font-size:15px;max-width:44em}
+.note{font-size:15px;color:var(--amb)}
+.result .btn{justify-self:start;margin-top:4px}
+
+/* ---------- Puzzle-Elemente ---------- */
+.fig{display:grid;justify-items:center;gap:12px}
+.fig.src{margin-bottom:16px;padding-bottom:16px;border-bottom:1px dashed var(--line2)}
+.seq{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.num{min-width:52px;padding:9px 10px;border:1px solid var(--line2);border-radius:10px;text-align:center;font-size:21px;font-variant-numeric:tabular-nums;background:var(--bg2)}
+.qslot{border:1.5px dashed var(--acc)!important;color:var(--acc)}
+.qslot.filled{border-style:solid!important;background:var(--acc-soft)}
+.pairs{display:grid;gap:8px}
+.prow{display:grid;grid-template-columns:minmax(96px,auto) 30px minmax(68px,auto);align-items:center;font-size:21px;font-variant-numeric:tabular-nums}
+.prow span{text-align:right}
+.prow i{font-style:normal;text-align:center;color:var(--mut)}
+.prow b{font-weight:500;padding:6px 10px;border:1px solid var(--line2);border-radius:10px;text-align:center;background:var(--bg2)}
+.prow.last{margin-top:6px;padding-top:12px;border-top:1px solid var(--line)}
+.cond{display:grid;gap:6px;width:100%;max-width:30em}
+.cond li{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);font-size:16px}
+.bigq{min-width:120px;padding:10px 18px;border-radius:12px;font-size:28px;text-align:center;font-variant-numeric:tabular-nums}
+.numdisp{width:150px;margin:14px auto 0;padding:8px;border-radius:12px;font-size:26px;text-align:center;font-variant-numeric:tabular-nums}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:288px;margin:18px auto 0}
+.key{height:52px;font-size:20px;border-radius:10px;border:1px solid var(--line2);background:var(--bg3)}
+.key:active{background:var(--acc-soft);border-color:var(--acc)}
+.cubes{height:auto;max-height:44vh}
+.cubes .ft{fill:#2b3d6b}.cubes .fl{fill:#1c2a4d}.cubes .fr{fill:#131d38}
+.cubes polygon{stroke:var(--acc);stroke-width:1.2;stroke-linejoin:round}
+.cubes .ground{fill:none;stroke:var(--line2);stroke-dasharray:4 4}
+.ref{display:grid;justify-items:center;gap:4px;margin:0 auto 16px;padding-bottom:16px;border-bottom:1px dashed var(--line2)}
+.ref svg{width:min(46%,170px)}
+.ref.wide svg{width:min(60%,230px)}
+.cap{font-size:13px;color:var(--mut)}
+.opts{display:grid;gap:10px;max-width:480px;margin:0 auto}
+.opts.c2{grid-template-columns:repeat(2,1fr)}
+.opts.c3{grid-template-columns:repeat(3,1fr)}
+.opts.c4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:420px){.opts.c4{grid-template-columns:repeat(2,1fr)}}
+.opt{position:relative;padding:18px 10px 10px;border:1px solid var(--line2);border-radius:14px;background:var(--bg2);transition:border-color .15s,box-shadow .15s}
+.opt svg{width:100%;height:auto}
+.opt.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 0 24px var(--acc-soft)}
+.opt.x{opacity:.32;border-style:dashed}
+.ol{position:absolute;left:10px;top:4px;font-size:13px;color:var(--mut);font-weight:600}
+.pc{fill:rgba(61,220,255,.13);stroke:#3ddcff;stroke-width:1.5}
+.pc.m1{fill:#f26bd8;stroke:#f26bd8}.pc.m2{fill:#ffc857;stroke:#ffc857}
+.shape{fill:rgba(61,220,255,.16);stroke:#3ddcff;stroke-width:1.6;stroke-linejoin:round}
+.gridl{stroke:#2a3760;stroke-width:.6}
+.matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:300px;margin:0 auto 16px}
+.matrix>div{border:1px solid var(--line);border-radius:10px;background:var(--bg2);aspect-ratio:1}
+.matrix>div.hole{border:1.5px dashed var(--acc);display:grid;place-items:center;color:var(--acc);font-size:26px;background:var(--acc-soft)}
+.netsvg{width:min(100%,330px);margin:0 auto}
+.face rect{fill:var(--bg2);stroke:var(--line2);stroke-width:1.5;transition:fill .15s}
+.face text{fill:var(--mut);font-size:17px;font-weight:600;text-anchor:middle;pointer-events:none}
+.face{cursor:pointer}
+.face.mark rect{fill:var(--acc);stroke:var(--acc)}
+.face.mark text{fill:var(--ink)}
+.face.sel rect{fill:rgba(165,147,255,.3);stroke:var(--vio);stroke-width:3}
+.face.sel text{fill:var(--txt)}
+.face.x{opacity:.35}
+.symsvg{width:min(100%,360px);margin:0 auto;touch-action:manipulation}
+.symsvg .c{fill:var(--bg2);stroke:var(--line);stroke-width:1;cursor:pointer}
+.symsvg .c.g{fill:var(--acc);stroke:var(--acc);cursor:default}
+.symsvg .c.on{fill:var(--vio);stroke:var(--vio)}
+.axis{stroke:var(--amb);stroke-width:2;stroke-dasharray:7 6;fill:none;pointer-events:none}
+.pgrid{display:grid;gap:4px;max-width:340px;margin:0 auto}
+.pcell{aspect-ratio:1;border-radius:6px;border:0;position:relative;padding:0}
+.pcell::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(7,16,31,.55)}
+
+.k1::after{width:26%;height:26%;border-radius:50%}
+.k2::after{width:44%;height:12%}
+.k3::after{width:26%;height:26%;transform:translate(-50%,-50%) rotate(45deg)}
+.pcell.hole{background:transparent;border:1.5px dashed var(--acc);color:var(--acc);font-size:18px}
+.k0,.pcell.k0{background:#3ddcff}.k1,.pcell.k1{background:#a593ff}.k2,.pcell.k2{background:#f26bd8}.k3,.pcell.k3{background:#ffc857}
+.pcell.hole.set{border:0;box-shadow:0 0 0 2px var(--bg2),0 0 0 4px var(--txt)}
+.legend{display:flex;justify-content:center;gap:14px;margin-top:14px;font-size:13px;color:var(--mut);flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px;position:relative}
+.board{width:100%;margin:0 auto;-webkit-user-select:none;user-select:none;touch-action:none}
+.tcell{fill:rgba(61,220,255,.07);stroke:var(--acc);stroke-width:1.2;stroke-dasharray:5 4}
+.piece{cursor:grab;outline:none}
+.piece rect{stroke:rgba(7,16,31,.55);stroke-width:1.5;fill-opacity:.9}
+.piece.drag{cursor:grabbing}
+.piece.drag rect,.piece:focus-visible rect{stroke:#fff;stroke-width:2}
+.ghost rect{fill:none;stroke-width:2.5;stroke-dasharray:6 5}
+.expr{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;font-size:26px;font-variant-numeric:tabular-nums}
+.slot{width:54px;height:58px;border-radius:12px;border:1.5px dashed var(--line2);background:var(--bg2);font-size:24px;font-weight:600}
+.slot.so{width:44px;height:44px;border-radius:50%;color:var(--vio)}
+.slot.full{border-style:solid;border-color:var(--acc)}
+.slot.so.full{border-color:var(--vio)}
+.par{color:var(--mut);font-size:34px;font-weight:300;line-height:1}
+.eqs{color:var(--mut);margin:0 4px}
+.target{min-width:62px;padding:8px 14px;border-radius:12px;background:var(--acc);color:var(--ink);font-weight:700;text-align:center}
+.rhs{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+@media(max-width:480px){.expr{gap:3px;font-size:22px}.slot{width:38px;height:46px;font-size:20px;border-radius:10px}.slot.so{width:34px;height:40px;border-radius:17px;font-size:19px}.par{font-size:28px}.target{min-width:54px;padding:6px 12px}}
+.tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px}
+.tile{width:54px;height:54px;border-radius:12px;border:1px solid var(--line2);background:var(--bg3);font-size:22px;font-weight:600}
+.tile.to{width:48px;height:48px;border-radius:50%;color:var(--vio);border-color:rgba(165,147,255,.55)}
+.tile:disabled{opacity:.22}
+.lrow{display:flex;justify-content:center;gap:8px}
+.lcard{flex:1 1 0;max-width:108px;min-width:0;display:grid;gap:6px;justify-items:stretch;text-align:center}
+.lpos{font-size:13px;color:var(--mut)}
+.lbtn{border:1px solid var(--line2);border-radius:14px;background:var(--bg2);padding:6px;aspect-ratio:1}
+.lbtn svg{width:100%;height:100%}
+.lcol{border:1px solid var(--line2);border-radius:10px;background:var(--bg2);min-height:40px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 4px;overflow:hidden}
+.lcol i{width:14px;height:14px;border-radius:50%;border:1px dashed var(--mut);flex:none}
+.lcol.set i{border:0}
+.clues{margin-top:18px;display:grid;gap:6px;counter-reset:c}
+.clues button{width:100%;text-align:left;padding:9px 12px 9px 38px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);position:relative;font-size:16px;line-height:1.35}
+.clues button::before{counter-increment:c;content:counter(c);position:absolute;left:13px;top:9px;color:var(--mut);font-variant-numeric:tabular-nums}
+.clues button.done{opacity:.45;text-decoration:line-through}
+.cluehint{font-size:13px;color:var(--mut);margin-top:8px;text-align:center}
+
+/* ---------- Daily-Ergebnis, Fortschritt, Einstellungen ---------- */
+.sub{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-bottom:26px}
+.sub h2{font-size:26px;font-weight:600;letter-spacing:.04em}
+.card{border:1px solid var(--line2);border-radius:22px;padding:clamp(20px,4vw,34px);background:radial-gradient(24rem 18rem at 82% 0%,rgba(165,147,255,.16),transparent 70%),var(--bg2);display:grid;grid-template-columns:1fr auto;gap:18px 24px;align-items:start}
+.card .sigil{width:clamp(104px,24vw,168px)}
+.card h3{font-size:15px;font-weight:500;color:var(--mut)}
+.card .big{font-size:clamp(26px,5vw,38px);font-weight:600;line-height:1.15;margin-top:4px}
+.card .when{color:var(--mut);margin-top:2px}
+.kv{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:14px;padding-top:18px;border-top:1px solid var(--line)}
+.kv dt{font-size:13px;color:var(--mut)}
+.kv dd{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.share{margin-top:18px;display:grid;gap:12px}
+.share pre{margin:0;padding:14px 16px;border:1px dashed var(--line2);border-radius:12px;font:15px/1.5 var(--font);white-space:pre-wrap;color:var(--txt);-webkit-user-select:all;user-select:all}
+.rowb{display:flex;flex-wrap:wrap;gap:8px}
+details.sol{margin-top:6px;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+details.sol summary{cursor:pointer;color:var(--mut)}
+details.sol p{margin-top:8px}
+.sec{margin-top:30px}
+.sec>h3{font-size:17px;font-weight:600;margin-bottom:12px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tilebox{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(18,26,47,.7)}
+.tilebox span{display:block;font-size:13px;color:var(--mut)}
+.tilebox b{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.bars{display:grid;gap:8px}
+.barrow{display:grid;grid-template-columns:132px 1fr 44px;gap:12px;align-items:center;font-size:15px}
+.barrow i{display:block;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.barrow i u{display:block;height:100%;background:var(--acc);border-radius:4px}
+.barrow b{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.sigils{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:10px}
+.sigils figure{margin:0;text-align:center;font-size:11px;color:var(--mut)}
+.sigils .sigil{width:100%}
+.empty{color:var(--mut);font-size:15px}
+.setrow{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.setrow p{font-size:14px;color:var(--mut)}
+.sw{width:58px;height:34px;border-radius:17px;border:1px solid var(--line2);background:var(--bg2);position:relative;transition:background .2s}
+.sw::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:var(--mut);transition:transform .2s,background .2s}
+.sw[aria-checked="true"]{background:var(--acc-soft);border-color:var(--acc)}
+.sw[aria-checked="true"]::after{transform:translateX(24px);background:var(--acc)}
+.themes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.theme{text-align:left;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center}
+.theme i{width:22px;height:22px;border-radius:50%;grid-row:1/3}
+.theme b{font-weight:600;font-size:15px}
+.theme span{font-size:12px;color:var(--mut)}
+.theme[aria-pressed="true"]{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.theme:disabled{opacity:.5}
+textarea{width:100%;min-height:120px;border-radius:12px;border:1px solid var(--line2);background:var(--bg);color:var(--txt);font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:12px;resize:vertical}
+.hintline{font-size:14px;color:var(--mut);margin-top:10px}
+.warn{font-size:14px;color:var(--amb);margin-top:10px}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
+body.nomotion *,body.nomotion *::before,body.nomotion *::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="toast" role="status" aria-live="polite"></div>
+<noscript>MIND//SHAPES braucht JavaScript. Es läuft vollständig auf deinem Gerät.</noscript>
+<script>
+(function(){
+'use strict';
+/* =====================================================================
+   ENGINE  –  deterministischer Zufall, Puzzle-Generatoren, Daily-Logik
+   ===================================================================== */
+function xmur3(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}
+  return function(){h=Math.imul(h^(h>>>16),2246822507);h=Math.imul(h^(h>>>13),3266489909);return (h^=h>>>16)>>>0;};}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hashStr(s){return xmur3(String(s))();}
+function makeRng(seed){
+  const r=mulberry32(hashStr(seed));
+  r.int=(a,b)=>a+Math.floor(r()*(b-a+1));
+  r.pick=a=>a[Math.floor(r()*a.length)];
+  r.chance=p=>r()<p;
+  r.shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;};
+  return r;
+}
+const DIFF=['Easy','Normal','Hard','Insane'];
+const TYPES={number:'Number Logic',geometry:'Geometry Lab',equation:'Equation Builder',spatial:'Spatial Logic',pattern:'Pattern Engine',logic:'Logic Grid'};
+const TYPE_KEYS=Object.keys(TYPES);
+const range=n=>Array.from({length:n},(_,i)=>i);
+const series=(n,f)=>Array.from({length:n},(_,i)=>f(i));
+const fmt=n=>String(n).replace('.',',');
+const LETTERS='ABCDEF';
+const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
+const pm=c=>(c>0?'plus ':'minus ')+Math.abs(c);
+const sg=c=>(c>0?'+':'−')+Math.abs(c);
+
+/* ---------------------------------------------------------------- A · NUMBER LOGIC */
+const digitSum=x=>String(Math.abs(x)).split('').reduce((a,b)=>a+ +b,0);
+const digitProd=x=>String(Math.abs(x)).split('').reduce((a,b)=>a*+b,1);
+const isPrime=x=>{if(x<2)return false;for(let i=2;i*i<=x;i++)if(x%i===0)return false;return true;};
+const isSquare=x=>Number.isInteger(Math.sqrt(x));
+
+const SEQ=[
+ [ R=>{const a=R.int(1,15),d=R.int(2,9);return{t:series(6,i=>a+d*i),h:'Der Abstand zwischen zwei Nachbarn ist immer gleich.',x:`Jede Zahl ist um ${d} größer als die vorige.`};},
+   R=>{const d=R.int(2,7),a=R.int(40,70);return{t:series(6,i=>a-d*i),h:'Der Abstand zwischen zwei Nachbarn ist immer gleich.',x:`Jede Zahl ist um ${d} kleiner als die vorige.`};},
+   R=>{const a=R.int(1,4),q=R.pick([2,2,3]);return{t:series(q===2?6:5,i=>a*Math.pow(q,i)),h:'Hier wird nicht addiert, sondern vervielfacht.',x:`Jede Zahl ist das ${q}-Fache der vorigen.`};},
+   R=>{const a=R.int(1,9),p=R.int(1,4),q=R.int(5,9);const t=[a];for(let i=0;i<6;i++)t.push(t[i]+(i%2?q:p));return{t,h:'Zwei verschiedene Schritte wechseln sich ab.',x:`Es wird abwechselnd ${p} und ${q} addiert.`};} ],
+ [ R=>{const a=R.int(1,9),d=R.int(1,4),k=R.int(1,3);const t=[a];for(let i=0;i<6;i++)t.push(t[i]+d+k*i);return{t,h:'Die Abstände sind nicht gleich, aber sie wachsen gleichmäßig.',x:`Die Abstände wachsen jeweils um ${k}: +${d}, +${d+k}, +${d+2*k} …`};},
+   R=>{const c=R.int(1,3),a=R.int(c+1,c+4);const t=[a];for(let i=0;i<6;i++)t.push(i%2?t[i]-c:t[i]*2);return{t,h:'Zwei verschiedene Rechenarten wechseln sich ab.',x:`Es wird abwechselnd verdoppelt und ${c} abgezogen.`};},
+   R=>{const a=R.int(1,5),b=R.int(a,a+4);const t=[a,b];for(let i=2;i<7;i++)t.push(t[i-1]+t[i-2]);return{t,h:'Jede Zahl entsteht aus ihren beiden Vorgängern.',x:'Jede Zahl ist die Summe der beiden Zahlen davor.'};},
+   R=>{const c=R.pick([-3,-2,-1,1,2,3,4,5]),s=R.int(1,3);return{t:series(6,i=>(s+i)*(s+i)+c),h:'Denke an Quadratzahlen.',x:`Es sind die Quadratzahlen ${s}², ${s+1}², ${s+2}² …, jeweils ${pm(c)}.`};} ],
+ [ R=>{const a=R.int(1,9),b=R.int(10,30),d1=R.int(2,5),d2=R.pick([-4,-3,-2,3,4,6]);return{t:series(8,i=>i%2?b+d2*((i-1)/2):a+d1*(i/2)),h:'Hier laufen zwei Folgen ineinander verschränkt.',x:`Zwei verschränkte Folgen: Die 1., 3., 5. … Zahl ändert sich um ${sg(d1)}, die 2., 4., 6. … um ${sg(d2)}.`};},
+   R=>{const k=R.pick([2,2,3]),c=R.pick([-3,-2,-1,1,2,3]),a=R.int(Math.max(1,2-c),Math.max(1,2-c)+3);const t=[a];for(let i=0;i<5;i++)t.push(t[i]*k+c);return{t,h:'Jeder Schritt besteht aus zwei Rechnungen hintereinander.',x:`Jede Zahl ist das ${k}-Fache der vorigen ${pm(c)}.`};},
+   R=>{const a=R.int(1,9),d=R.int(1,3),q=R.pick([2,2,3]);const n=q===2?7:6,t=[a];for(let i=0;i<n-1;i++)t.push(t[i]+d*Math.pow(q,i));return{t,h:'Schau auf die Abstände: Sie vervielfachen sich.',x:`Die Abstände ${q===2?'verdoppeln':'verdreifachen'} sich: +${d}, +${d*q}, +${d*q*q} …`};},
+   R=>{const c=R.int(-2,5),s=R.int(1,2);return{t:series(6,i=>Math.pow(s+i,3)+c),h:'Denke an Kubikzahlen (n × n × n).',x:`Es sind die Kubikzahlen ${s}³, ${s+1}³, ${s+2}³ …${c?', jeweils '+pm(c):''}.`};} ],
+ [ R=>{const a=R.int(2,12),d=R.int(2,6),b=R.int(1,3),q=R.pick([2,3]);return{t:series(8,i=>i%2?b*Math.pow(q,(i-1)/2+1):a+d*(i/2)),h:'Zwei verschränkte Folgen – mit unterschiedlichen Rechenarten.',x:`Zwei verschränkte Folgen: Die 1., 3., 5. … Zahl wächst um ${d}, die 2., 4., 6. … wird jeweils mit ${q} multipliziert.`};},
+   R=>{const a=R.int(1,4),b=R.int(2,6),c=R.pick([-2,-1,1,2,3]);const t=[a,b];for(let i=2;i<7;i++)t.push(t[i-1]+t[i-2]+c);return{t,h:'Die beiden Vorgänger spielen zusammen, aber nicht ganz allein.',x:`Jede Zahl ist die Summe ihrer beiden Vorgänger ${pm(c)}.`};},
+   R=>{const a=R.int(1,3);const t=[a];for(let i=1;i<6;i++)t.push(t[i-1]*(i+1));return{t,h:'Der Faktor ändert sich von Schritt zu Schritt.',x:'Es wird nacheinander mit 2, 3, 4, 5, 6 multipliziert.'};},
+   R=>{const a=R.int(1,9),pr=[2,3,5,7,11,13];const t=[a];pr.forEach((p,i)=>t.push(t[i]+p));return{t,h:'Die Abstände bilden eine berühmte Zahlenfamilie.',x:'Die Abstände sind die Primzahlen 2, 3, 5, 7, 11, 13.'};},
+   R=>{const a=R.int(11,45);const t=[a];for(let i=0;i<6;i++)t.push(t[i]+digitSum(t[i]));return{t,h:'Der Abstand hängt von den Ziffern der Zahl selbst ab.',x:'Zu jeder Zahl wird ihre eigene Quersumme addiert.'};} ]
+];
+function genSeq(R,d,opt){
+  const fam=R.pick(SEQ[d])(R),t=fam.t,n=t.length;
+  if(t.some(v=>!Number.isInteger(v)||Math.abs(v)>99999))return null;
+  let gap=d===0?n-1:d===1?R.pick([n-1,n-1,n-2]):R.int(2,n-1);
+  if(opt&&opt.end)gap=n-1;
+  return{sub:'seq',kind:'number',rating:[1.5,3.5,6,8.5][d]+(gap<n-1?.5:0),
+    prompt:'Welche Zahl gehört an die Stelle des Fragezeichens?',
+    rules:['Die Folge gehorcht von Anfang bis Ende derselben Regel.'],
+    view:{fig:'seq',terms:t.map((v,i)=>i===gap?null:v)},solution:t[gap],
+    hints:['Schau dir an, wie sich die Zahlen von Schritt zu Schritt verändern.',fam.h,fam.x],
+    explain:`${fam.x} Die gesuchte Zahl ist ${t[gap]}.`,sig:'seq:'+t.join(',')+'@'+gap};
+}
+const OPS2=[
+ {f:(a,b)=>2*a+b,s:'2 × a + b',h:'Die beiden Zahlen werden unterschiedlich stark gewichtet.',t:1},
+ {f:(a,b)=>a+2*b,s:'a + 2 × b',h:'Die beiden Zahlen werden unterschiedlich stark gewichtet.',t:1},
+ {f:(a,b)=>a*b+1,s:'a × b + 1',h:'Das Produkt der beiden Zahlen liegt ganz in der Nähe.',t:1},
+ {f:(a,b)=>(a+b)*2,s:'(a + b) × 2',h:'Fasse die beiden Zahlen erst zusammen, bevor du weiterrechnest.',t:1},
+ {f:(a,b)=>a*b+a,s:'a × b + a',h:'Das Produkt spielt eine Rolle, aber eine der Zahlen kommt noch einmal vor.',t:1},
+ {f:(a,b)=>a*b-b,s:'a × b − b',h:'Das Produkt spielt eine Rolle, aber eine der Zahlen kommt noch einmal vor.',t:2},
+ {f:(a,b)=>a*a+b,s:'a × a + b',h:'Eine der Zahlen wird mit sich selbst multipliziert.',t:2},
+ {f:(a,b)=>a*a-b,s:'a × a − b',h:'Eine der Zahlen wird mit sich selbst multipliziert.',t:2},
+ {f:(a,b)=>3*a-b,s:'3 × a − b',h:'Die beiden Zahlen werden unterschiedlich stark gewichtet, eine zählt sogar negativ.',t:2},
+ {f:(a,b)=>a*b+a+b,s:'a × b + a + b',h:'Produkt und Summe arbeiten zusammen.',t:2},
+ {f:(a,b)=>(a+b)*a,s:'(a + b) × a',h:'Fasse die beiden Zahlen erst zusammen, bevor du weiterrechnest.',t:2},
+ {f:(a,b)=>2*a*b,s:'2 × a × b',h:'Das Produkt der beiden Zahlen wird noch einmal verändert.',t:2},
+ {f:(a,b)=>a*a+b*b,s:'a × a + b × b',h:'Beide Zahlen werden zuerst einzeln verändert und dann zusammengeführt.',t:3},
+ {f:(a,b)=>(a+b)*(a+b),s:'(a + b) × (a + b)',h:'Fasse die beiden Zahlen erst zusammen – das Ergebnis ist eine besondere Zahl.',t:3},
+ {f:(a,b)=>a*a-b*b,s:'a × a − b × b',h:'Beide Zahlen werden zuerst einzeln verändert und dann zusammengeführt.',t:3},
+ {f:(a,b)=>a*b-a-b,s:'a × b − a − b',h:'Produkt und Summe arbeiten gegeneinander.',t:3},
+ {f:(a,b)=>(a+b)*b,s:'(a + b) × b',h:'Fasse die beiden Zahlen erst zusammen, bevor du weiterrechnest.',t:3},
+ {f:(a,b)=>a*b+a-b,s:'a × b + a − b',h:'Das Produkt stimmt fast – der Rest hängt vom Unterschied der Zahlen ab.',t:3}
+];
+function genOp(R,d){
+  if(d===0||(d===1&&R.chance(.4))){            // einstellige Maschine
+    const sq=d===1&&R.chance(.5),m=R.int(2,6),c=sq?R.int(-3,9):R.int(d?-4:0,9);
+    const f=sq?x=>x*x+c:x=>m*x+c,xs=R.shuffle(range(9).map(i=>i+1)).slice(0,5);
+    const ex=xs.slice(0,d?3:4);if(!d)ex.sort((a,b)=>a-b);const q=xs[4];
+    const s=sq?`x × x ${c?sg(c).replace(/^([+−])/,'$1 '):''}`.trim():`${m} × x ${c?sg(c).replace(/^([+−])/,'$1 '):''}`.trim();
+    return{sub:'machine',kind:'number',rating:d?3.5:2,prompt:'Die Maschine verwandelt jede Zahl nach derselben Regel. Was kommt unten heraus?',
+      rules:['Links steht, was hineingeht – rechts, was herauskommt.'],
+      view:{fig:'pairs',rows:ex.map(x=>[String(x),String(f(x))]),q:String(q),sym:'→'},solution:f(q),
+      hints:['Vergleiche, wie stark das Ergebnis wächst, wenn die Eingabe um 1 größer wird.',sq?'Die Eingabe wird mit sich selbst multipliziert.':'Die Eingabe wird erst vervielfacht, dann wird etwas addiert oder abgezogen.',`Die Regel hat die Form „${s}“. Setze ${q} ein.`],
+      explain:`Die Regel lautet ${s}. Für ${q} ergibt das ${f(q)}.`,sig:'mach:'+s+'@'+ex.join(',')+'>'+q};
+  }
+  const pool=OPS2.filter(o=>d===1?o.t===1:d===2?o.t<=2:o.t>=2);
+  for(let t=0;t<60;t++){
+    const op=R.pick(pool),pairs=[],seen=new Set();
+    while(pairs.length<6){const a=R.int(2,9),b=R.int(2,9);if(a===b||seen.has(a+','+b))continue;seen.add(a+','+b);pairs.push([a,b]);}
+    const q=pairs[5];
+    for(let n=d===3?3:4;n<=5;n++){
+      const ex=pairs.slice(0,n);
+      const rivals=OPS2.filter(o=>o!==op&&ex.every(([a,b])=>o.f(a,b)===op.f(a,b)));
+      if(rivals.every(o=>o.f(q[0],q[1])===op.f(q[0],q[1])))
+        return{sub:'op',kind:'number',rating:[0,4,6.5,9][d],prompt:'Das Zeichen ◇ steht für eine geheime Rechenregel. Was ergibt die letzte Zeile?',
+          rules:['In jeder Zeile gilt dieselbe Regel.','Die Reihenfolge der beiden Zahlen kann eine Rolle spielen.'],
+          view:{fig:'pairs',rows:ex.map(([a,b])=>[`${a} ◇ ${b}`,String(op.f(a,b))]),q:`${q[0]} ◇ ${q[1]}`,sym:'='},solution:op.f(q[0],q[1]),
+          hints:['Probiere einfache Kombinationen: Wie weit liegt das Ergebnis von a × b oder a + b entfernt?',op.h,`Die Regel hat die Form „${op.s}“. Setze die Zahlen der letzten Zeile ein.`],
+          explain:`Die Regel lautet a ◇ b = ${op.s}. Also ${q[0]} ◇ ${q[1]} = ${op.f(q[0],q[1])}.`,sig:'op:'+op.s+'@'+ex.join('|')+'>'+q};
+    }
+  }
+  return null;
+}
+function genRiddle(R,d){
+  for(let t=0;t<60;t++){
+    const three=d===3||(d===2&&R.chance(.35)),lo=three?100:10,hi=three?999:99;
+    const n=R.int(lo,hi),dg=String(n).split('').map(Number),C=[];
+    const add=(t,f)=>C.push({t,f});
+    [3,4,6,7,8,9,11,12,13].forEach(k=>{if(n%k===0)add(`Sie ist durch ${k} teilbar.`,x=>x%k===0);});
+    [5,7,9,11].forEach(k=>{const r=n%k;if(r)add(`Teilt man sie durch ${k}, bleibt der Rest ${r}.`,x=>x%k===r);});
+    const s=digitSum(n),p=digitProd(n);
+    add(`Ihre Quersumme ist ${s}.`,x=>digitSum(x)===s);
+    if(p>0)add(`Das Produkt ihrer Ziffern ist ${p}.`,x=>digitProd(x)===p);
+    const span=three?150:25,L=Math.max(lo-1,Math.floor((n-R.int(3,span))/5)*5),U=Math.min(hi+1,Math.ceil((n+R.int(3,span))/5)*5);
+    if(L<n&&L>=lo)add(`Sie ist größer als ${L}.`,x=>x>L);
+    if(U>n&&U<=hi)add(`Sie ist kleiner als ${U}.`,x=>x<U);
+    add(n%2?'Sie ist ungerade.':'Sie ist gerade.',x=>x%2===n%2);
+    if(isPrime(n))add('Sie ist eine Primzahl.',isPrime);
+    if(isSquare(n))add('Sie ist eine Quadratzahl.',isSquare);
+    const D=x=>String(x).split('').map(Number);
+    if(!three){const a=dg[0],b=dg[1];
+      if(a>b)add(`Ihre Zehnerziffer ist um ${a-b} größer als ihre Einerziffer.`,x=>{const q=D(x);return q[0]-q[1]===a-b;});
+      else if(a<b)add(`Ihre Einerziffer ist um ${b-a} größer als ihre Zehnerziffer.`,x=>{const q=D(x);return q[1]-q[0]===b-a;});
+      else add('Ihre beiden Ziffern sind gleich.',x=>{const q=D(x);return q[0]===q[1];});
+    }else{const a=dg[0],b=dg[1],c=dg[2];
+      if(a<b&&b<c)add('Ihre Ziffern werden von links nach rechts größer.',x=>{const q=D(x);return q[0]<q[1]&&q[1]<q[2];});
+      if(a>b&&b>c)add('Ihre Ziffern werden von links nach rechts kleiner.',x=>{const q=D(x);return q[0]>q[1]&&q[1]>q[2];});
+      if(b===a+c)add('Ihre mittlere Ziffer ist die Summe der beiden äußeren.',x=>{const q=D(x);return q[1]===q[0]+q[2];});
+      if(a===c)add('Sie liest sich vorwärts wie rückwärts gleich.',x=>{const q=D(x);return q[0]===q[2];});
+      else add(`Ihre erste Ziffer ist ${a>c?'größer':'kleiner'} als ihre letzte.`,x=>{const q=D(x);return a>c?q[0]>q[2]:q[0]<q[2];});
+      add(`Genau ${new Set(dg).size===3?'drei':new Set(dg).size===2?'zwei':'eine'} verschiedene Ziffer${new Set(dg).size===1?'':'n'} kommen in ihr vor.`.replace('eine verschiedene Ziffer kommen','eine einzige Ziffer kommt'),x=>new Set(D(x)).size===new Set(dg).size);
+    }
+    const all=[];for(let x=lo;x<=hi;x++)all.push(x);
+    let cand=all,chosen=[];
+    for(const c of R.shuffle(C)){const nc=cand.filter(c.f);if(nc.length<cand.length){chosen.push(c);cand=nc;}if(cand.length===1)break;}
+    if(cand.length!==1)continue;
+    for(const c of R.shuffle(chosen)){const rest=chosen.filter(q=>q!==c);if(rest.length&&all.filter(x=>rest.every(q=>q.f(x))).length===1)chosen=rest;}
+    if(chosen.length<(d>=2?3:2)||chosen.length>5)continue;
+    const best=chosen.map(c=>({c,n:all.filter(c.f).length})).sort((a,b)=>a.n-b.n)[0];
+    let h2=`Starte mit „${best.c.t}“ Das erfüllen nur ${best.n} Zahlen – gehe sie mit den übrigen Bedingungen durch.`;
+    if(best.n>15){let bp=null;chosen.forEach((x,i)=>chosen.forEach((y,j)=>{if(i<j){const m=all.filter(q=>x.f(q)&&y.f(q)).length;if(!bp||m<bp.m)bp={x,y,m};}}));
+      if(bp)h2=`Kombiniere „${bp.x.t}“ mit „${bp.y.t}“ Beides zusammen ${bp.m===1?'erfüllt nur eine einzige Zahl':'erfüllen nur '+bp.m+' Zahlen'}.`;}
+    return{sub:'riddle',kind:'number',rating:[0,4,6+chosen.length*.3,8.5+chosen.length*.2][d]+(three&&d===2?.8:0),
+      prompt:`Gesucht ist eine ${three?'dreistellige':'zweistellige'} Zahl.`,rules:['Alle Bedingungen gelten gleichzeitig.','Es gibt genau eine Zahl, die passt.'],
+      view:{fig:'riddle',lines:chosen.map(c=>c.t)},solution:n,
+      hints:['Beginne mit der Bedingung, die die wenigsten Zahlen übrig lässt.',h2,`Die Zahl beginnt mit der Ziffer ${dg[0]}.`],
+      explain:`Nur die ${n} erfüllt alle Bedingungen zugleich.`,sig:'rid:'+n+':'+chosen.map(c=>c.t).sort().join('|')};
+  }
+  return null;
+}
+function genNumber(R,d){
+  const x=R();
+  if(d===0)return x<.65?genSeq(R,d):genOp(R,d);
+  if(d===1)return x<.45?genSeq(R,d):x<.8?genOp(R,d):genRiddle(R,d);
+  return x<.35?genSeq(R,d):x<.65?genOp(R,d):genRiddle(R,d);
+}
+
+/* ---------------------------------------------------------------- C · EQUATION BUILDER */
+const TPL={a:'N O N O N',b:'( N O N ) O N',c:'N O ( N O N )',d:'N O N O N O N',e:'( N O N ) O N O N',f:'N O ( N O N ) O N',g:'( N O N ) O ( N O N )',h:'N O N O ( N O N )',i:'( N O N O N ) O N'};
+Object.keys(TPL).forEach(k=>TPL[k]=TPL[k].split(' '));
+function evalTokens(tk){
+  let i=0;
+  const fac=()=>{const t=tk[i++];if(t==='('){const v=expr();i++;return v;}return t;};
+  const term=()=>{let v=fac();while(tk[i]==='×'||tk[i]==='÷'){const o=tk[i++],w=fac();v=o==='×'?v*w:v/w;}return v;};
+  const expr=()=>{let v=term();while(tk[i]==='+'||tk[i]==='−'){const o=tk[i++],w=term();v=o==='+'?v+w:v-w;}return v;};
+  return expr();
+}
+function fillTpl(tpl,vals){let k=0;return tpl.map(t=>t==='N'||t==='O'?vals[k++]:t);}
+function eqSolutions(tpl,nums,ops,target,cap){
+  const slots=tpl.filter(t=>t==='N'||t==='O'),un=nums.map(()=>false),uo=ops.map(()=>false),cur=[],out=[];
+  (function rec(k){
+    if(out.length>=cap)return;
+    if(k===slots.length){if(Math.abs(evalTokens(fillTpl(tpl,cur))-target)<1e-9)out.push(cur.slice());return;}
+    const isN=slots[k]==='N',pool=isN?nums:ops,used=isN?un:uo,tried=new Set();
+    for(let i=0;i<pool.length;i++){if(used[i]||tried.has(pool[i]))continue;tried.add(pool[i]);used[i]=true;cur.push(pool[i]);rec(k+1);cur.pop();used[i]=false;}
+  })(0);
+  return out;
+}
+const exprStr=(tpl,vals)=>fillTpl(tpl,vals).join(' ').replace(/\( /g,'(').replace(/ \)/g,')');
+function genEquation(R,d,forced){
+  const cfg=[{tp:['a'],hi:9,dn:0,ops:['+','−','×'],dop:1,lo:3,max:60,lim:99},
+             {tp:['a','a','b','c'],hi:9,dn:1,ops:['+','−','×'],dop:1,lo:5,max:90,lim:8},
+             {tp:['d','b','c','e','f','h'],hi:10,dn:1,ops:['+','−','×','÷'],dop:2,lo:8,max:160,lim:5},
+             {tp:['e','f','g','h','i','d'],hi:12,dn:2,ops:['+','−','×','÷'],dop:2,lo:10,max:240,lim:3}][d];
+  for(let t=0;t<260;t++){
+    const tpl=TPL[R.pick(cfg.tp)],nN=tpl.filter(x=>x==='N').length,nO=tpl.filter(x=>x==='O').length;
+    const lim=t>160?cfg.lim*3:cfg.lim;
+    const nums=R.shuffle(range(cfg.hi).map(i=>i+1)).slice(0,nN+cfg.dn);
+    if(d>=2&&R.chance(.4))nums[R.int(0,nums.length-1)]=R.pick([12,15,20,25]);
+    const ops=series(nO+cfg.dop,()=>R.pick(cfg.ops));
+    if(new Set(ops).size<(d>=2?3:2))continue;
+    let target=forced,sol;
+    if(forced==null){
+      const vals=[];let a=0,b=0;tpl.forEach(x=>{if(x==='N')vals.push(nums[a++]);if(x==='O')vals.push(ops[b++]);});
+      target=evalTokens(fillTpl(tpl,vals));
+      if(!Number.isInteger(target)||target<cfg.lo||target>cfg.max)continue;
+      if(nums.includes(target)&&d<3)continue;
+    }
+    const sols=eqSolutions(tpl,nums,ops,target,lim+1);
+    if(!sols.length||sols.length>lim)continue;
+    sol=sols[0];
+    const sn=R.shuffle(nums),so=R.shuffle(ops),used=sol.filter(x=>typeof x==='string');
+    const uniq=[...new Set(used)];
+    return{sub:'build',kind:'equation',rating:[2,4,6.5,9][d]+(sols.length===1?.7:0),
+      prompt:'Setze Zahlen und Rechenzeichen so in die Felder, dass das Ziel herauskommt.',
+      rules:['Jede Kachel darf höchstens einmal verwendet werden.',cfg.dn?'Nicht alle Kacheln werden gebraucht.':'Ein Rechenzeichen bleibt übrig.','Punkt vor Strich; Klammern werden zuerst gerechnet.'],
+      view:{tpl,nums:sn,ops:so,target},solution:sol,
+      hints:['Überlege zuerst die Größenordnung: Kommst du eher durch Malnehmen oder durch Addieren in die Nähe des Ziels?',
+        `In einer Lösung ${uniq.length>1?'kommen diese Rechenzeichen vor':'kommt nur dieses Rechenzeichen vor'}: ${uniq.join(' und ')}.`,
+        `Eine Lösung beginnt so: ${fillTpl(tpl,sol).slice(0,tpl[0]==='('?3:2).join(' ')} …`],
+      explain:`Eine mögliche Lösung: ${exprStr(tpl,sol)} = ${target}.`,sig:'eq:'+tpl.join('')+':'+sn.slice().sort()+':'+so.slice().sort()+'='+target,
+      validate(ans){return Array.isArray(ans)&&ans.length===sol.length&&Math.abs(evalTokens(fillTpl(tpl,ans))-target)<1e-9;}};
+  }
+  return null;
+}
+function genFusion(R,d){
+  let src=null;const useCubes=R.chance(.45);
+  for(let t=0;t<80&&!src;t++){
+    const s=useCubes?genCubes(R,Math.min(d-1,1),'count'):genSeq(R,d-1);
+    if(s&&s.solution>=6&&s.solution<=(useCubes?30:72))src=s;
+  }
+  if(!src)return null;
+  const eq=genEquation(R,d-1,src.solution);if(!eq)return null;
+  eq.sub='fusion';eq.rating+=2.2;eq.view.src=src.view;eq.fusion=useCubes?'Spatial Logic':'Number Logic';
+  eq.prompt=useCubes?'Das Ziel ist verschlüsselt: Zähle zuerst die Würfel. Ihre Anzahl ist das Ergebnis deiner Gleichung.':'Das Ziel ist verschlüsselt: Finde zuerst die fehlende Zahl der Folge. Sie ist das Ergebnis deiner Gleichung.';
+  eq.rules=eq.rules.concat(src.rules);
+  eq.hints=[src.hints[1],eq.hints[1],`Das Ziel der Gleichung ist ${src.solution}.`];
+  eq.explain=`${src.explain} ${eq.explain}`;eq.sig='fus:'+src.sig+'/'+eq.sig;
+  return eq;
+}
+function genEq(R,d){return d>=2&&R.chance(.3)?(genFusion(R,d)||genEquation(R,d)):genEquation(R,d);}
+
+/* ---------------------------------------------------------------- Polyomino-Werkzeuge */
+const P_ROT=c=>c.map(([x,y,m])=>[-y,x,m||0]),P_MIR=c=>c.map(([x,y,m])=>[-x,y,m||0]);
+function pNorm(c){const mx=Math.min(...c.map(p=>p[0])),my=Math.min(...c.map(p=>p[1]));return c.map(([x,y,m])=>[x-mx,y-my,m||0]).sort((a,b)=>a[1]-b[1]||a[0]-b[0]);}
+const pKey=c=>pNorm(c).map(p=>p.join(',')).join(';');
+function pRots(c){const o=[c];for(let i=0;i<3;i++)o.push(P_ROT(o[i]));return o;}
+const canonRot=c=>pRots(c).map(pKey).sort()[0];
+const canonFree=c=>pRots(c).concat(pRots(P_MIR(c))).map(pKey).sort()[0];
+const pDims=c=>{const n=pNorm(c);return[Math.max(...n.map(p=>p[0]))+1,Math.max(...n.map(p=>p[1]))+1];};
+function randPoly(R,n){
+  const cells=[[0,0,0]],has=new Set(['0,0']);
+  while(cells.length<n){const [x,y]=R.pick(cells),[dx,dy]=R.pick(DIRS),k=(x+dx)+','+(y+dy);if(!has.has(k)){has.add(k);cells.push([x+dx,y+dy,0]);}}
+  return pNorm(cells);
+}
+function pConnected(c){
+  const set=new Set(c.map(p=>p[0]+','+p[1])),seen=new Set([c[0][0]+','+c[0][1]]),q=[c[0]];
+  while(q.length){const [x,y]=q.pop();for(const [dx,dy] of DIRS){const k=(x+dx)+','+(y+dy);if(set.has(k)&&!seen.has(k)){seen.add(k);q.push([x+dx,y+dy]);}}}
+  return seen.size===c.length;
+}
+function has2x2(c){const s=new Set(c.map(p=>p[0]+','+p[1]));return c.some(([x,y])=>s.has((x+1)+','+y)&&s.has(x+','+(y+1))&&s.has((x+1)+','+(y+1)));}
+/* Würfelnetz falten: ein Würfel rollt über das Netz; die jeweils unten liegende Seite markiert das Feld. */
+function foldNet(cells){
+  if(cells.length!==6||has2x2(cells))return null;
+  const idx=new Map(cells.map((c,i)=>[c[0]+','+c[1],i])),lab=Array(6).fill(-1);
+  const q=[[0,[0,1,2,3,4,5]]];lab[0]=1;               // Orientierung [U,D,N,S,E,W]
+  while(q.length){
+    const [i,o]=q.shift(),[x,y]=cells[i],[U,Dn,N,S,E,W]=o;
+    const mv=[[1,0,[W,E,N,S,U,Dn]],[-1,0,[E,W,N,S,Dn,U]],[0,1,[N,S,Dn,U,E,W]],[0,-1,[S,N,U,Dn,E,W]]];
+    for(const [dx,dy,no] of mv){const j=idx.get((x+dx)+','+(y+dy));if(j!==undefined&&lab[j]<0){lab[j]=no[1];q.push([j,no]);}}
+  }
+  return new Set(lab).size===6?lab:null;
+}
+function randNet(R,pred){for(let t=0;t<4000;t++){const c=randPoly(R,6);const l=foldNet(c);if(l&&(!pred||pred(c)))return c;}return null;}
+
+/* ---------------------------------------------------------------- D · SPATIAL LOGIC */
+function genNetOpp(R,d){
+  const line4=q=>[0,1].some(ax=>{const m={};q.forEach(p=>m[p[1-ax]]=(m[p[1-ax]]||0)+1);return Object.values(m).includes(4);});
+  let c=randNet(R,d===0?line4:null);if(!c)return null;
+  for(let k=R.int(0,3);k>0;k--)c=P_ROT(c);if(R.chance(.5))c=P_MIR(c);c=pNorm(c);
+  const lab=foldNet(c),m=R.int(0,5),opp=lab.findIndex(l=>l===(lab[m]^1));
+  const adj=range(6).filter(i=>i!==m&&i!==opp),two=R.shuffle(adj).slice(0,2).sort();
+  const pairs=[];range(6).forEach(i=>{const j=lab.findIndex(l=>l===(lab[i]^1));if(i<j)pairs.push(LETTERS[i]+'–'+LETTERS[j]);});
+  return{sub:'netopp',kind:'net',rating:d?4:2,prompt:`Dieses Netz wird zu einem Würfel gefaltet. Welche Fläche liegt dann der Fläche ${LETTERS[m]} genau gegenüber?`,
+    rules:['Tippe die Fläche im Netz an.'],view:{cells:c,mark:m},solution:opp,
+    hints:['Lass eine Fläche als Boden liegen und klappe die anderen gedanklich hoch.','Gegenüberliegende Flächen berühren sich nie. In einer geraden Reihe liegt immer genau eine Fläche dazwischen.',`Die Flächen ${LETTERS[two[0]]} und ${LETTERS[two[1]]} grenzen am Würfel an ${LETTERS[m]} – sie scheiden aus.`],
+    explain:`Gegenüber von ${LETTERS[m]} liegt ${LETTERS[opp]}. Die drei Paare sind ${pairs.join(', ')}.`,sig:'net:'+pKey(c)+'@'+m};
+}
+function genNetValid(R,d){
+  const wantValid=d!==2,near=d>=2,opts=[],keys=new Set();
+  const invalid=()=>{for(let t=0;t<800;t++){const c=randPoly(R,6);if(foldNet(c))continue;if(near&&(has2x2(c)||Math.max(...pDims(c))>4))continue;return c;}return null;};
+  const push=c=>{if(!c)return false;const k=canonFree(c);if(keys.has(k))return false;keys.add(k);let v=c;for(let i=R.int(0,3);i>0;i--)v=P_ROT(v);opts.push(pNorm(v));return true;};
+  let guard=0;
+  if(!push(wantValid?randNet(R):invalid()))return null;
+  while(opts.length<4&&guard++<200)push(wantValid?invalid():randNet(R));
+  if(opts.length<4)return null;
+  const order=R.shuffle(range(4)),view=order.map(i=>opts[i]),ans=order.indexOf(0),other=order.indexOf(1);
+  return{sub:'netvalid',kind:'choice',rating:[0,4.5,6.5,8.5][d],
+    prompt:wantValid?'Nur eines dieser Netze lässt sich zu einem geschlossenen Würfel falten. Welches?':'Drei dieser Netze ergeben einen Würfel, eines nicht. Welches lässt sich nicht falten?',
+    rules:['Beim Falten darf keine Fläche auf einer anderen landen.'],view:{fig:'polys',opts:view,cols:2},solution:ans,
+    hints:['Wähle in jedem Netz eine Bodenfläche und klappe die übrigen gedanklich hoch.','Ein Netz scheitert, wenn zwei Flächen auf derselben Würfelseite landen. Vier Quadrate an einem gemeinsamen Punkt oder fünf in einer Reihe gehen nie.',
+      wantValid?`Netz ${LETTERS[other]} scheidet aus: Dort würden sich zwei Flächen überdecken.`:`Netz ${LETTERS[other]} lässt sich falten – es ist nicht das gesuchte.`],
+    explain:wantValid?`Nur Netz ${LETTERS[ans]} schließt sich zu einem Würfel. Bei den anderen landen zwei Flächen auf derselben Seite.`:`Bei Netz ${LETTERS[ans]} landen zwei Flächen auf derselben Würfelseite. Die anderen drei schließen sich sauber.`,
+    sig:'nv:'+[...keys].sort().join('/')};
+}
+function genRotate(R,d){
+  const n=[5,6,7,8][d],marks=d>=2?2:1;
+  for(let t=0;t<300;t++){
+    let c=randPoly(R,n);const dm=pDims(c);if(Math.max(...dm)>5||Math.min(...dm)<2)continue;
+    R.shuffle(range(n)).slice(0,marks).forEach((i,k)=>c[i][2]=k+1);
+    const ref=canonRot(c);if(ref===canonRot(P_MIR(c)))continue;
+    const markMove=s=>{const a=s.map(p=>p.slice()),mk=a.filter(p=>p[2]),pl=a.filter(p=>!p[2]);const x=R.pick(mk),y=R.pick(pl);y[2]=x[2];x[2]=0;return a;};
+    const cellMove=s=>{for(let k=0;k<40;k++){const a=s.map(p=>p.slice()),pl=range(a.length).filter(i=>!a[i][2]),i=R.pick(pl);a.splice(i,1);if(!pConnected(a))continue;
+        const [x,y]=R.pick(a),[dx,dy]=R.pick(DIRS);if(a.some(p=>p[0]===x+dx&&p[1]===y+dy))continue;a.push([x+dx,y+dy,0]);if(Math.max(...pDims(a))>5)continue;return a;}return null;};
+    const dis=d<2?[P_MIR(c),cellMove(c),markMove(c)]:[P_MIR(c),markMove(c),P_MIR(markMove(c))];
+    if(dis.some(x=>!x))continue;
+    const ks=dis.map(canonRot);if(ks.includes(ref)||new Set(ks).size<3)continue;
+    const turn=R.int(1,3),spin=(s,k)=>{for(;k>0;k--)s=P_ROT(s);return pNorm(s);};
+    const all=[spin(c,turn)].concat(dis.map(x=>spin(x,R.int(0,3)))),order=R.shuffle(range(4));
+    const ans=order.indexOf(0),mir=order.indexOf(1);
+    return{sub:'rotate',kind:'choice',rating:[2,4,6.5,8.5][d],prompt:'Welche Figur ist die Vorlage – nur gedreht, nicht gespiegelt und nicht verändert?',
+      rules:['Die Figur darf in der Ebene gedreht, aber nicht umgeklappt werden.'],view:{fig:'polys',ref:pNorm(c),opts:order.map(i=>all[i]),cols:2},solution:ans,
+      hints:['Drehe die Vorlage gedanklich in Vierteldrehungen und vergleiche den Umriss.','Achte auf das farbige Feld: Auf welcher Seite der Figur liegt es, wenn du an ihr entlangläufst?',`Figur ${LETTERS[mir]} ist ein Spiegelbild der Vorlage – sie scheidet aus.`],
+      explain:`Figur ${LETTERS[ans]} ist die Vorlage, um ${turn*90}° im Uhrzeigersinn gedreht. Die anderen sind gespiegelt oder leicht verändert.`,sig:'rot:'+ref};
+  }
+  return null;
+}
+function cubeStats(h){
+  const W=h.length,D=h[0].length;let sum=0,hid=0,mx=0;
+  for(let i=0;i<W;i++)for(let j=0;j<D;j++){sum+=h[i][j];mx=Math.max(mx,h[i][j]);
+    for(let z=0;z<h[i][j]-1;z++)if((i+1<W?h[i+1][j]:0)>z&&(j+1<D?h[i][j+1]:0)>z)hid++;}
+  return{sum,hid,mx,W,D};
+}
+function genCubes(R,d,force){
+  const mode=force||[ 'count',R.chance(.6)?'count':'fill',R.chance(.4)?'fill':'hidden',R.chance(.65)?'hidden':'fill'][d];
+  for(let t=0;t<300;t++){
+    const [W,D]=R.pick([[[2,2],[3,2],[2,3]],[[3,2],[2,3],[3,3]],[[3,3]],[[3,3],[4,3],[3,4]]][d]),maxH=[3,3,4,5][d];
+    const h=series(W,()=>Array(D).fill(0)),floor=mode==='count'?0:1;
+    for(let i=0;i<W;i++)for(let j=0;j<D;j++){
+      if(!i&&!j){h[0][0]=R.int(d>=2?3:2,maxH);continue;}
+      const m=Math.min(i?h[i-1][j]:99,j?h[i][j-1]:99);h[i][j]=Math.max(floor,m-R.pick([0,0,1,1,2]));}
+    const s=cubeStats(h),flat=h.flat();if(new Set(flat).size<2||s.sum<4)continue;
+    const full=W*D*s.mx,sol=mode==='count'?s.sum:mode==='fill'?full-s.sum:s.hid;
+    if(mode==='fill'&&sol<2)continue;if(mode==='hidden'&&sol<(d===3?2:1))continue;
+    const rows=flat.filter(v=>v).sort((a,b)=>b-a).join(' + ');
+    const base={sub:'cubes',kind:'number',view:{fig:'cubes',h},solution:sol,sig:'cub:'+mode+':'+flat.join(''),
+      rules:['Jeder Würfel liegt auf dem Boden oder auf einem anderen Würfel.','Kein Turm versteckt sich hinter einem höheren.']};
+    if(mode==='count')return Object.assign(base,{rating:d?3.5:2,prompt:'Aus wie vielen Würfeln besteht dieses Bauwerk?',
+      hints:['Zähle Turm für Turm statt Würfel für Würfel.','Unter jedem sichtbaren Würfel liegen weitere – bis hinunter zum Boden.',`Es gibt ${flat.filter(v=>v).length} Türme, der höchste besteht aus ${s.mx} Würfeln.`],
+      explain:`Turm für Turm gezählt: ${rows} = ${s.sum} Würfel.`});
+    if(mode==='fill')return Object.assign(base,{rating:d===1?4.5:d===2?6:8,prompt:'Wie viele Würfel fehlen, damit ein lückenloser Quader entsteht, der so hoch ist wie der höchste Turm?',
+      hints:['Wie groß wäre der volle Quader?',`Der Quader misst ${W} × ${D} × ${s.mx} Würfel.`,`Der volle Quader hätte ${full} Würfel. Ziehe die vorhandenen ab.`],
+      explain:`Der volle Quader hat ${W} × ${D} × ${s.mx} = ${full} Würfel. Verbaut sind ${s.sum}, es fehlen also ${sol}.`});
+    return Object.assign(base,{rating:d===2?7:9,prompt:'Wie viele Würfel sind aus diesem Blickwinkel vollständig verdeckt – also ohne eine einzige sichtbare Fläche?',
+      hints:['Ein Würfel ist verdeckt, wenn auf ihm, rechts vor ihm und links vor ihm jeweils ein anderer Würfel sitzt.','Der oberste Würfel jedes Turms ist immer zu sehen. Suche in den unteren Schichten der hinteren Türme.',`Insgesamt sind ${s.sum} Würfel verbaut, ${s.sum-s.hid} davon sind zu sehen.`],
+      explain:`Von ${s.sum} Würfeln sind ${s.sum-s.hid} sichtbar, ${s.hid} liegen vollständig im Inneren.`});
+  }
+  return null;
+}
+function genSpatial(R,d){
+  const x=R();
+  if(d===0)return x<.35?genNetOpp(R,0):x<.7?genRotate(R,0):genCubes(R,0);
+  if(d===1)return x<.25?genNetOpp(R,1):x<.5?genRotate(R,1):x<.75?genCubes(R,1):genNetValid(R,1);
+  return x<.33?genRotate(R,d):x<.66?genCubes(R,d):genNetValid(R,d);
+}
+
+/* ---------------------------------------------------------------- B · GEOMETRY LAB */
+const SYM={
+  V:{g:n=>[(r,c)=>[r,n-1-c]],p:'Ergänze das Muster so, dass es an der gestrichelten Achse gespiegelt ist.',h:'Zähle den Abstand eines Feldes zur Achse. Das Spiegelfeld liegt auf der anderen Seite im selben Abstand.'},
+  H:{g:n=>[(r,c)=>[n-1-r,c]],p:'Ergänze das Muster so, dass es an der gestrichelten Achse gespiegelt ist.',h:'Zähle den Abstand eines Feldes zur Achse. Das Spiegelfeld liegt auf der anderen Seite im selben Abstand.'},
+  D1:{g:n=>[(r,c)=>[c,r]],p:'Ergänze das Muster so, dass es an der gestrichelten Diagonale gespiegelt ist.',h:'Bei einer Diagonalspiegelung tauschen Zeile und Spalte die Rollen.'},
+  D2:{g:n=>[(r,c)=>[n-1-c,n-1-r]],p:'Ergänze das Muster so, dass es an der gestrichelten Diagonale gespiegelt ist.',h:'Bei einer Diagonalspiegelung tauschen Zeile und Spalte die Rollen.'},
+  R2:{g:n=>[(r,c)=>[n-1-r,n-1-c]],p:'Ergänze das Muster so, dass es nach einer halben Drehung um den Mittelpunkt genauso aussieht.',h:'Jedes Feld hat einen Partner genau gegenüber, auf der anderen Seite des Mittelpunkts.'},
+  VH:{g:n=>[(r,c)=>[r,n-1-c],(r,c)=>[n-1-r,c],(r,c)=>[n-1-r,n-1-c]],p:'Ergänze das Muster so, dass es an beiden gestrichelten Achsen gespiegelt ist.',h:'Jedes Feld abseits der Achsen gehört zu einer Vierergruppe – eines pro Viertel.'},
+  DD:{g:n=>[(r,c)=>[c,r],(r,c)=>[n-1-c,n-1-r],(r,c)=>[n-1-r,n-1-c]],p:'Ergänze das Muster so, dass es an beiden gestrichelten Diagonalen gespiegelt ist.',h:'Jedes Feld abseits der Diagonalen gehört zu einer Vierergruppe.'},
+  R4:{g:n=>[(r,c)=>[c,n-1-r],(r,c)=>[n-1-r,n-1-c],(r,c)=>[n-1-c,r]],p:'Ergänze das Muster so, dass es nach jeder Vierteldrehung um den Mittelpunkt genauso aussieht.',h:'Jedes Feld gehört zu einer Vierergruppe: Drehe es dreimal um 90° weiter.'}
+};
+function genSym(R,d){
+  const type=R.pick([['V'],['V','H'],['D1','D2','VH','R2'],['R4','DD','VH','R4']][d]),n=[6,6,7,8][d],G=SYM[type].g(n);
+  const orbit=(r,c)=>{const s=new Set([r*n+c]);G.forEach(f=>{const [a,b]=f(r,c);s.add(a*n+b);});return[...s].sort((a,b)=>a-b);};
+  for(let t=0;t<200;t++){
+    const orbs=new Map(),k=G.length===3?R.int(3,5):R.int(5,7);
+    for(let i=0;i<k;i++){const o=d===0?orbit(R.int(0,n-1),R.int(0,n/2-1)):orbit(R.int(0,n-1),R.int(0,n-1));orbs.set(o[0],o);}
+    const given=[],miss=[];
+    orbs.forEach(o=>{
+      if(o.length===1){given.push(o[0]);return;}
+      const sh=d===0?o.slice().sort((a,b)=>a%n-b%n):R.shuffle(o),g=d===0?1:d===3?1:R.int(1,o.length-1);
+      sh.forEach((c,i)=>(i<g?given:miss).push(c));});
+    if(miss.length<3||miss.length>16||given.length<3)continue;
+    miss.sort((a,b)=>a-b);const full=new Set(given.concat(miss)),gs=new Set(given),m0=R.pick(miss);
+    return{sub:'sym',kind:'sym',rating:[2,3.5,6.5,8.5][d],prompt:SYM[type].p,
+      rules:['Tippe Felder an, um sie zu füllen oder wieder zu leeren.','Fülle nur die Felder, die für die Symmetrie nötig sind.'],
+      view:{n,type,given:given.sort((a,b)=>a-b)},solution:miss,
+      hints:['Jedes gefüllte Feld braucht sein Gegenstück.',SYM[type].h,`Es fehlen genau ${miss.length} Felder. Eines davon liegt in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1}.`],
+      explain:`Es fehlten ${miss.length} Felder – jeweils die Gegenstücke der vorgegebenen.`,sig:'sym:'+type+':'+given.join(','),
+      validate(ans){
+        if(!Array.isArray(ans))return false;const a=new Set(ans);
+        if(a.size===miss.length&&miss.every(c=>a.has(c)))return true;
+        const all=new Set([...gs,...a]),symm=[...all].every(c=>orbit(Math.floor(c/n),c%n).every(q=>all.has(q)));
+        if(symm&&[...full].every(c=>all.has(c)))return'Symmetrisch – aber es sind mehr Felder gefüllt als nötig.';
+        return false;}};
+  }
+  return null;
+}
+const AREA_SH={
+  rect:R=>{const w=R.int(2,5),h=R.int(2,4);return[[0,0],[w,0],[w,h],[0,h]];},
+  rtri:R=>{const w=R.int(3,6),h=R.int(2,5);return[[0,h],[w,h],[0,0]];},
+  tri:R=>{const b=R.int(3,6),h=R.int(2,5),a=R.int(1,b-1);return[[0,h],[b,h],[a,0]];},
+  para:R=>{const b=R.int(2,4),h=R.int(2,4),s=R.int(1,2);return[[s,0],[s+b,0],[b,h],[0,h]];},
+  trap:R=>{const a=R.int(1,3),b=a+R.int(1,3),h=R.int(2,4),o=R.int(0,b-a);return[[o,0],[o+a,0],[b,h],[0,h]];},
+  ell:R=>{const w=R.int(3,5),h=R.int(3,5),cw=R.int(1,w-1),ch=R.int(1,h-1);return[[0,0],[w-cw,0],[w-cw,ch],[w,ch],[w,h],[0,h]];},
+  kite:R=>{const w=R.pick([2,4,6]),h=R.pick([2,4]);return[[w/2,0],[w,h/2],[w/2,h],[0,h/2]];}
+};
+const polyArea=p=>Math.abs(p.reduce((s,[x,y],i)=>{const [u,v]=p[(i+1)%p.length];return s+x*v-u*y;},0))/2;
+function randShape(R){
+  const fam=R.pick(Object.keys(AREA_SH));let p=AREA_SH[fam](R);
+  const W=Math.max(...p.map(q=>q[0])),H=Math.max(...p.map(q=>q[1]));
+  if(R.chance(.5))p=p.map(([x,y])=>[W-x,y]);if(R.chance(.5))p=p.map(([x,y])=>[x,H-y]);
+  return{fam,p,a:polyArea(p)};
+}
+function genArea(R,d){
+  const mode=[ 'max',R.pick(['max','min']),R.pick(['equal','equal','min']),'equal'][d],n=d===0?3:4;
+  for(let t=0;t<400;t++){
+    if(mode==='equal'){
+      const ref=randShape(R);if(ref.a<4)continue;let twin=null;
+      for(let k=0;k<200&&!twin;k++){const s=randShape(R);if(s.a===ref.a&&s.fam!==ref.fam)twin=s;}
+      if(!twin)continue;
+      const opts=[twin],lim=d===3?1:2;
+      for(let k=0;k<300&&opts.length<4;k++){const s=randShape(R),df=Math.abs(s.a-ref.a);if(df>=.5&&df<=lim&&!opts.some(o=>o.fam===s.fam&&o.a===s.a))opts.push(s);}
+      if(opts.length<4)continue;
+      const order=R.shuffle(range(4)),ans=order.indexOf(0);
+      return{sub:'area',kind:'choice',rating:d===2?6.5:8.5,prompt:'Welche Form hat genau denselben Flächeninhalt wie die Vorlage?',rules:['Ein Kästchen im Raster ist eine Flächeneinheit.'],
+        view:{fig:'area',ref:ref.p,opts:order.map(i=>opts[i].p),cols:2},solution:ans,
+        hints:['Zähle ganze Kästchen und setze halbe zu ganzen zusammen.','Dreiecke sind halbe Rechtecke: Grundseite × Höhe ÷ 2. Schräge Vierecke lassen sich zu Rechtecken umlegen.',`Die Vorlage bedeckt ${fmt(ref.a)} Kästchen.`],
+        explain:`Die Vorlage bedeckt ${fmt(ref.a)} Kästchen. Die Flächen der Auswahl: ${order.map((i,k)=>LETTERS[k]+' = '+fmt(opts[i].a)).join(', ')}.`,sig:'ar:eq:'+JSON.stringify(ref.p)+JSON.stringify(twin.p)};
+    }
+    const opts=[];for(let k=0;k<60&&opts.length<n;k++){const s=randShape(R);if(s.a>=3&&!opts.some(o=>o.a===s.a))opts.push(s);}
+    if(opts.length<n)continue;
+    const sorted=opts.slice().sort((a,b)=>mode==='max'?b.a-a.a:a.a-b.a),gap=Math.abs(sorted[0].a-sorted[1].a);
+    if(d===0?gap<1:gap>1.5&&t<300)continue;
+    const ans=opts.indexOf(sorted[0]);
+    return{sub:'area',kind:'choice',rating:[2,4,6,8][d],prompt:mode==='max'?'Welche Form bedeckt die größte Fläche?':'Welche Form bedeckt die kleinste Fläche?',rules:['Ein Kästchen im Raster ist eine Flächeneinheit.'],
+      view:{fig:'area',opts:opts.map(o=>o.p),cols:n===3?3:2},solution:ans,
+      hints:['Zähle ganze Kästchen und setze halbe zu ganzen zusammen.','Dreiecke sind halbe Rechtecke: Grundseite × Höhe ÷ 2. Schräge Vierecke lassen sich zu Rechtecken umlegen.',`Die gesuchte Form bedeckt ${fmt(sorted[0].a)} Kästchen.`],
+      explain:`Die Flächen: ${opts.map((o,k)=>LETTERS[k]+' = '+fmt(o.a)).join(', ')} Kästchen.`,sig:'ar:'+mode+JSON.stringify(opts.map(o=>o.p))};
+  }
+  return null;
+}
+function genAssemble(R,d){
+  const cfg=[{w:4,h:3,k:3,cut:0,cols:8,min:3,max:5},{w:4,h:4,k:4,cut:0,cols:8,min:3,max:5},{w:5,h:4,k:5,cut:R.int(0,2),cols:9,min:3,max:5},{w:5,h:5,k:6,cut:R.int(0,2),cols:10,min:3,max:6}][d];
+  const key=(x,y)=>x+','+y;
+  for(let t=0;t<400;t++){
+    let cells=[];for(let y=0;y<cfg.h;y++)for(let x=0;x<cfg.w;x++)cells.push([x,y]);
+    const cut=R.shuffle([[0,0],[cfg.w-1,0],[0,cfg.h-1],[cfg.w-1,cfg.h-1]]).slice(0,cfg.cut).map(c=>key(...c));
+    cells=cells.filter(c=>!cut.includes(key(...c)));
+    const free=new Set(cells.map(c=>key(...c))),P=R.shuffle(cells).slice(0,cfg.k).map(s=>[s]);
+    P.forEach(p=>free.delete(key(...p[0])));
+    while(free.size){
+      const order=R.shuffle(range(cfg.k)).sort((a,b)=>P[a].length-P[b].length);let grew=false;
+      for(const pi of order){const nb=[];for(const [x,y] of P[pi])for(const [dx,dy] of DIRS)if(free.has(key(x+dx,y+dy)))nb.push([x+dx,y+dy]);
+        if(nb.length){const c=R.pick(nb);P[pi].push(c);free.delete(key(...c));grew=true;break;}}
+      if(!grew)break;
+    }
+    if(free.size)continue;
+    if(P.some(p=>p.length<cfg.min||p.length>cfg.max||Math.max(...pDims(p))>4||Math.min(...pDims(p))>3))continue;
+    const ox=Math.floor((cfg.cols-cfg.w)/2),target=cells.map(([x,y])=>[x+ox,y]);
+    let x=0,y=cfg.h+1,rowH=0;
+    const pieces=R.shuffle(P).map(p=>{
+      const sol=p.map(([a,b])=>[a+ox,b]);let c=pNorm(p).map(q=>[q[0],q[1]]);
+      if(d>0){for(let k=R.int(0,3);k>0;k--)c=pNorm(P_ROT(c)).map(q=>[q[0],q[1]]);const dm=pDims(c);if(dm[1]>dm[0])c=pNorm(P_ROT(c)).map(q=>[q[0],q[1]]);}
+      const [pw,ph]=pDims(c);if(x+pw>cfg.cols){x=0;y+=rowH+1;rowH=0;}
+      const out={cells:c,x,y,sol};x+=pw+1;rowH=Math.max(rowH,ph);return out;});
+    const tset=new Set(target.map(c=>key(...c)));
+    return{sub:'assemble',kind:'assemble',rating:[2.5,4.5,6.5,8.5][d],prompt:'Lege alle Teile so in die markierte Fläche, dass sie lückenlos gefüllt ist.',
+      rules:['Ziehe ein Teil, um es zu bewegen. Tippe es an, um es zu drehen.','Teile dürfen sich nicht überlappen und nicht über den Rand ragen.'],
+      view:{cols:cfg.cols,rows:y+rowH,target,pieces},solution:pieces.map(p=>p.sol),
+      hints:['Beginne mit dem sperrigsten Teil – es passt an die wenigsten Stellen.','Schau auf die Ecken der Zielfläche: Welches Teil kann eine Ecke ausfüllen, ohne ein einzelnes Feld abzuschneiden?','Die gestrichelte Kontur zeigt, wo eines der Teile in einer möglichen Lösung liegt.'],
+      explain:`Alle ${pieces.length} Teile füllen die Fläche aus ${target.length} Feldern lückenlos.`,sig:'asm:'+pieces.map(p=>canonRot(p.cells)).sort().join('/'),
+      validate(ans){
+        if(!Array.isArray(ans))return false;const seen=new Set();let out=false,over=false;
+        ans.forEach(pc=>pc.forEach(([a,b])=>{const k=key(a,b);if(!tset.has(k))out=true;if(seen.has(k))over=true;seen.add(k);}));
+        if(over)return'Mindestens zwei Teile überlappen sich.';
+        if(out)return'Mindestens ein Teil liegt noch außerhalb der Zielfläche.';
+        return seen.size===tset.size;}};
+  }
+  return null;
+}
+function genGeometry(R,d){const x=R();return x<.36?genSym(R,d):x<.68?genArea(R,d):genAssemble(R,d);}
+
+/* ---------------------------------------------------------------- E · PATTERN ENGINE */
+const ATTR={s:{n:5,name:'Die Form'},c:{n:4,name:'Die Farbe'},n:{n:3,name:'Die Anzahl'},f:{n:3,name:'Die Füllung'}};
+function genMatrix(R,d){
+  const keys=['s','c','n','f'],nv=[R.pick([1,2]),2,3,4][d],vary=R.shuffle(keys).slice(0,nv);
+  const rules=nv===1?['latin']:d===0?R.shuffle(['row','col']):d===1?R.shuffle(['latin',R.pick(['row','col'])]):
+    d===2?R.shuffle(['latin','latin',R.pick(['row','col'])]):R.shuffle(['latin','latin',R.pick(['latin','row','col']),R.pick(['row','col'])]);
+  const spec={};let lk=R.pick([1,2]);
+  keys.forEach(a=>{const vals=R.shuffle(range(ATTR[a].n)).slice(0,3),i=vary.indexOf(a),rule=i<0?'const':rules[i];
+    spec[a]={vals,rule,k:lk,o:R.int(0,2)};if(rule==='latin')lk=3-lk;});
+  const val=(a,r,c)=>{const s=spec[a];return s.rule==='const'?s.vals[0]:s.rule==='row'?s.vals[r]:s.rule==='col'?s.vals[c]:s.vals[(r+s.k*c+s.o)%3];};
+  const cells=range(9).map(i=>{const o={};keys.forEach(a=>o[a]=val(a,Math.floor(i/3),i%3));return o;});
+  const miss=d<2?8:R.int(0,8),right=cells[miss],K=o=>keys.map(a=>o[a]).join(''),opts=[right],seen=new Set([K(right)]);
+  const nOpt=d===0?4:6;let guard=0;
+  while(opts.length<nOpt&&guard++<400){
+    const o=Object.assign({},right),m=R.chance(.7)?1:2;
+    R.shuffle(R.chance(.8)?vary:keys).slice(0,m).forEach(a=>{const pool=(spec[a].rule==='const'?range(ATTR[a].n):spec[a].vals).filter(v=>v!==right[a]);o[a]=R.pick(pool);});
+    if(!seen.has(K(o))){seen.add(K(o));opts.push(o);}
+  }
+  if(opts.length<nOpt)return null;
+  const order=R.shuffle(range(nOpt)),ans=order.indexOf(0);
+  const txt={row:'ist in jeder Zeile gleich',col:'ist in jeder Spalte gleich',latin:'kommt in jeder Zeile und jeder Spalte in allen drei Varianten genau einmal vor'};
+  const lines=vary.map(a=>`${ATTR[a].name} ${txt[spec[a].rule]}.`);
+  return{sub:'matrix',kind:'choice',rating:[1.5,3.5,6,8.5][d]+(miss!==8?.5:0),prompt:'Welches Element gehört in das leere Feld?',
+    rules:['Das Raster folgt in Zeilen und Spalten festen Regeln.'],view:{fig:'matrix',cells,miss,opts:order.map(i=>opts[i]),cols:nOpt===4?4:3},solution:ans,
+    hints:['Betrachte jede Eigenschaft für sich: Form, Farbe, Anzahl und Füllung.',`Hier ${nv===1?'verändert sich nur eine Eigenschaft':'verändern sich '+nv+' Eigenschaften'}: ${vary.map(a=>ATTR[a].name.split(' ')[1]).join(', ')}.`,lines[0]],
+    explain:lines.join(' '),sig:'mx:'+cells.map(K).join('')+'@'+miss};
+}
+const PAINT={
+  diag:{f:(r,c,n,k,q)=>(r+c+q.o)%k,h:'Verfolge die Diagonalen: Entlang einer Schräge bleibt die Farbe gleich.'},
+  anti:{f:(r,c,n,k,q)=>(r-c+q.o+k*n)%k,h:'Verfolge die Diagonalen: Entlang einer Schräge bleibt die Farbe gleich.'},
+  lin:{f:(r,c,n,k,q)=>(q.a*r+q.b*c+q.o)%k,h:'Nach rechts und nach unten springt die Farbe jeweils um eine feste Schrittweite weiter – aber nicht um dieselbe.'},
+  ring:{f:(r,c,n,k,q)=>((Math.max(Math.abs(2*r-n+1),Math.abs(2*c-n+1))>>1)+q.o)%k,h:'Das Muster ist in Ringen um die Mitte aufgebaut.'},
+  diamond:{f:(r,c,n,k,q)=>(((Math.abs(2*r-n+1)+Math.abs(2*c-n+1))>>1)+q.o)%k,h:'Die Farbe hängt davon ab, wie viele Schritte ein Feld von der Mitte entfernt ist.'},
+  blocks:{f:(r,c,n,k,q)=>((r>>1)+(c>>1)+q.o)%k,h:'Das Muster besteht aus größeren Blöcken, nicht aus einzelnen Feldern.'},
+  mult:{f:(r,c,n,k,q)=>((r+1)*(c+1)+q.o)%k,h:'Nummeriere Zeilen und Spalten ab 1. Das Produkt der beiden Nummern bestimmt die Farbe.'},
+  sym4:{f:(r,c,n,k,q)=>q.q[Math.min(r,n-1-r)][Math.min(c,n-1-c)],h:'Das Muster ist an der senkrechten und der waagerechten Mittelachse gespiegelt.'}
+};
+const PCOL_NAME=['Cyan','Violett','Magenta','Gelb'];
+function genPaint(R,d){
+  const n=[5,5,6,7][d],k=[2,3,R.pick([3,4]),4][d],nm=[3,4,5,7][d];
+  for(let t=0;t<200;t++){
+    const rule=R.pick([['diag','anti','ring','blocks'],['diag','anti','ring','diamond','blocks'],['lin','ring','diamond','sym4','blocks'],['lin','mult','sym4','diamond']][d]);
+    const q={o:R.int(0,k-1),a:1,b:1};
+    if(rule==='lin'){const ab=R.pick(k===3?[[1,2],[2,1]]:[[1,2],[2,1],[1,3],[3,1],[2,3],[3,2]]);q.a=ab[0];q.b=ab[1];}
+    if(rule==='sym4'){const m=Math.ceil(n/2);q.q=series(m,()=>series(m,()=>R.int(0,k-1)));}
+    const grid=range(n*n).map(i=>PAINT[rule].f(Math.floor(i/n),i%n,n,k,q));
+    const orb=i=>{const r=Math.floor(i/n),c=i%n;return Math.min(r,n-1-r)*n+Math.min(c,n-1-c);};
+    let miss=null;
+    for(let a=0;a<60&&!miss;a++){
+      const m=R.shuffle(range(n*n)).slice(0,nm),set=new Set(m);
+      const adj=m.some(i=>(i%n<n-1&&set.has(i+1))||set.has(i+n));
+      if(adj&&a<50)continue;
+      if(rule==='sym4'&&(new Set(m.map(orb)).size<nm||m.some(i=>2*Math.floor(i/n)===n-1&&2*(i%n)===n-1)))continue;
+      miss=m.sort((x,y)=>x-y);
+    }
+    if(!miss)continue;
+    const vis=new Set(grid.filter((v,i)=>!miss.includes(i)));if(vis.size<k)continue;
+    const m0=miss[R.int(0,miss.length-1)];
+    return{sub:'paint',kind:'paint',rating:[2,4,6.5,9][d],prompt:'Färbe die leeren Felder so, dass sie das Muster fortsetzen.',
+      rules:['Tippe ein leeres Feld an, um durch die Farben zu wechseln.'],view:{n,k,grid:grid.map((v,i)=>miss.includes(i)?-1:v),miss},solution:miss.map(i=>grid[i]),
+      hints:['Suche nach Wiederholungen entlang von Zeilen, Spalten und Diagonalen.',PAINT[rule].h,`Das Feld in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1} ist ${PCOL_NAME[grid[m0]]}.`],
+      explain:PAINT[rule].h,sig:'pt:'+rule+':'+grid.join('')+'@'+miss.join(',')};
+  }
+  return null;
+}
+function genPattern(R,d){return R.chance(.55)?genMatrix(R,d):genPaint(R,d);}
+
+/* ---------------------------------------------------------------- F · LOGIC GRID */
+const L_SHAPE=[{n:'Kreis',nom:'Der Kreis',dat:'dem Kreis'},{n:'Dreieck',nom:'Das Dreieck',dat:'dem Dreieck'},{n:'Quadrat',nom:'Das Quadrat',dat:'dem Quadrat'},{n:'Raute',nom:'Die Raute',dat:'der Raute'},{n:'Sechseck',nom:'Das Sechseck',dat:'dem Sechseck'}];
+const L_COLOR=[{n:'cyan',nom:'Die cyanfarbene Form',dat:'der cyanfarbenen Form'},{n:'violett',nom:'Die violette Form',dat:'der violetten Form'},{n:'magenta',nom:'Die magentafarbene Form',dat:'der magentafarbenen Form'},{n:'gelb',nom:'Die gelbe Form',dat:'der gelben Form'},{n:'weiß',nom:'Die weiße Form',dat:'der weißen Form'}];
+function perms(n){const out=[];(function rec(a,rest){if(!rest.length){out.push(a);return;}rest.forEach((x,i)=>rec(a.concat(x),rest.slice(0,i).concat(rest.slice(i+1))));})([],range(n));return out;}
+const L_RANK=[{at:0,dl:0,lo:1,na:1.5,adj:1,nadj:3,edge:2,same:0,ns:2},{at:1.2,dl:0,lo:.5,na:1,adj:.5,nadj:1.5,edge:1,same:.3,ns:1},
+              {at:3,dl:.8,lo:0,na:.6,adj:.3,nadj:.6,edge:.6,same:1.2,ns:.4},{at:5,dl:1.5,lo:0,na:.5,adj:.2,nadj:.4,edge:.5,same:2.5,ns:.3}];
+function genLogic(R,d){
+  const [N,cats]=[[3,1],R.pick([[4,1],[3,2]]),[4,2],[5,2]][d],PM=perms(N);
+  const lowerFirst=s=>s[0].toLowerCase()+s.slice(1);
+  for(let t=0;t<40;t++){
+    const shapes=R.shuffle(range(5)).slice(0,N),colors=R.shuffle(range(5)).slice(0,N);
+    const sp=R.pick(PM),cp=cats===2?R.pick(PM):PM[0];
+    const items=range(N).map(i=>[0,i]).concat(cats===2?range(N).map(i=>[1,i]):[]);
+    const nm=([c,i])=>c?L_COLOR[colors[i]]:L_SHAPE[shapes[i]],pos=([c,i],S,C)=>c?C[i]:S[i];
+    const C=[],add=(ty,t,f)=>C.push({ty,t,f});
+    if(cats===2)for(let i=0;i<N;i++)for(let j=0;j<N;j++){const col=L_COLOR[colors[j]].n,sh=L_SHAPE[shapes[i]].nom;
+      if(sp[i]===cp[j])add('same',`${sh} ist ${col}.`,(S,Cc)=>S[i]===Cc[j]);else add('ns',`${sh} ist nicht ${col}.`,(S,Cc)=>S[i]!==Cc[j]);}
+    items.forEach(x=>{const px=pos(x,sp,cp);
+      for(let p=0;p<N;p++){if(px===p)add('at',`${nm(x).nom} steht auf Platz ${p+1}.`,(S,Cc)=>pos(x,S,Cc)===p);else add('na',`${nm(x).nom} steht nicht auf Platz ${p+1}.`,(S,Cc)=>pos(x,S,Cc)!==p);}
+      if(N>=4){const e=px===0||px===N-1;add('edge',`${nm(x).nom} steht ${e?'':'nicht '}am Rand.`,(S,Cc)=>{const q=pos(x,S,Cc);return(q===0||q===N-1)===e;});}});
+    items.forEach((x,a)=>items.forEach((y,b)=>{
+      if(a===b)return;const px=pos(x,sp,cp),py=pos(y,sp,cp);if(px===py)return;
+      if(px<py){add('lo',`${nm(x).nom} steht irgendwo links von ${nm(y).dat}.`,(S,Cc)=>pos(x,S,Cc)<pos(y,S,Cc));
+        if(py-px===1)add('dl',`${nm(x).nom} steht direkt links von ${nm(y).dat}.`,(S,Cc)=>pos(y,S,Cc)-pos(x,S,Cc)===1);}
+      if(a<b){if(Math.abs(px-py)===1)add('adj',`${nm(x).nom} steht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))===1);
+        else if(N>=4)add('nadj',`${nm(x).nom} steht nicht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))>1);}}));
+    const order=C.map(c=>({c,k:L_RANK[d][c.ty]+R()*1.5})).sort((a,b)=>a.k-b.k).map(o=>o.c);
+    const all=[];PM.forEach(S=>(cats===2?PM:[PM[0]]).forEach(Cc=>all.push([S,Cc])));
+    let cand=all,chosen=[];
+    for(const c of order){const nc=cand.filter(([S,Cc])=>c.f(S,Cc));if(nc.length<cand.length){chosen.push(c);cand=nc;}if(cand.length===1)break;}
+    if(cand.length!==1)continue;
+    for(const c of R.shuffle(chosen)){const rest=chosen.filter(q=>q!==c);if(rest.length&&all.filter(([S,Cc])=>rest.every(q=>q.f(S,Cc))).length===1)chosen=rest;}
+    if(chosen.length>[4,6,7,9][d]||chosen.length<2)continue;
+    const solS=Array(N),solC=Array(N);sp.forEach((p,i)=>solS[p]=i);cp.forEach((p,i)=>solC[p]=i);
+    const hp=R.int(0,N-1);
+    return{sub:'grid',kind:'logic',rating:[2,4,6.5,9][d]+Math.min(1,chosen.length*.1),
+      prompt:cats===2?`${N} Formen stehen in einer Reihe, jede in einer anderen Farbe. Finde heraus, welche Form wo steht und welche Farbe sie hat.`:`${N} Formen stehen in einer Reihe. Finde heraus, welche Form auf welchem Platz steht.`,
+      rules:['Platz 1 ist ganz links.',cats===2?'Jede Form und jede Farbe kommt genau einmal vor.':'Jede Form kommt genau einmal vor.'],
+      view:{N,cats,shapes,colors,clues:R.shuffle(chosen).map(c=>c.t.replace(/ von dem /g,' vom '))},solution:{s:solS,c:cats===2?solC:null},
+      hints:['Suche zuerst Hinweise, die einen Platz fest vorgeben oder ausschließen.','Kombiniere zwei Hinweise, die dasselbe Objekt erwähnen. Oft bleibt dann nur eine Möglichkeit.',`Auf Platz ${hp+1} steht ${lowerFirst(L_SHAPE[shapes[solS[hp]]].nom)}.`],
+      explain:'Lösung von links nach rechts: '+range(N).map(p=>L_SHAPE[shapes[solS[p]]].n+(cats===2?' ('+L_COLOR[colors[solC[p]]].n+')':'')).join(', ')+'.',
+      sig:'lg:'+shapes+':'+colors+':'+chosen.map(c=>c.t).sort().join('|'),
+      validate(ans){return!!ans&&ans.s.join()===solS.join()&&(cats===1||ans.c.join()===solC.join());}};
+  }
+  return null;
+}
+
+/* ---------------------------------------------------------------- Zentrale Erzeugung */
+const GEN={number:genNumber,geometry:genGeometry,equation:genEq,spatial:genSpatial,pattern:genPattern,logic:genLogic};
+const eqArr=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((v,i)=>v===b[i]);
+function finish(p,seed,type,d){
+  if(!p.validate){const s=p.solution;p.validate=Array.isArray(s)?a=>eqArr(a,s):a=>a===s;}
+  p.type=type;p.seed=seed;p.diff=d;p.title=TYPES[type];p.id='P'+hashStr(seed+type+d).toString(36);
+  return p;
+}
+function selfCheck(p){
+  try{
+    if(p.validate(p.solution)!==true)return false;
+    if(typeof p.solution==='number'&&p.validate(p.solution+1)===true)return false;
+    return p.hints&&p.hints.length===3&&!!p.prompt&&!!p.explain&&!!p.sig;
+  }catch(e){return false;}
+}
+function generate(seed,type,d){
+  const R=makeRng(seed+'|'+type+'|'+d);
+  for(let k=0;k<30;k++){
+    let p=null;try{p=GEN[type](R,d);}catch(e){p=null;}
+    if(p&&selfCheck(finish(p,seed,type,d)))return p;
+  }
+  const a=R.int(2,9),s=R.int(2,6),t=series(6,i=>a+s*i);   // Notlösung, praktisch nie erreicht
+  return finish({sub:'seq',kind:'number',rating:2,prompt:'Welche Zahl gehört an die Stelle des Fragezeichens?',rules:['Die Folge gehorcht von Anfang bis Ende derselben Regel.'],
+    view:{fig:'seq',terms:t.map((v,i)=>i===5?null:v)},solution:t[5],hints:['Schau auf die Abstände.','Der Abstand ist immer gleich.',`Jede Zahl ist um ${s} größer.`],
+    explain:`Jede Zahl ist um ${s} größer als die vorige.`,sig:'fb:'+t},seed,type,d);
+}
+
+/* ---------------------------------------------------------------- Daily */
+const DAILY_VERSION='MINDSHAPES_DAILY_V1_';
+const utcDate=(t)=>new Date(t==null?Date.now():t).toISOString().slice(0,10);
+const dayNum=date=>Math.floor(Date.parse(date+'T00:00:00Z')/864e5);
+const addDays=(date,n)=>utcDate(Date.parse(date+'T00:00:00Z')+n*864e5);
+const dailyNo=date=>dayNum(date)-dayNum('2026-01-01')+1;
+function dailyPuzzle(date){
+  const seed=DAILY_VERSION+date,dn=dayNum(date),block=Math.floor(dn/6);
+  const order=makeRng(DAILY_VERSION+'ORDER_'+block).shuffle(TYPE_KEYS);     // jede Sechs-Tage-Runde enthält jeden Typ genau einmal
+  const R=makeRng(seed),d=R.chance(.6)?1:2;
+  return generate(seed,order[((dn%6)+6)%6],d);
+}
+function sigilData(seed){
+  const R=makeRng('SIGIL_'+seed),n=R.pick([3,4,5,6,6,8]),L=[];
+  L.push({t:'ring',r:R.pick([.92,.96])});
+  L.push({t:'star',n,k:1,r:R.pick([.78,.86]),rot:R.pick([0,.5]),c:0});
+  if(n>=5)L.push({t:'star',n,k:R.int(2,Math.floor((n-1)/2)||2),r:R.pick([.78,.86]),rot:R.pick([0,.5]),c:R.pick([1,2])});
+  else L.push({t:'star',n,k:1,r:R.pick([.4,.5]),rot:R.pick([0,.5]),c:R.pick([1,2])});
+  L.push(R.chance(.5)?{t:'spokes',n,r1:R.pick([.18,.3]),r2:R.pick([.55,.7]),rot:R.pick([0,.5]),c:R.pick([0,1])}:{t:'ring',r:R.pick([.28,.36,.5]),c:R.pick([1,2])});
+  L.push({t:'dots',n,r:R.pick([.62,.92,.96]),rot:R.pick([0,.5]),c:R.pick([0,2])});
+  return L;
+}
+
+/* =====================================================================
+   UI  –  Speicher, Ansichten, Spielablauf, Darstellung der Rätsel
+   ===================================================================== */
+const $=(s,r)=>(r||document).querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mmss=ms=>{const s=Math.max(0,Math.floor(ms/1000));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');};
+const fmtDate=d=>new Date(d+'T00:00:00Z').toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+const svgI=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const IC={back:svgI('<path d="M15 5l-7 7 7 7"/>'),
+  gear:svgI('<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'),
+  son:svgI('<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z"/><path d="M15.5 9a4 4 0 010 6M18 6.5a7.5 7.5 0 010 11"/>'),
+  soff:svgI('<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>'),
+  hint:svgI('<path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.6 10.8c.6.5 1 1.2 1.1 2h5c.1-.8.5-1.5 1.1-2A6 6 0 0012 3z"/>'),
+  redo:svgI('<path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v5h5"/>'),
+  skip:svgI('<path d="M5 5l7 7-7 7M13 5l7 7-7 7"/>')};
+const COL=['#3ddcff','#a593ff','#f26bd8','#ffc857','#eef2ff','#6cf0b4'];
+const SHAPES=['circle','tri','square','diamond','hex'];
+const THEMES={
+  signal:{name:'Signal',c:'#3ddcff',need:'Von Anfang an dabei',test:()=>true},
+  ultra:{name:'Ultraviolett',c:'#a593ff',need:'10 Rätsel lösen',test:s=>s.stats.solved>=10},
+  magenta:{name:'Magenta',c:'#f26bd8',need:'Endless-Level 20 abschließen',test:s=>s.endless.maxLevel>=20},
+  solar:{name:'Solar',c:'#ffc857',need:'3 Dailys in Folge lösen',test:s=>s.daily.longest>=3},
+  polar:{name:'Polar',c:'#dfe8ff',need:'50 Rätsel lösen',test:s=>s.stats.solved>=50}};
+const INTRO={number:'Neu: Number Logic. Hier steckt in Zahlen eine verborgene Regel.',geometry:'Neu: Geometry Lab. Formen, Flächen und Symmetrien zum Anfassen.',equation:'Neu: Equation Builder. Du baust die Rechnung selbst zusammen.',
+  spatial:'Neu: Spatial Logic. Falten, drehen und stapeln – alles im Kopf.',pattern:'Neu: Pattern Engine. Finde die Ordnung im Raster.',logic:'Neu: Logic Grid. Aus wenigen Hinweisen folgt genau eine Anordnung.'};
+
+/* ---------------------------------------------------------------- Speicher */
+const KEY='mindshapes.save';
+const Store=(()=>{let ok=false;const mem={};try{localStorage.setItem('__ms_probe','1');localStorage.removeItem('__ms_probe');ok=true;}catch(e){}
+  return{ok,get(k){try{return ok?localStorage.getItem(k):(k in mem?mem[k]:null);}catch(e){return null;}},
+    set(k,v){try{if(ok)localStorage.setItem(k,v);else mem[k]=v;return true;}catch(e){mem[k]=v;return false;}},
+    del(k){try{if(ok)localStorage.removeItem(k);}catch(e){}delete mem[k];}};})();
+const randId=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+function defaults(){return{v:1,settings:{sound:true,motion:true,theme:'signal'},
+  endless:{run:randId(),level:1,power:0,salt:0,clean:0,bestClean:0,maxLevel:0},
+  stats:{solved:0,points:0,bestPoints:0,hints:0,firstTry:0,skipped:0,byType:{number:0,geometry:0,equation:0,spatial:0,pattern:0,logic:0},byDiff:[0,0,0,0],bestTime:[0,0,0,0]},
+  daily:{done:{},streak:0,longest:0,last:'',best:0,count:0,prog:null},
+  unlocked:['signal'],seen:[],intro:[],record:null};}
+function merge(def,obj){
+  if(Array.isArray(def))return Array.isArray(obj)?obj:def;
+  if(def&&typeof def==='object'){const out={},src=obj&&typeof obj==='object'&&!Array.isArray(obj)?obj:{};for(const k in def)out[k]=merge(def[k],src[k]);return out;}
+  if(def===null)return null;
+  return typeof obj===typeof def&&(typeof obj!=='number'||Number.isFinite(obj))?obj:def;
+}
+function sanitize(raw){
+  const s=merge(defaults(),raw),nn=(x,lo)=>Math.max(lo||0,Number.isFinite(+x)?+x:0),isDate=k=>/^\d{4}-\d\d-\d\d$/.test(k);
+  const rd=raw&&raw.daily&&raw.daily.done;s.daily.done={};
+  if(rd&&typeof rd==='object')for(const k in rd){const e=rd[k];if(isDate(k)&&e&&typeof e==='object')s.daily.done[k]={t:nn(e.t),a:nn(e.a,1),h:nn(e.h),d:Math.min(3,Math.floor(nn(e.d))),ty:TYPES[e.ty]?e.ty:''};}
+  const pr=raw&&raw.daily&&raw.daily.prog;s.daily.prog=pr&&typeof pr==='object'&&isDate(String(pr.date))?{date:pr.date,a:nn(pr.a),h:Math.min(3,nn(pr.h)),ms:nn(pr.ms)}:null;
+  const rc=raw&&raw.record;s.record=rc&&typeof rc==='object'&&typeof rc.text==='string'?{text:rc.text.slice(0,120),date:String(rc.date||'').slice(0,10)}:null;
+  s.unlocked=s.unlocked.filter(x=>typeof x==='string'&&THEMES[x]);if(!s.unlocked.includes('signal'))s.unlocked.unshift('signal');
+  if(!s.unlocked.includes(s.settings.theme))s.settings.theme='signal';
+  s.seen=s.seen.filter(x=>typeof x==='number').slice(-400);s.intro=s.intro.filter(x=>TYPES[x]);
+  const fix=a=>[0,1,2,3].map(i=>nn(a[i]));s.stats.byDiff=fix(s.stats.byDiff);s.stats.bestTime=fix(s.stats.bestTime);
+  ['solved','points','bestPoints','hints','firstTry','skipped'].forEach(k=>s.stats[k]=nn(s.stats[k]));
+  TYPE_KEYS.forEach(k=>s.stats.byType[k]=nn(s.stats.byType[k]));
+  const e=s.endless;e.level=Math.floor(nn(e.level,1));e.power=nn(e.power);e.salt=Math.floor(nn(e.salt));e.clean=nn(e.clean);e.bestClean=nn(e.bestClean);e.maxLevel=nn(e.maxLevel);if(!e.run)e.run=randId();
+  const d=s.daily;d.streak=nn(d.streak);d.longest=nn(d.longest);d.best=nn(d.best);d.count=nn(d.count);if(!isDate(d.last))d.last='';
+  s.v=1;return s;
+}
+let S,loadNote='';
+function load(){
+  const raw=Store.get(KEY);if(raw==null)return defaults();
+  try{const o=JSON.parse(raw);if(!o||typeof o!=='object'||Array.isArray(o))throw 0;
+    if(typeof o.v==='number'&&o.v>1)loadNote='Der Spielstand stammt aus einer neueren Version. Bekannte Werte wurden übernommen.';
+    return sanitize(o);
+  }catch(e){Store.set(KEY+'.defekt',raw);loadNote='Der gespeicherte Spielstand war beschädigt und wurde durch einen neuen ersetzt.';return defaults();}
+}
+function save(){Store.set(KEY,JSON.stringify(S));}
+function applySettings(){
+  const c=THEMES[S.settings.theme].c,r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16),st=document.documentElement.style;
+  st.setProperty('--acc',c);st.setProperty('--acc-soft',`rgba(${r},${g},${b},.14)`);
+  document.body.classList.toggle('nomotion',!S.settings.motion);
+}
+function checkUnlocks(){const out=[];Object.keys(THEMES).forEach(k=>{if(!S.unlocked.includes(k)&&THEMES[k].test(S)){S.unlocked.push(k);out.push(THEMES[k].name);}});return out;}
+const curStreak=()=>{const t=utcDate(),d=S.daily;return d.last===t||d.last===addDays(t,-1)?d.streak:0;};
+const TIER=[0,7,20,40],tierOf=p=>p<TIER[1]?0:p<TIER[2]?1:p<TIER[3]?2:3;
+
+/* ---------------------------------------------------------------- Sound (Web Audio, keine Dateien) */
+const SND={ctx:null,play(name){
+  if(!S.settings.sound)return;
+  try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ctx=this.ctx||(this.ctx=new AC());if(ctx.state==='suspended')ctx.resume();
+    const t=ctx.currentTime,tone=(f,dt,dur,type,vol)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t+dt);
+      g.gain.setValueAtTime(.0001,t+dt);g.gain.exponentialRampToValueAtTime(vol||.05,t+dt+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dt+dur);o.connect(g);g.connect(ctx.destination);o.start(t+dt);o.stop(t+dt+dur+.03);};
+    if(name==='click')tone(620,0,.05,'triangle',.035);
+    else if(name==='select')tone(880,0,.08,'sine',.045);
+    else if(name==='bad'){tone(196,0,.2,'sawtooth',.03);tone(147,.07,.24,'sawtooth',.03);}
+    else if(name==='ok')[523,659,784].forEach((f,i)=>tone(f,i*.08,.24,'sine',.05));
+    else if(name==='done')[523,659,784,1047,1319].forEach((f,i)=>tone(f,i*.09,.34,'triangle',.05));
+  }catch(e){}}};
+
+/* ---------------------------------------------------------------- Grafik-Bausteine */
+function glyph(kind,cx,cy,r,col,fill){
+  const P={tri:[[0,-.98],[.95,.68],[-.95,.68]],square:[[-.8,-.8],[.8,-.8],[.8,.8],[-.8,.8]],diamond:[[0,-1.04],[.74,0],[0,1.04],[-.74,0]],hex:[[1,0],[.5,.866],[-.5,.866],[-1,0],[-.5,-.866],[.5,-.866]]}[kind];
+  const st=`fill="${fill===1?col:'none'}" stroke="${col}" stroke-width="2" stroke-linejoin="round"`;
+  let s=P?`<polygon points="${P.map(([x,y])=>(cx+x*r).toFixed(1)+','+(cy+y*r).toFixed(1)).join(' ')}" ${st}/>`:`<circle cx="${cx}" cy="${cy}" r="${(r*.9).toFixed(1)}" ${st}/>`;
+  if(fill===2)s+=`<circle cx="${cx}" cy="${kind==='tri'?cy+r*.12:cy}" r="${(r*.26).toFixed(1)}" fill="${col}"/>`;
+  return s;
+}
+const SCOL=['var(--acc)','#a593ff','#f26bd8'];
+const sigPt=(n,k,r,rot)=>{const a=(-90+(k+rot)*360/n)*Math.PI/180;return[r*100*Math.cos(a),r*100*Math.sin(a)];};
+function sigilSVG(L,draw){
+  let out='';
+  L.forEach((l,li)=>{const col=SCOL[l.c||0],dl=`style="animation-delay:${(li*.16).toFixed(2)}s"`,ln=(a,b)=>`<line class="sg" pathLength="1" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${col}" ${dl}/>`;
+    if(l.t==='ring')out+=`<circle class="sg" pathLength="1" r="${l.r*100}" stroke="${col}" ${dl}/>`;
+    if(l.t==='star')for(let k=0;k<l.n;k++)out+=ln(sigPt(l.n,k,l.r,l.rot),sigPt(l.n,k+l.k,l.r,l.rot));
+    if(l.t==='spokes')for(let k=0;k<l.n;k++)out+=ln(sigPt(l.n,k,l.r1,l.rot),sigPt(l.n,k,l.r2,l.rot));
+    if(l.t==='dots')for(let k=0;k<l.n;k++){const a=sigPt(l.n,k,l.r,l.rot);out+=`<circle class="sd" cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" r="3.4" fill="${col}"/>`;}});
+  return`<span class="sigil${draw?' draw':''}" aria-hidden="true"><svg viewBox="-106 -106 212 212">${out}</svg></span>`;
+}
+function sigilCanvas(x,L,cx,cy,R,acc){
+  const cols=[acc,'#a593ff','#f26bd8'],pt=(n,k,r,rot)=>{const p=sigPt(n,k,r,rot);return[cx+p[0]*R/100,cy+p[1]*R/100];};
+  x.lineWidth=3;x.lineCap='round';
+  L.forEach(l=>{x.strokeStyle=x.fillStyle=cols[l.c||0];x.beginPath();
+    if(l.t==='ring'){x.arc(cx,cy,l.r*R,0,Math.PI*2);x.stroke();}
+    if(l.t==='star'){for(let k=0;k<l.n;k++){const a=pt(l.n,k,l.r,l.rot),b=pt(l.n,k+l.k,l.r,l.rot);x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);}x.stroke();}
+    if(l.t==='spokes'){for(let k=0;k<l.n;k++){const a=pt(l.n,k,l.r1,l.rot),b=pt(l.n,k,l.r2,l.rot);x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);}x.stroke();}
+    if(l.t==='dots')for(let k=0;k<l.n;k++){const a=pt(l.n,k,l.r,l.rot);x.beginPath();x.arc(a[0],a[1],7,0,Math.PI*2);x.fill();}});
+}
+function streamSVG(){
+  let s='<line x1="0" y1="60" x2="700" y2="60" stroke="var(--line2)"/>';
+  for(let i=0;i<9;i++)s+=`<g opacity="${Math.max(.07,1-i*.118).toFixed(2)}">${glyph(SHAPES[i%5],46+i*76,60,30-i*1.9,i%4===3?'#a593ff':'var(--acc)',i===0?2:0)}</g>`;
+  return`<svg class="stream" viewBox="0 0 700 120" preserveAspectRatio="xMinYMid meet" aria-hidden="true">${s}</svg>`;
+}
+function polySVG(cells){
+  const w=Math.max(...cells.map(c=>c[0]))+1,h=Math.max(...cells.map(c=>c[1]))+1,u=Math.min(20,96/Math.max(w,h)),ox=(110-w*u)/2,oy=(110-h*u)/2;
+  return`<svg viewBox="0 0 110 110" aria-hidden="true">${cells.map(([x,y,m])=>`<rect class="pc${m?' m'+m:''}" x="${(ox+x*u+.8).toFixed(1)}" y="${(oy+y*u+.8).toFixed(1)}" width="${(u-1.6).toFixed(1)}" height="${(u-1.6).toFixed(1)}" rx="2"/>`).join('')}</svg>`;
+}
+function areaSVG(p){
+  const u=20,W=6,H=5,pad=6,w=Math.max(...p.map(q=>q[0])),h=Math.max(...p.map(q=>q[1])),ox=pad+Math.floor((W-w)/2)*u,oy=pad+Math.floor((H-h)/2)*u;let g='';
+  for(let x=0;x<=W;x++)g+=`<line class="gridl" x1="${pad+x*u}" y1="${pad}" x2="${pad+x*u}" y2="${pad+H*u}"/>`;
+  for(let y=0;y<=H;y++)g+=`<line class="gridl" x1="${pad}" y1="${pad+y*u}" x2="${pad+W*u}" y2="${pad+y*u}"/>`;
+  return`<svg viewBox="0 0 ${W*u+2*pad} ${H*u+2*pad}" aria-hidden="true">${g}<polygon class="shape" points="${p.map(([x,y])=>(ox+x*u)+','+(oy+y*u)).join(' ')}"/></svg>`;
+}
+function cellSVG(o){
+  const pos=[[[30,30,15]],[[18.5,30,10.5],[41.5,30,10.5]],[[30,18,9.5],[17.5,41,9.5],[42.5,41,9.5]]][o.n];
+  return`<svg viewBox="0 0 60 60" aria-hidden="true">${pos.map(([x,y,r])=>glyph(SHAPES[o.s],x,y,r,COL[o.c],o.f)).join('')}</svg>`;
+}
+function cubesSVG(h){
+  const W=h.length,D=h[0].length,mx=Math.max(...h.flat()),cw=26,ch=15,zh=30,pad=6,ox=pad+D*cw,oy=pad+mx*zh,vw=(W+D)*cw+2*pad;
+  const P=(i,j,z)=>(ox+(i-j)*cw)+','+(oy+(i+j)*ch-z*zh);
+  let s=`<polygon class="ground" points="${P(0,0,0)} ${P(W,0,0)} ${P(W,D,0)} ${P(0,D,0)}"/>`;
+  for(let sum=0;sum<=W+D-2;sum++)for(let i=0;i<W;i++){const j=sum-i;if(j<0||j>=D)continue;
+    for(let z=0;z<h[i][j];z++)s+=`<polygon class="fl" points="${P(i,j+1,z+1)} ${P(i+1,j+1,z+1)} ${P(i+1,j+1,z)} ${P(i,j+1,z)}"/><polygon class="fr" points="${P(i+1,j,z+1)} ${P(i+1,j+1,z+1)} ${P(i+1,j+1,z)} ${P(i+1,j,z)}"/><polygon class="ft" points="${P(i,j,z+1)} ${P(i+1,j,z+1)} ${P(i+1,j+1,z+1)} ${P(i,j+1,z+1)}"/>`;}
+  return`<svg class="cubes" style="width:min(100%,${Math.round(vw*1.55)}px)" viewBox="0 0 ${vw} ${(W+D)*ch+mx*zh+2*pad}" role="img" aria-label="Bauwerk aus Würfeln">${s}</svg>`;
+}
+function figHTML(v){
+  if(v.fig==='seq')return`<div class="seq">${v.terms.map(t=>t==null?'<span class="num qslot">?</span>':`<span class="num">${String(t).replace('-','−')}</span>`).join('')}</div>`;
+  if(v.fig==='pairs')return`<div class="pairs">${v.rows.map(r=>`<div class="prow"><span>${r[0]}</span><i>${v.sym}</i><b>${r[1].replace('-','−')}</b></div>`).join('')}<div class="prow last"><span>${v.q}</span><i>${v.sym}</i><b class="qslot">?</b></div></div>`;
+  if(v.fig==='riddle')return`<ul class="cond">${v.lines.map(l=>`<li>${l}</li>`).join('')}</ul><div class="bigq qslot">?</div>`;
+  if(v.fig==='cubes')return cubesSVG(v.h);
+  return'';
+}
+function keepFocus(host,draw){
+  const a=document.activeElement,inside=a&&host.contains(a)&&a.dataset,sel=inside?Object.keys(a.dataset).map(k=>`[data-${k}="${a.dataset[k]}"]`).join(''):'';
+  draw();if(sel){const n=host.querySelector(sel);if(n)n.focus({preventScroll:true});}
+}
+
+/* ---------------------------------------------------------------- Rätsel-Darstellung je Eingabeart */
+const MOUNT={
+  number(p,host,ctl){
+    let val='';const own=p.view.fig==='cubes';
+    host.innerHTML=`<div class="fig">${figHTML(p.view)}</div>${own?'<div class="numdisp qslot">?</div>':''}<div class="pad" role="group" aria-label="Zahleneingabe">${['1','2','3','4','5','6','7','8','9','±','0','⌫'].map(k=>`<button type="button" class="key" data-k="${k}" aria-label="${k==='±'?'Vorzeichen wechseln':k==='⌫'?'Letzte Ziffer löschen':k}">${k}</button>`).join('')}</div>`;
+    const upd=()=>host.querySelectorAll('.qslot').forEach(e=>{e.textContent=val===''?'?':val.replace('-','−');e.classList.toggle('filled',val!=='');});
+    const press=k=>{
+      if(k==='⌫')val=val.slice(0,-1);
+      else if(k==='±')val=val[0]==='-'?val.slice(1):'-'+val;
+      else if(val.replace('-','').length<6){const neg=val[0]==='-',dg=val.replace('-','');val=(neg?'-':'')+(dg==='0'?'':dg)+k;}
+      upd();ctl.changed('click');};
+    $('.pad',host).addEventListener('click',e=>{const b=e.target.closest('.key');if(b)press(b.dataset.k);});
+    return{get(){return val===''||val==='-'?{inc:'Gib zuerst eine Zahl ein.'}:Number(val);},reset(){val='';upd();},
+      key(e){if(/^\d$/.test(e.key)){press(e.key);return true;}if(e.key==='Backspace'){press('⌫');return true;}if(e.key==='-'){press('±');return true;}return false;}};
+  },
+  choice(p,host,ctl){
+    const v=p.view,dead=new Set();let sel=-1;
+    const one=o=>v.fig==='polys'?polySVG(o):v.fig==='area'?areaSVG(o):cellSVG(o);
+    let ref='';
+    if(v.fig==='matrix')ref=`<div class="matrix" role="img" aria-label="Raster mit einem leeren Feld">${v.cells.map((c,i)=>i===v.miss?'<div class="hole">?</div>':`<div>${cellSVG(c)}</div>`).join('')}</div>`;
+    else if(v.ref)ref=`<div class="ref${v.fig==='area'?' wide':''}"><span class="cap">Vorlage</span>${one(v.ref)}</div>`;
+    host.innerHTML=`${ref}<div class="opts c${v.cols}">${v.opts.map((o,i)=>`<button type="button" class="opt" data-i="${i}" aria-pressed="false" aria-label="Antwort ${LETTERS[i]}"><span class="ol">${LETTERS[i]}</span>${one(o)}</button>`).join('')}</div>`;
+    const paint=()=>host.querySelectorAll('.opt').forEach((b,i)=>{b.classList.toggle('sel',i===sel);b.classList.toggle('x',dead.has(i));b.disabled=dead.has(i);b.setAttribute('aria-pressed',i===sel);});
+    const pick=i=>{if(i<0||i>=v.opts.length||dead.has(i))return;sel=i;paint();ctl.changed('select');};
+    $('.opts',host).addEventListener('click',e=>{const b=e.target.closest('.opt');if(b)pick(+b.dataset.i);});
+    return{get(){return sel<0?{inc:'Wähle zuerst eine Antwort aus.'}:sel;},reset(){sel=-1;paint();},wrong(a){dead.add(a);sel=-1;paint();},
+      key(e){const i=LETTERS.indexOf(e.key.toUpperCase());if(e.key.length===1&&i>=0&&i<v.opts.length){pick(i);return true;}return false;}};
+  },
+  net(p,host,ctl){
+    const v=p.view,U=46,w=Math.max(...v.cells.map(c=>c[0]))+1,h=Math.max(...v.cells.map(c=>c[1]))+1,dead=new Set();let sel=-1;
+    host.innerHTML=`<svg class="netsvg" style="width:min(100%,${w*72}px)" viewBox="-4 -4 ${w*U+8} ${h*U+8}">${v.cells.map(([x,y],i)=>`<g class="face${i===v.mark?' mark':''}" data-i="${i}" ${i===v.mark?'':'tabindex="0" role="button"'} aria-label="Fläche ${LETTERS[i]}${i===v.mark?' (markiert)':''}"><rect x="${x*U+1}" y="${y*U+1}" width="${U-2}" height="${U-2}" rx="4"/><text x="${x*U+U/2}" y="${y*U+U/2+6}">${LETTERS[i]}</text></g>`).join('')}</svg>`;
+    const paint=()=>host.querySelectorAll('.face').forEach((g,i)=>{g.classList.toggle('sel',i===sel);g.classList.toggle('x',dead.has(i));});
+    const pick=i=>{if(i===v.mark||dead.has(i))return;sel=i;paint();ctl.changed('select');};
+    const svg=$('svg',host);
+    svg.addEventListener('click',e=>{const g=e.target.closest('.face');if(g)pick(+g.dataset.i);});
+    svg.addEventListener('keydown',e=>{const g=e.target.closest('.face');if(g&&(e.key===' '||e.key==='Enter')){e.preventDefault();e.stopPropagation();pick(+g.dataset.i);}});
+    return{get(){return sel<0?{inc:'Tippe zuerst eine Fläche im Netz an.'}:sel;},reset(){sel=-1;paint();},wrong(a){dead.add(a);sel=-1;paint();},
+      key(e){const i=LETTERS.indexOf(e.key.toUpperCase());if(e.key.length===1&&i>=0&&i<6){pick(i);return true;}return false;}};
+  },
+  sym(p,host,ctl){
+    const v=p.view,n=v.n,U=40,S2=n*U,given=new Set(v.given),on=new Set(),t=v.type,ax=[];
+    const L=(a,b,c,d)=>`<line class="axis" x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
+    if(t==='V'||t==='VH')ax.push(L(S2/2,-6,S2/2,S2+6));
+    if(t==='H'||t==='VH')ax.push(L(-6,S2/2,S2+6,S2/2));
+    if(t==='D1'||t==='DD')ax.push(L(-4,-4,S2+4,S2+4));
+    if(t==='D2'||t==='DD')ax.push(L(S2+4,-4,-4,S2+4));
+    if(t==='R2'||t==='R4')ax.push(`<circle cx="${S2/2}" cy="${S2/2}" r="5" fill="var(--amb)"/><path class="axis" d="M${S2/2+15} ${S2/2}a15 15 0 1 1-4.4-10.6" style="stroke-dasharray:none"/><path d="M${S2/2+13} ${S2/2-17}v7h-7" fill="none" stroke="var(--amb)" stroke-width="2"/>`);
+    host.innerHTML=`<svg class="symsvg" viewBox="-8 -8 ${S2+16} ${S2+16}" role="group" aria-label="Raster">${range(n*n).map(i=>`<rect class="c${given.has(i)?' g':''}" data-i="${i}" x="${(i%n)*U+1.5}" y="${Math.floor(i/n)*U+1.5}" width="${U-3}" height="${U-3}" rx="4" ${given.has(i)?'':`tabindex="0" role="button" aria-label="Zeile ${Math.floor(i/n)+1}, Spalte ${i%n+1}"`}/>`).join('')}${ax.join('')}</svg>`;
+    const svg=$('svg',host),tog=el=>{const i=+el.dataset.i;if(given.has(i))return;if(on.has(i))on.delete(i);else on.add(i);el.classList.toggle('on',on.has(i));el.setAttribute('aria-pressed',on.has(i));ctl.changed(on.has(i)?'select':'click');};
+    svg.addEventListener('click',e=>{const c=e.target.closest('.c');if(c)tog(c);});
+    svg.addEventListener('keydown',e=>{const c=e.target.closest('.c');if(c&&(e.key===' '||e.key==='Enter')){e.preventDefault();e.stopPropagation();tog(c);}});
+    return{get(){return on.size?[...on]:{inc:'Fülle zuerst mindestens ein Feld.'};},reset(){on.clear();host.querySelectorAll('.c.on').forEach(c=>c.classList.remove('on'));}};
+  },
+  paint(p,host,ctl){
+    const v=p.view,n=v.n,val=v.miss.map(()=>-1),names=['Cyan','Violett','Magenta','Gelb'];
+    const draw=()=>{host.innerHTML=`<div class="pgrid" style="grid-template-columns:repeat(${n},1fr)">${v.grid.map((g,i)=>{const m=v.miss.indexOf(i);
+        if(m<0)return`<div class="pcell k${g}"></div>`;const c=val[m];
+        return`<button type="button" class="pcell hole${c<0?'':' set k'+c}" data-m="${m}" aria-label="Zeile ${Math.floor(i/n)+1}, Spalte ${i%n+1}: ${c<0?'leer':names[c]}">${c<0?'?':''}</button>`;}).join('')}</div>
+      <div class="legend">${range(v.k).map(c=>`<span><i class="k${c}"></i>${names[c]}</span>`).join('')}</div>`;};
+    host.onclick=e=>{const b=e.target.closest('.hole');if(!b)return;const m=+b.dataset.m;val[m]=(val[m]+1)%v.k;keepFocus(host,draw);ctl.changed('select');};
+    draw();
+    return{get(){return val.includes(-1)?{inc:'Färbe zuerst alle leeren Felder.'}:val.slice();},reset(){val.fill(-1);draw();}};
+  },
+  assemble(p,host,ctl){
+    const v=p.view,U=40,W=v.cols*U,H=v.rows*U,NS='http://www.w3.org/2000/svg';
+    host.innerHTML=`<svg class="board" style="max-height:58vh" viewBox="0 0 ${W} ${H}" role="group" aria-label="Legefläche"><defs><pattern id="msdots" x="${-U/2}" y="${-U/2}" width="${U}" height="${U}" patternUnits="userSpaceOnUse"><circle cx="${U/2}" cy="${U/2}" r="1.3" fill="#3a4a75"/></pattern></defs><rect width="${W}" height="${H}" fill="url(#msdots)"/>${v.target.map(([x,y])=>`<rect class="tcell" x="${x*U+1}" y="${y*U+1}" width="${U-2}" height="${U-2}" rx="3"/>`).join('')}<g class="ghost"></g><g class="layer"></g></svg>`;
+    const svg=$('svg',host),layer=$('.layer',svg);let pcs=[],drag=null;
+    const dims=c=>[Math.max(...c.map(q=>q[0]))+1,Math.max(...c.map(q=>q[1]))+1];
+    const clamp=q=>{const d=dims(q.cells);q.x=Math.max(0,Math.min(v.cols-d[0],q.x));q.y=Math.max(0,Math.min(v.rows-d[1],q.y));};
+    const place=q=>{q.g.innerHTML=q.cells.map(([x,y])=>`<rect x="${x*U+1.5}" y="${y*U+1.5}" width="${U-3}" height="${U-3}" rx="5"/>`).join('');q.g.setAttribute('transform',`translate(${q.x*U},${q.y*U})`);};
+    const rotate=q=>{const d=dims(q.cells),cx=q.x+d[0]/2,cy=q.y+d[1]/2;q.cells=q.cells.map(([x,y])=>[d[1]-1-y,x]);q.x=Math.round(cx-d[1]/2);q.y=Math.round(cy-d[0]/2);clamp(q);place(q);};
+    const pt=e=>{const m=svg.getScreenCTM();return{x:(e.clientX-m.e)/m.a,y:(e.clientY-m.f)/m.d};};
+    function init(){
+      layer.innerHTML='';
+      pcs=v.pieces.map((src,i)=>{
+        const g=document.createElementNS(NS,'g'),q={cells:src.cells.map(c=>c.slice()),x:src.x,y:src.y,g};
+        g.setAttribute('class','piece');g.setAttribute('fill',COL[i%COL.length]);g.setAttribute('tabindex','0');g.setAttribute('role','button');
+        g.setAttribute('aria-label',`Teil ${i+1} von ${v.pieces.length}. Pfeiltasten bewegen, Leertaste dreht.`);
+        g.addEventListener('pointerdown',e=>{if(drag||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();const m=pt(e);
+          drag={q,id:e.pointerId,dx:m.x-q.x*U,dy:m.y-q.y*U,sx:m.x,sy:m.y,moved:false,px:q.x*U,py:q.y*U};layer.appendChild(g);g.classList.add('drag');
+          try{svg.setPointerCapture(e.pointerId);}catch(_){}});
+        g.addEventListener('keydown',e=>{const mv={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+          if(mv){e.preventDefault();q.x+=mv[0];q.y+=mv[1];clamp(q);place(q);ctl.changed('click');}
+          else if(e.key===' '||e.key==='r'||e.key==='R'){e.preventDefault();e.stopPropagation();rotate(q);ctl.changed('select');}});
+        layer.appendChild(g);place(q);return q;});
+    }
+    svg.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const m=pt(e);
+      if(Math.hypot(m.x-drag.sx,m.y-drag.sy)>7)drag.moved=true;
+      if(drag.moved){drag.px=m.x-drag.dx;drag.py=m.y-drag.dy;drag.q.g.setAttribute('transform',`translate(${drag.px},${drag.py})`);}});
+    const end=(e,cancel)=>{if(!drag||drag.id!==e.pointerId)return;const d=drag,q=d.q;drag=null;q.g.classList.remove('drag');
+      try{svg.releasePointerCapture(e.pointerId);}catch(_){}
+      if(cancel){place(q);return;}
+      if(d.moved){q.x=Math.round(d.px/U);q.y=Math.round(d.py/U);clamp(q);place(q);ctl.changed('click');}else{rotate(q);ctl.changed('select');}};
+    svg.addEventListener('pointerup',e=>end(e,false));svg.addEventListener('pointercancel',e=>end(e,true));
+    init();
+    return{get(){return pcs.every((q,i)=>q.x===v.pieces[i].x&&q.y===v.pieces[i].y)?{inc:'Ziehe die Teile zuerst in die markierte Fläche.'}:pcs.map(q=>q.cells.map(([x,y])=>[x+q.x,y+q.y]));},reset(){drag=null;init();},
+      hint(n){if(n>=3)$('.ghost',svg).innerHTML=v.pieces[0].sol.map(([x,y])=>`<rect x="${x*U+4}" y="${y*U+4}" width="${U-8}" height="${U-8}" rx="4" stroke="${COL[0]}"/>`).join('');}};
+  },
+  equation(p,host,ctl){
+    const v=p.view,kinds=v.tpl.filter(t=>t==='N'||t==='O');let fill=kinds.map(()=>null);
+    const draw=()=>{let k=0;
+      const usedN=new Set(),usedO=new Set();fill.forEach((f,i)=>{if(f!=null)(kinds[i]==='N'?usedN:usedO).add(f);});
+      const expr=v.tpl.map(t=>{if(t==='('||t===')')return`<span class="par">${t}</span>`;const i=k++,f=fill[i],txt=f==null?'':(t==='N'?v.nums[f]:v.ops[f]);
+        return`<button type="button" class="slot ${t==='N'?'sn':'so'}${f==null?'':' full'}" data-s="${i}" aria-label="${t==='N'?'Zahlenfeld':'Zeichenfeld'}: ${f==null?'leer':txt+', antippen zum Leeren'}">${txt}</button>`;}).join('');
+      host.innerHTML=`${v.src?`<div class="fig src">${figHTML(v.src)}</div>`:''}<div class="expr">${expr}<span class="rhs"><span class="eqs">=</span><span class="target" aria-label="Ziel">${v.src?'?':v.target}</span></span></div>
+        <div class="tiles" role="group" aria-label="Zahlen">${v.nums.map((n,i)=>`<button type="button" class="tile tn" data-n="${i}" ${usedN.has(i)?'disabled':''}>${n}</button>`).join('')}</div>
+        <div class="tiles" role="group" aria-label="Rechenzeichen">${v.ops.map((o,i)=>`<button type="button" class="tile to" data-o="${i}" ${usedO.has(i)?'disabled':''}>${o}</button>`).join('')}</div>`;};
+    host.onclick=e=>{
+      const s=e.target.closest('.slot'),t=e.target.closest('.tile');
+      if(s){const i=+s.dataset.s;if(fill[i]!=null){fill[i]=null;keepFocus(host,draw);ctl.changed('click');}return;}
+      if(!t||t.disabled)return;
+      const isN=t.dataset.n!==undefined,idx=+(isN?t.dataset.n:t.dataset.o),slot=kinds.findIndex((kd,i)=>kd===(isN?'N':'O')&&fill[i]==null);
+      if(slot<0){ctl.say('Alle Felder dieser Art sind belegt. Tippe ein Feld an, um es zu leeren.');return;}
+      fill[slot]=idx;keepFocus(host,draw);ctl.changed('select');};
+    draw();
+    return{get(){return fill.some(f=>f==null)?{inc:'Fülle zuerst alle Felder der Gleichung.'}:fill.map((f,i)=>kinds[i]==='N'?v.nums[f]:v.ops[f]);},reset(){fill=kinds.map(()=>null);draw();}};
+  },
+  logic(p,host,ctl){
+    const v=p.view,N=v.N,two=v.cats===2;let s=Array(N).fill(-1),c=Array(N).fill(-1);const done=new Set();
+    const draw=()=>{
+      const cards=range(N).map(i=>{
+        const sh=s[i]<0?null:SHAPES[v.shapes[s[i]]],col=two?(c[i]<0?'#6a79a3':COL[v.colors[c[i]]]):COL[0];
+        const g=sh?glyph(sh,30,30,18,col,two&&c[i]>=0?1:0):`<circle cx="30" cy="30" r="17" fill="${two&&c[i]>=0?col:'none'}" fill-opacity=".25" stroke="${col}" stroke-width="2" stroke-dasharray="4 5"/>`;
+        return`<div class="lcard"><span class="lpos">Platz ${i+1}</span><button type="button" class="lbtn" data-f="${i}" aria-label="Form auf Platz ${i+1}: ${sh?L_SHAPE[v.shapes[s[i]]].n:'offen'}. Antippen zum Wechseln."><svg viewBox="0 0 60 60" aria-hidden="true">${g}</svg></button>${two?`<button type="button" class="lcol${c[i]<0?'':' set'}" data-c="${i}" aria-label="Farbe auf Platz ${i+1}: ${c[i]<0?'offen':L_COLOR[v.colors[c[i]]].n}. Antippen zum Wechseln."><i style="background:${c[i]<0?'transparent':col}"></i>${c[i]<0?'Farbe':L_COLOR[v.colors[c[i]]].n}</button>`:''}</div>`;}).join('');
+      host.innerHTML=`<div class="lrow">${cards}</div><ol class="clues">${v.clues.map((t,i)=>`<li><button type="button" class="${done.has(i)?'done':''}" data-q="${i}" aria-pressed="${done.has(i)}">${t}</button></li>`).join('')}</ol><p class="cluehint">Tippe einen Hinweis an, um ihn als erledigt zu markieren.</p>`;};
+    host.onclick=e=>{
+      const f=e.target.closest('.lbtn'),k=e.target.closest('.lcol'),q=e.target.closest('.clues button');
+      if(f){const i=+f.dataset.f;s[i]=s[i]+1>=N?-1:s[i]+1;}
+      else if(k){const i=+k.dataset.c;c[i]=c[i]+1>=N?-1:c[i]+1;}
+      else if(q){const i=+q.dataset.q;if(done.has(i))done.delete(i);else done.add(i);}
+      else return;
+      keepFocus(host,draw);ctl.changed(q?'click':'select');};
+    draw();
+    return{get(){
+        if(s.includes(-1)||(two&&c.includes(-1)))return{inc:two?'Lege zuerst für jeden Platz eine Form und eine Farbe fest.':'Lege zuerst für jeden Platz eine Form fest.'};
+        if(new Set(s).size<N)return{inc:'Jede Form darf nur einmal vorkommen.'};
+        if(two&&new Set(c).size<N)return{inc:'Jede Farbe darf nur einmal vorkommen.'};
+        return{s:s.slice(),c:two?c.slice():null};},
+      reset(){s=Array(N).fill(-1);c=Array(N).fill(-1);done.clear();draw();}};
+  }
+};
+
+/* ---------------------------------------------------------------- Ansichten */
+const app=document.getElementById('app');
+let G=null,timers=[],toastT=0;
+function clearTimers(){timers.forEach(clearInterval);timers=[];}
+function show(html){clearTimers();app.innerHTML=html;window.scrollTo(0,0);}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),2600);}
+function countdown(){const e=$('#cd');if(!e)return;const ms=864e5-(Date.now()%864e5),s=Math.floor(ms/1000);e.textContent=[Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(x=>String(x).padStart(2,'0')).join(':');}
+
+function viewMenu(){
+  const today=utcDate(),done=S.daily.done[today],e=S.endless,streak=curStreak();
+  show(`<div class="wrap">
+    <header class="top">
+      <h1 class="brand">MIND<span>//</span>SHAPES</h1>
+      <p class="claim">Think beyond the obvious.</p>
+      <div class="topact">
+        <button type="button" class="ico${S.settings.sound?'':' off'}" data-act="sound" aria-label="Ton ${S.settings.sound?'ausschalten':'einschalten'}">${S.settings.sound?IC.son:IC.soff}</button>
+        <button type="button" class="ico" data-act="settings" aria-label="Einstellungen">${IC.gear}</button>
+      </div>
+    </header>
+    <main class="modes">
+      <button type="button" class="mode endless" data-act="endless"><span class="art">${streamSVG()}</span>
+        <span class="mname">ENDLESS</span><span class="mtag">An infinite stream of puzzles.</span>
+        <span class="mmeta">Level ${e.level}<i>${DIFF[tierOf(e.power)]}</i></span>
+        <span class="cta">${S.stats.solved?'Weiterspielen':'Losspielen'}</span>
+      </button>
+      <button type="button" class="mode daily${done?' done':''}" data-act="daily"><span class="art">${sigilSVG(sigilData(today),true)}</span>
+        <span class="mname">DAILY</span><span class="mtag">One puzzle. One world. Every day.</span>
+        <span class="mmeta">Nr. ${dailyNo(today)}<i>${fmtDate(today)}</i></span>
+        <span class="cta">${done?'Gelöst – Ergebnis ansehen':'Heutiges Rätsel lösen'}</span>
+        <span class="next">Nächstes Rätsel in <span id="cd"></span></span>
+      </button>
+    </main>
+    <section class="facts" aria-label="Dein Stand">
+      <div class="fact"><span>Gelöste Rätsel</span><b>${S.stats.solved}</b></div>
+      <div class="fact"><span>Daily-Serie</span><b>${streak}<small>${streak===1?'Tag':'Tage'}</small></b></div>
+      <div class="fact wide"><span>Letzte Bestleistung</span><b>${S.record?esc(S.record.text):'Noch offen'}</b></div>
+      <button type="button" class="btn" data-act="stats">Fortschritt ansehen</button>
+    </section>
+    <p class="foot">Alles bleibt auf diesem Gerät: keine Konten, keine Cookies, keine Datenübertragung.</p>
+  </div>`);
+  countdown();timers.push(setInterval(()=>{if(utcDate()!==today){viewMenu();return;}countdown();},1000));
+  if(loadNote){toast(loadNote);loadNote='';}
+}
+
+function viewGame(){
+  const p=G.p,daily=G.mode==='daily',e=S.endless,t=tierOf(e.power);
+  let intro='';
+  if(!daily&&!S.intro.includes(p.type)){intro=INTRO[p.type];S.intro.push(p.type);save();}
+  show(`<div class="game">
+    <header class="ghead">
+      <button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button>
+      <div class="gmode"><b>${daily?'DAILY':'ENDLESS'}</b><span>${daily?`Nr. ${dailyNo(G.date)} vom ${fmtDate(G.date)}`:`Level ${e.level}`}</span></div>
+      <div class="timer" id="timer" role="timer" aria-label="Zeit">00:00</div>
+    </header>
+    <div class="prog" ${daily?'hidden':''}><i style="width:${t===3?100:Math.round((e.power-TIER[t])/(TIER[t+1]-TIER[t])*100)}%"></i></div>
+    <div class="progl" id="progl"></div>
+    <div class="ptype"><span><b>${p.title}</b>${p.fusion?' trifft '+p.fusion:''}</span><span class="tier d${p.diff}">${DIFF[p.diff]}</span></div>
+    ${intro?`<p class="intro">${intro}</p>`:''}
+    <h2 class="prompt">${p.prompt}</h2>
+    <ul class="rules">${p.rules.map(r=>`<li>${r}</li>`).join('')}</ul>
+    <div class="stage" id="stage"></div>
+    <ol class="hints" id="hints" aria-label="Hinweise"></ol>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    <div class="bar" id="bar">
+      <button type="button" class="btn" data-act="hint" id="bh">${IC.hint}<span>Hinweis</span></button>
+      <button type="button" class="btn sq" data-act="restart" aria-label="Neustart">${IC.redo}<span>Neustart</span></button>
+      ${daily?'':`<button type="button" class="btn sq" data-act="skip" aria-label="Anderes Rätsel">${IC.skip}<span>Anderes Rätsel</span></button>`}
+      <button type="button" class="btn primary" data-act="check">Prüfen</button>
+    </div>
+    <section class="result" id="result" hidden aria-live="polite"></section>
+  </div>`);
+  const st=$('#stage');G.ui=MOUNT[p.kind](p,st,CTL);
+  for(let i=1;i<=G.hints;i++)addHint(i);
+  meta();tick();timers.push(setInterval(tick,250));
+}
+const CTL={changed(k){say('');SND.play(k==='select'?'select':'click');},say(t){say(t);}};
+function say(t,bad){const m=$('#msg');if(!m)return;m.textContent=t||'';m.classList.toggle('bad',!!bad);}
+function elapsed(){return G.ms+(G.paused||G.solved?0:performance.now()-G.t0);}
+function tick(){const t=$('#timer');if(t&&G)t.textContent=mmss(elapsed());}
+function meta(){
+  const l=$('#progl'),b=$('#bh span');if(!l)return;
+  if(G.mode==='daily')l.innerHTML=`<span>Versuche: ${G.attempts}</span><span>Hinweise: ${G.hints} von 3</span>`;
+  else{const t=tierOf(S.endless.power);l.innerHTML=`<span>Stufe ${DIFF[t]}</span><span>${t<3?'Nächste Stufe: '+DIFF[t+1]:'Höchste Stufe erreicht'}</span>`;}
+  if(b)b.textContent=G.hints?`Hinweis ${G.hints}/3`:'Hinweis';
+}
+function addHint(n){const li=document.createElement('li');li.dataset.n=n;li.textContent=G.p.hints[n-1];$('#hints').appendChild(li);if(G.ui.hint)G.ui.hint(n);}
+function begin(g){
+  G=Object.assign({attempts:0,hints:0,ms:0,t0:performance.now(),paused:false,solved:false},g);
+  if(g.mode==='daily'){const pr=S.daily.prog;if(pr&&pr.date===g.date){G.attempts=pr.a;G.hints=pr.h;G.ms=pr.ms;}}
+  viewGame();
+}
+function endlessPuzzle(){
+  const e=S.endless,first=['number','pattern','equation','geometry','spatial','logic'];let p;
+  for(let k=0;k<8;k++){
+    const seed=`E|${e.run}|${e.level}|${e.salt}`,R=makeRng(seed+'|meta');
+    let d=tierOf(e.power);if(d>0&&R.chance(.2))d--;if(e.level<=3)d=0;
+    const bag=e.level<=6?first:makeRng(`E|${e.run}|bag|${Math.floor((e.level-1)/6)}`).shuffle(TYPE_KEYS);
+    p=generate(seed,bag[(e.level-1+(e.level<=6?0:e.salt))%6],d);
+    if(!S.seen.includes(hashStr(p.sig)))break;
+    e.salt++;
+  }
+  return p;
+}
+function startEndless(){begin({mode:'endless',p:endlessPuzzle()});}
+function startDaily(){
+  const date=utcDate();
+  if(S.daily.done[date]){viewDailyResult(date,false);return;}
+  if(S.daily.prog&&S.daily.prog.date!==date)S.daily.prog=null;
+  begin({mode:'daily',p:dailyPuzzle(date),date});
+}
+function saveProg(){if(G&&G.mode==='daily'&&!G.solved){S.daily.prog={date:G.date,a:G.attempts,h:G.hints,ms:Math.round(elapsed())};save();}}
+function leaveGame(){saveProg();G=null;}
+function score(p,g){
+  const base=Math.round(40+30*p.rating),mult=(g.attempts===1?1.5:Math.max(.5,1-.15*(g.attempts-1)))*(1-.2*g.hints),par=(30+14*p.rating)*1000;
+  const tb=g.ms<par?Math.round(base*.2*(1-g.ms/par)):0;
+  return{total:Math.max(10,Math.round(base*mult)+tb),tb};
+}
+function check(){
+  if(!G||G.solved)return;
+  const a=G.ui.get();
+  if(a&&a.inc){say(a.inc);return;}
+  G.attempts++;
+  const r=G.p.validate(a);
+  if(r===true){solved();return;}
+  SND.play('bad');const st=$('#stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake');
+  if(G.ui.wrong)G.ui.wrong(a);
+  say(typeof r==='string'?r:(G.hints<3&&G.attempts>=2?'Das passt noch nicht. Ein Hinweis kann die Richtung zeigen.':'Das passt noch nicht. Prüfe deine Überlegung und versuche es erneut.'),true);
+  meta();saveProg();
+}
+function solved(){
+  const p=G.p,st=S.stats,notes=[];let party=false;
+  G.ms=elapsed();G.solved=true;clearTimers();tick();
+  const setRec=t=>{S.record={text:t,date:utcDate()};};
+  const finishStats=()=>{
+    const sc=score(p,G);st.solved++;st.points+=sc.total;st.byType[p.type]++;st.byDiff[p.diff]++;if(G.attempts===1)st.firstTry++;
+    if(sc.total>st.bestPoints){if(st.bestPoints)notes.push(`Neuer Punkterekord: ${sc.total} Punkte für ein einzelnes Rätsel.`);st.bestPoints=sc.total;setRec(`${sc.total} Punkte für ein Rätsel`);}
+    const bt=st.bestTime[p.diff];
+    if(!bt||G.ms<bt){if(bt)notes.push(`Neue Bestzeit auf ${DIFF[p.diff]}: ${mmss(G.ms)}.`);st.bestTime[p.diff]=Math.max(1,Math.round(G.ms));setRec(`Bestzeit ${DIFF[p.diff]}: ${mmss(G.ms)}`);}
+    return sc;};
+  if(G.mode==='daily'){
+    const D=S.daily,date=G.date;let sc={total:0,tb:0};
+    if(!D.done[date]){
+      sc=finishStats();
+      D.done[date]={t:Math.round(G.ms),a:G.attempts,h:G.hints,d:p.diff,ty:p.type};D.count++;
+      D.streak=D.last===addDays(date,-1)?D.streak+1:1;D.last=date;D.longest=Math.max(D.longest,D.streak);
+      if(!D.best||G.ms<D.best){if(D.best)notes.push(`Neue Daily-Bestzeit: ${mmss(G.ms)}.`);D.best=Math.round(G.ms);}
+      if(D.streak>1&&D.streak===D.longest)setRec(`Daily-Serie: ${D.streak} Tage`);
+    }
+    D.prog=null;checkUnlocks().forEach(n=>notes.push(`Freigeschaltet: Akzentfarbe ${n}.`));save();
+    SND.play('done');burst();G=null;viewDailyResult(date,true,notes,sc.total);return;
+  }
+  const sc=finishStats(),e=S.endless,before=tierOf(e.power);
+  e.maxLevel=Math.max(e.maxLevel,e.level);e.clean=G.attempts===1?e.clean+1:0;
+  if(e.clean>e.bestClean){e.bestClean=e.clean;if(e.clean>=3)setRec(`${e.clean} Rätsel in Folge im ersten Versuch`);}
+  e.power+=G.attempts===1&&!G.hints?1.4:G.attempts<=2&&G.hints<=1?1:.5;
+  if(tierOf(e.power)>before){notes.push(`Neue Stufe erreicht: ${DIFF[tierOf(e.power)]}.`);party=true;}
+  if(e.level%10===0){notes.push(`Level ${e.level} geschafft.`);party=true;}
+  e.level++;e.salt=0;S.seen.push(hashStr(p.sig));if(S.seen.length>400)S.seen=S.seen.slice(-400);
+  const un=checkUnlocks();un.forEach(n=>notes.push(`Freigeschaltet: Akzentfarbe ${n}. Du findest sie in den Einstellungen.`));if(un.length)party=true;
+  save();SND.play(party?'done':'ok');if(party)burst();
+  const stg=$('#stage');stg.classList.add('locked','win');$('#bar').hidden=true;say('');
+  const tags=[];if(G.attempts===1)tags.push(['Im ersten Versuch',1]);else tags.push([`${G.attempts} Versuche`,0]);
+  tags.push(G.hints?[`${G.hints} ${G.hints===1?'Hinweis':'Hinweise'}`,0]:['Ohne Hinweise',1]);tags.push([`Zeit ${mmss(G.ms)}`,0]);if(sc.tb)tags.push([`Tempo-Bonus +${sc.tb}`,1]);
+  const res=$('#result');res.hidden=false;
+  res.innerHTML=`<h3>Gelöst</h3><p class="pts">+${sc.total} Punkte</p><ul class="tags">${tags.map(t=>`<li class="${t[1]?'good':''}">${t[0]}</li>`).join('')}</ul>
+    <p class="explain">${p.explain}</p>${notes.map(n=>`<p class="note">${n}</p>`).join('')}
+    <button type="button" class="btn primary" data-act="next" id="bnext">Nächstes Level</button>`;
+  const nb=$('#bnext');nb.focus({preventScroll:true});nb.scrollIntoView({block:'nearest',behavior:S.settings.motion?'smooth':'auto'});
+}
+function shareText(date){const r=S.daily.done[date];return`MIND//SHAPES – DAILY ${date}\nSolved ✓\nTime: ${mmss(r.t)}\nAttempts: ${r.a}\nHints: ${r.h}\nDifficulty: ${DIFF[r.d]}\nStreak: ${curStreak()}`;}
+function viewDailyResult(date,fresh,notes,pts){
+  const r=S.daily.done[date],p=dailyPuzzle(date);
+  show(`<div class="wrap narrow">
+    <div class="sub"><button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button><h2>${fresh?'Daily gelöst':'Dein Daily von heute'}</h2></div>
+    <div class="card">
+      <div><h3>Daily Nr. ${dailyNo(date)}</h3><p class="big">${p.title}</p><p class="when">${fmtDate(date)} (UTC)${fresh&&pts?`, +${pts} Punkte`:''}</p></div>
+      ${sigilSVG(sigilData(date),true)}
+      <dl class="kv"><div><dt>Zeit</dt><dd>${mmss(r.t)}</dd></div><div><dt>Versuche</dt><dd>${r.a}</dd></div><div><dt>Hinweise</dt><dd>${r.h}</dd></div><div><dt>Stufe</dt><dd>${DIFF[r.d]}</dd></div><div><dt>Serie</dt><dd>${curStreak()}</dd></div></dl>
+    </div>
+    ${(notes||[]).map(n=>`<p class="note" style="margin-top:12px">${n}</p>`).join('')}
+    <div class="share">
+      <pre id="sharetxt">${esc(shareText(date))}</pre>
+      <div class="rowb"><button type="button" class="btn primary" data-act="copy" data-date="${date}">Ergebnis kopieren</button><button type="button" class="btn" data-act="png" data-date="${date}">Als Bild speichern</button></div>
+      <p class="hintline">Das Ergebnis verrät die Lösung nicht. Es wird nur auf diesem Gerät erzeugt.</p>
+    </div>
+    <details class="sol"><summary>Lösungsweg anzeigen</summary><p>${p.explain}</p></details>
+    <p class="hintline">Das nächste Daily erscheint in <span id="cd"></span> – überall auf der Welt zur selben Zeit.</p>
+    <div class="rowb" style="margin-top:16px"><button type="button" class="btn" data-act="endless">Endless spielen</button><button type="button" class="btn" data-act="stats">Fortschritt ansehen</button></div>
+  </div>`);
+  countdown();timers.push(setInterval(countdown,1000));
+}
+function viewStats(){
+  const st=S.stats,D=S.daily,e=S.endless,mx=Math.max(1,...TYPE_KEYS.map(k=>st.byType[k])),md=Math.max(1,...st.byDiff);
+  const days=Object.keys(D.done).sort().slice(-28).reverse();
+  show(`<div class="wrap narrow">
+    <div class="sub"><button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button><h2>Fortschritt</h2></div>
+    <div class="grid4">
+      <div class="tilebox"><span>Höchstes Endless-Level</span><b>${e.maxLevel}</b></div>
+      <div class="tilebox"><span>Gelöste Rätsel</span><b>${st.solved}</b></div>
+      <div class="tilebox"><span>Punkte gesamt</span><b>${st.points.toLocaleString('de-DE')}</b></div>
+      <div class="tilebox"><span>Meiste Punkte für ein Rätsel</span><b>${st.bestPoints}</b></div>
+      <div class="tilebox"><span>Im ersten Versuch gelöst</span><b>${st.solved?Math.round(st.firstTry/st.solved*100):0} %</b></div>
+      <div class="tilebox"><span>Längste fehlerfreie Serie</span><b>${e.bestClean}</b></div>
+    </div>
+    <div class="sec"><h3>Daily</h3><div class="grid4">
+      <div class="tilebox"><span>Absolviert</span><b>${D.count}</b></div>
+      <div class="tilebox"><span>Aktuelle Serie</span><b>${curStreak()}</b></div>
+      <div class="tilebox"><span>Längste Serie</span><b>${D.longest}</b></div>
+      <div class="tilebox"><span>Bestzeit</span><b>${D.best?mmss(D.best):'–'}</b></div></div></div>
+    <div class="sec"><h3>Gelöst nach Disziplin</h3><div class="bars">${TYPE_KEYS.map(k=>`<div class="barrow"><span>${TYPES[k]}</span><i><u style="width:${st.byType[k]/mx*100}%"></u></i><b>${st.byType[k]}</b></div>`).join('')}</div></div>
+    <div class="sec"><h3>Gelöst nach Stufe und Bestzeit</h3><div class="bars">${DIFF.map((n,i)=>`<div class="barrow"><span>${n}${st.bestTime[i]?' / '+mmss(st.bestTime[i]):''}</span><i><u style="width:${st.byDiff[i]/md*100}%"></u></i><b>${st.byDiff[i]}</b></div>`).join('')}</div></div>
+    <div class="sec"><h3>Sammlung der Daily-Siegel</h3>${days.length?`<div class="sigils">${days.map(d=>`<figure>${sigilSVG(sigilData(d),false)}<figcaption>${d.slice(8)}.${d.slice(5,7)}.</figcaption></figure>`).join('')}</div>`:'<p class="empty">Jedes gelöste Daily hinterlässt hier sein eigenes Siegel. Das erste wartet heute auf dich.</p>'}</div>
+    <div class="sec"><h3>Akzentfarben</h3><div class="themes">${Object.keys(THEMES).map(k=>{const t=THEMES[k],u=S.unlocked.includes(k);return`<div class="theme" style="opacity:${u?1:.5}"><i style="background:${u?t.c:'transparent'};border:1px solid ${t.c}"></i><b>${t.name}</b><span>${u?'Freigeschaltet':t.need}</span></div>`;}).join('')}</div></div>
+  </div>`);
+}
+function viewSettings(){
+  const s=S.settings;
+  show(`<div class="wrap narrow">
+    <div class="sub"><button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button><h2>Einstellungen</h2></div>
+    <div class="setrow"><div><b>Ton</b><p>Kurze Klänge für Eingaben, Erfolg und Fehler.</p></div><button type="button" class="sw" role="switch" aria-checked="${s.sound}" aria-label="Ton" data-act="sound"></button></div>
+    <div class="setrow"><div><b>Animationen</b><p>Übergänge und Partikel bei besonderen Erfolgen.</p></div><button type="button" class="sw" role="switch" aria-checked="${s.motion}" aria-label="Animationen" data-act="motion"></button></div>
+    <div class="sec"><h3>Akzentfarbe</h3><div class="themes">${Object.keys(THEMES).map(k=>{const t=THEMES[k],u=S.unlocked.includes(k);return`<button type="button" class="theme" data-act="theme" data-k="${k}" aria-pressed="${s.theme===k}" ${u?'':'disabled'}><i style="background:${u?t.c:'transparent'};border:1px solid ${t.c}"></i><b>${t.name}</b><span>${u?(s.theme===k?'Aktiv':'Freigeschaltet'):t.need}</span></button>`;}).join('')}</div></div>
+    <div class="sec"><h3>Daten sichern und übertragen</h3>
+      <div class="rowb"><button type="button" class="btn" data-act="export">Als JSON exportieren</button><button type="button" class="btn" data-act="pickfile">JSON-Datei importieren</button><input type="file" id="impfile" accept="application/json,.json" hidden></div>
+      <p class="hintline">Du kannst ein Backup auch hier einfügen und dann importieren. Nach dem Export steht der Inhalt ebenfalls in diesem Feld.</p>
+      <textarea id="io" spellcheck="false" aria-label="Backup als JSON" placeholder='{"app":"MIND//SHAPES", …}'></textarea>
+      <div class="rowb" style="margin-top:8px"><button type="button" class="btn" data-act="importtext">Eingefügtes Backup importieren</button></div>
+      ${Store.ok?'':'<p class="warn">Dieser Browser erlaubt hier keinen dauerhaften lokalen Speicher. Dein Fortschritt gilt nur, bis du die Seite schließt – ein Export sichert ihn.</p>'}
+    </div>
+    <div class="sec"><h3>Zurücksetzen</h3>
+      <div class="rowb"><button type="button" class="btn danger" data-act="reset" data-label="Spielstand zurücksetzen">Spielstand zurücksetzen</button><button type="button" class="btn danger" data-act="wipe" data-label="Alle lokalen Daten löschen">Alle lokalen Daten löschen</button></div>
+      <p class="hintline">Zurücksetzen löscht Fortschritt, Statistik und Daily-Verlauf, behält aber deine Einstellungen. Löschen entfernt alles, was das Spiel auf diesem Gerät abgelegt hat.</p>
+    </div>
+    <p class="foot">Alle Daten liegen ausschließlich im lokalen Speicher dieses Browsers. Das Spiel lädt nichts nach und sendet nichts.</p>
+  </div>`);
+}
+
+/* ---------------------------------------------------------------- Teilen, Export, Import */
+function download(name,blob){try{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return true;}catch(e){return false;}}
+function copyText(t){
+  const fallback=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;left:-99px;top:0;opacity:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();toast(ok?'Ergebnis kopiert':'Markiere den Text und kopiere ihn von Hand.');}catch(e){toast('Markiere den Text und kopiere ihn von Hand.');}};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast('Ergebnis kopiert'),fallback);else fallback();
+}
+function sharePNG(date){
+  const r=S.daily.done[date],c=document.createElement('canvas'),x=c.getContext('2d'),acc=THEMES[S.settings.theme].c,F=getComputedStyle(document.body).fontFamily;c.width=c.height=1080;
+  x.fillStyle='#0c1222';x.fillRect(0,0,1080,1080);
+  let g=x.createRadialGradient(120,40,0,120,40,820);g.addColorStop(0,'rgba(61,220,255,.17)');g.addColorStop(1,'rgba(61,220,255,0)');x.fillStyle=g;x.fillRect(0,0,1080,1080);
+  g=x.createRadialGradient(900,300,0,900,300,560);g.addColorStop(0,'rgba(165,147,255,.2)');g.addColorStop(1,'rgba(165,147,255,0)');x.fillStyle=g;x.fillRect(0,0,1080,1080);
+  x.strokeStyle='rgba(58,74,117,.3)';x.lineWidth=1;x.beginPath();for(let i=90;i<1080;i+=90){x.moveTo(i,0);x.lineTo(i,1080);x.moveTo(0,i);x.lineTo(1080,i);}x.stroke();
+  sigilCanvas(x,sigilData(date),800,360,190,acc);
+  if('letterSpacing' in x)x.letterSpacing='7px';
+  x.textBaseline='alphabetic';x.fillStyle='#e9eefb';x.font='600 62px '+F;x.fillText('MIND//SHAPES',84,150);
+  if('letterSpacing' in x)x.letterSpacing='1px';
+  x.fillStyle='#93a0bf';x.font='400 30px '+F;x.fillText('Think beyond the obvious.',86,200);
+  x.fillStyle=acc;x.font='600 40px '+F;x.fillText('DAILY '+date,84,600);
+  x.fillStyle='#6cf0b4';x.font='600 104px '+F;x.fillText('Solved ✓',80,715);
+  [['Time',mmss(r.t)],['Attempts',String(r.a)],['Difficulty',DIFF[r.d]],['Streak',String(curStreak())]].forEach((kv,i)=>{const px=84+i*240;
+    x.fillStyle='#93a0bf';x.font='400 28px '+F;x.fillText(kv[0],px,850);x.fillStyle='#e9eefb';x.font='600 52px '+F;x.fillText(kv[1],px,915);});
+  x.strokeStyle='rgba(58,74,117,.9)';x.beginPath();x.moveTo(84,790);x.lineTo(996,790);x.stroke();
+  c.toBlob(b=>{if(b&&download(`mindshapes-daily-${date}.png`,b))toast('Bild gespeichert');else toast('Das Bild konnte hier nicht gespeichert werden.');},'image/png');
+}
+function exportData(){
+  const txt=JSON.stringify({app:'MIND//SHAPES',format:1,exported:new Date().toISOString(),save:S},null,2),io=$('#io');if(io)io.value=txt;
+  toast(download(`mindshapes-backup-${utcDate()}.json`,new Blob([txt],{type:'application/json'}))?'Backup exportiert':'Der Export steht im Textfeld bereit.');
+}
+function importText(txt){
+  let o;try{o=JSON.parse(txt);}catch(e){toast('Das ist kein gültiges JSON.');return;}
+  const sv=o&&typeof o==='object'?(o.save&&typeof o.save==='object'?o.save:o):null;
+  if(!sv||Array.isArray(sv)||typeof sv.stats!=='object'||typeof sv.endless!=='object'){toast('In dieser Datei steckt kein MIND//SHAPES-Backup.');return;}
+  S=sanitize(sv);checkUnlocks();save();applySettings();viewSettings();toast('Backup importiert');
+}
+function burst(){
+  if(!S.settings.motion||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
+  const c=$('#fx'),x=c.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1),W=innerWidth,H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);
+  const cols=[THEMES[S.settings.theme].c,'#a593ff','#f26bd8','#ffc857','#6cf0b4'];
+  const ps=series(44,i=>({x:W/2+(Math.random()-.5)*90,y:H*.42,vx:(Math.random()-.5)*10,vy:-Math.random()*9-3,r:5+Math.random()*7,a:Math.random()*6.3,va:(Math.random()-.5)*.3,k:i%3,c:cols[i%5]}));
+  const t0=performance.now();
+  (function f(t){const el=(t-t0)/1500;x.clearRect(0,0,W,H);if(el>=1)return;
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.28;p.a+=p.va;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.globalAlpha=Math.max(0,1-el);x.strokeStyle=p.c;x.lineWidth=1.6;x.beginPath();
+      if(p.k===0)x.arc(0,0,p.r,0,6.3);else if(p.k===1)x.rect(-p.r,-p.r,2*p.r,2*p.r);else{x.moveTo(0,-p.r);x.lineTo(p.r,p.r*.8);x.lineTo(-p.r,p.r*.8);x.closePath();}
+      x.stroke();x.restore();});
+    requestAnimationFrame(f);})(t0);
+}
+
+/* ---------------------------------------------------------------- Aktionen */
+function armed(b){
+  if(b.classList.contains('armed'))return true;
+  b.classList.add('armed');b.textContent='Wirklich? Noch einmal tippen';
+  setTimeout(()=>{if(b.isConnected){b.classList.remove('armed');b.textContent=b.dataset.label;}},4000);return false;
+}
+const ACT={
+  menu(){leaveGame();viewMenu();},
+  endless(){leaveGame();startEndless();},
+  daily(){leaveGame();startDaily();},
+  stats(){leaveGame();viewStats();},
+  settings(){leaveGame();viewSettings();},
+  sound(b){S.settings.sound=!S.settings.sound;save();if(S.settings.sound)SND.play('select');if(b.classList.contains('sw'))viewSettings();else viewMenu();},
+  motion(){S.settings.motion=!S.settings.motion;save();applySettings();viewSettings();},
+  theme(b){const k=b.dataset.k;if(S.unlocked.includes(k)){S.settings.theme=k;save();applySettings();viewSettings();}},
+  check(){check();},
+  next(){startEndless();},
+  restart(){if(G&&!G.solved){G.ui.reset();say('');SND.play('click');}},
+  hint(){
+    if(!G||G.solved)return;
+    if(G.hints>=3){say('Alle drei Hinweise liegen bereits offen.');return;}
+    G.hints++;S.stats.hints++;addHint(G.hints);meta();SND.play('select');saveProg();if(G.mode!=='daily')save();
+  },
+  skip(){
+    if(!G||G.solved||G.mode!=='endless')return;
+    const e=S.endless;e.salt++;e.power=Math.max(0,e.power-.5);e.clean=0;S.stats.skipped++;S.seen.push(hashStr(G.p.sig));save();startEndless();
+  },
+  copy(b){copyText(shareText(b.dataset.date));},
+  png(b){sharePNG(b.dataset.date);},
+  export(){exportData();},
+  pickfile(){$('#impfile').click();},
+  importtext(){const t=$('#io').value.trim();if(!t){toast('Füge zuerst ein Backup in das Textfeld ein.');return;}importText(t);},
+  reset(b){if(!armed(b))return;const keep=S.settings,un=S.unlocked;S=defaults();S.settings=keep;S.unlocked=un;save();viewSettings();toast('Spielstand zurückgesetzt');},
+  wipe(b){if(!armed(b))return;Store.del(KEY);Store.del(KEY+'.defekt');S=defaults();applySettings();viewSettings();toast('Alle lokalen Daten gelöscht');}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&ACT[b.dataset.act])ACT[b.dataset.act](b,e);});
+document.addEventListener('change',e=>{
+  if(e.target.id!=='impfile'||!e.target.files[0])return;
+  const fr=new FileReader();fr.onload=()=>importText(String(fr.result));fr.onerror=()=>toast('Die Datei ließ sich nicht lesen.');fr.readAsText(e.target.files[0]);
+});
+document.addEventListener('keydown',e=>{
+  if(!G||e.ctrlKey||e.metaKey||e.altKey)return;
+  const tag=e.target.tagName;
+  if(G.solved){return;}
+  if(e.key==='Enter'){if((tag==='BUTTON'&&!e.target.classList.contains('key'))||tag==='SUMMARY')return;e.preventDefault();check();return;}
+  if(G.ui.key&&G.ui.key(e))e.preventDefault();
+});
+document.addEventListener('visibilitychange',()=>{
+  if(!G||G.solved)return;
+  if(document.hidden){G.ms=elapsed();G.paused=true;saveProg();}else{G.t0=performance.now();G.paused=false;}
+});
+window.addEventListener('pagehide',saveProg);
+
+/* ---------------------------------------------------------------- Start */
+S=load();checkUnlocks();applySettings();viewMenu();
+})();
+</script>
+</body>
+</html>
