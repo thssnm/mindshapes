@@ -3,15 +3,15 @@
 und synchronisiert die eingebetteten Kopien in index.html.
 
   brand/icon.svg        voller Schnitt (Rahmen + Striche)  -> apple-touch-icon.png, og-v1.png, Ergebnisbild (Path2D)
-  brand/icon-small.svg  kleiner Schnitt (nur Striche)     -> Favicon als SVG-Data-URI in index.html
+  brand/icon-small.svg  kleiner Schnitt (nur Striche)     -> Favicon als SVG-Data-URI in index.html, favicon.ico (16 + 32 px)
   brand/wordmark.svg    Wortmarke als Pfade                -> og-v1.png, Menükopf und Ergebnisbild (Path2D)
 
-Aufruf:  python3 brand/build.py            schreibt apple-touch-icon.png und og-v1.png, aktualisiert index.html
+Aufruf:  python3 brand/build.py            schreibt apple-touch-icon.png, og-v1.png und favicon.ico, aktualisiert index.html
          python3 brand/build.py --no-sync  nur die PNGs
-Braucht rsvg-convert (librsvg). Für den Claim im og-Bild wird die Schrift "TeX Gyre Adventor" verwendet,
+Braucht rsvg-convert (librsvg); für favicon.ico ImageMagick (magick), ersatzweise wird eine ICO mit PNG-Einträgen geschrieben. Für den Claim im og-Bild wird die Schrift "TeX Gyre Adventor" verwendet,
 die bei der Erzeugung installiert sein muss (Fallback: fontconfig wählt eine andere Sans).
 """
-import os, re, subprocess, sys, tempfile
+import os, re, shutil, struct, subprocess, sys, tempfile
 from urllib.parse import quote
 
 BR = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(BR)
@@ -66,7 +66,18 @@ og = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewB
 <text x="600" y="492" text-anchor="middle" font-family="{CLAIM_FONT}" font-size="27" letter-spacing="1.4" fill="#93a0bf">Think beyond the obvious.</text>
 </svg>'''
 rsvg(og, os.path.join(ROOT, OG_VERSION))
-for f in ('apple-touch-icon.png', OG_VERSION):
+# --- favicon.ico: kleiner Schnitt in 16 und 32 px, für Browser ohne SVG-Favicon (Safari)
+ico = os.path.join(ROOT, 'favicon.ico'); pngs = []
+for sz in (16, 32):
+    pth = os.path.join(tempfile.gettempdir(), f'mindshapes-favicon-{sz}.png'); rsvg(small, pth, sz, sz); pngs.append(pth)
+if shutil.which('magick'):
+    subprocess.run(['magick', *pngs, ico], check=True)
+else:   # ICO mit PNG-Einträgen (seit Windows Vista und in allen aktuellen Browsern gültig)
+    data = [open(p_, 'rb').read() for p_ in pngs]; off = 6 + 16 * len(data); out = struct.pack('<HHH', 0, 1, len(data))
+    for sz, d in zip((16, 32), data): out += struct.pack('<BBBBHHII', sz, sz, 0, 0, 1, 32, len(d), off); off += len(d)
+    open(ico, 'wb').write(out + b''.join(data))
+for p_ in pngs: os.unlink(p_)
+for f in ('apple-touch-icon.png', OG_VERSION, 'favicon.ico'):
     print(f'{f}: {os.path.getsize(os.path.join(ROOT, f))} Bytes')
 
 # --- Favicon als Data-URI (kleiner Schnitt, minimiert) und Pfaddaten für index.html
@@ -81,7 +92,8 @@ print(f'Favicon-Data-URI: {len(favicon)} Zeichen; BRAND: {len(brand)} Zeichen')
 
 if '--no-sync' not in sys.argv:
     p = os.path.join(ROOT, 'index.html'); html = open(p, encoding='utf-8').read(); n = 0
-    html, k = re.subn(r'<link rel="icon" href="data:image/svg\+xml,[^"]*">', '<link rel="icon" href="%s">' % favicon, html); n += k
+    html, k = re.subn(r'<link rel="icon" type="image/svg\+xml" sizes="any" href="data:image/svg\+xml,[^"]*">',
+                      '<link rel="icon" type="image/svg+xml" sizes="any" href="%s">' % favicon, html); n += k
     html, k = re.subn(r'^const BRAND=\{.*\};$', lambda m: brand, html, flags=re.M); n += k
     if n != 2: raise SystemExit(f'index.html: erwartet 2 Stellen zum Synchronisieren, gefunden {n}')
     open(p, 'w', encoding='utf-8').write(html); print('index.html: Favicon und BRAND synchronisiert')
