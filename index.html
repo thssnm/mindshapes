@@ -156,6 +156,33 @@ svg{display:block}
 .explain{color:var(--txt);font-size:15px;max-width:44em}
 .note{font-size:15px;color:var(--amb)}
 .result .btn{justify-self:start;margin-top:4px}
+/* ---------- Endless-Läufe ---------- */
+.lives{display:inline-flex;gap:3px;align-items:center;vertical-align:-2px}
+.lives svg{width:15px;height:15px;display:block}
+.lives polygon{fill:none;stroke:var(--mut);stroke-width:1.8;stroke-linejoin:round}
+.lives polygon.on{fill:var(--acc);stroke:var(--acc)}
+.ghead.run{grid-template-columns:auto 1fr auto auto}
+.ghead.run .gmode span{white-space:nowrap}
+#rlives .lives svg{width:17px;height:17px}
+.lock{font-size:14px;color:var(--amb);margin:0 0 8px}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn.armed{background:var(--bad);border-color:var(--bad);color:var(--ink)}
+.runline{font-size:15px;color:var(--mut)}
+.runline b{color:var(--txt);font-weight:600}
+.mwrap{display:grid;gap:8px;align-content:start}
+.mwrap .mode{width:100%}
+.btn.quit{justify-self:start;min-height:40px;font-size:14px;color:var(--mut)}
+.mmeta .lives{margin-left:.6em}
+.card.runend .lives svg{width:34px;height:34px}
+.card.runend .lives{gap:6px}
+.newbest{color:var(--ok)!important;font-weight:600}
+.runs{display:grid;gap:6px}
+.runs li{display:grid;grid-template-columns:28px 1fr auto;gap:2px 10px;align-items:baseline;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(18,26,47,.7)}
+.runs .rk{grid-row:1/3;color:var(--vio);font-weight:700}
+.runs li>span:not(.rk){font-size:13px;color:var(--mut)}
+.runs .rd{grid-column:3;grid-row:1;text-align:right}
+.tilebox b small{font-size:13px;font-weight:400;color:var(--mut)}
+@media(max-width:400px){.ghead.run{gap:8px}.timer{font-size:19px}}
 
 /* ---------- Puzzle-Elemente ---------- */
 .fig{display:grid;justify-items:center;gap:12px}
@@ -1008,7 +1035,7 @@ const SHAPES=['circle','tri','square','diamond','hex'];
 const THEMES={
   signal:{name:'Signal',c:'#3ddcff',need:'Von Anfang an dabei',test:()=>true},
   ultra:{name:'Ultraviolett',c:'#a593ff',need:'10 Rätsel lösen',test:s=>s.stats.solved>=10},
-  magenta:{name:'Magenta',c:'#f26bd8',need:'Endless-Level 20 abschließen',test:s=>s.endless.maxLevel>=20},
+  magenta:{name:'Magenta',c:'#f26bd8',need:'In einem Endless-Lauf Level 20 erreichen',test:s=>s.endless.bestLevel>=20},
   solar:{name:'Solar',c:'#ffc857',need:'3 Dailys in Folge lösen',test:s=>s.daily.longest>=3},
   polar:{name:'Polar',c:'#dfe8ff',need:'50 Rätsel lösen',test:s=>s.stats.solved>=50}};
 const INTRO={number:'Neu: Number Logic. Hier steckt in Zahlen eine verborgene Regel.',geometry:'Neu: Geometry Lab. Formen, Flächen und Symmetrien zum Anfassen.',equation:'Neu: Equation Builder. Du baust die Rechnung selbst zusammen.',
@@ -1021,8 +1048,8 @@ const Store=(()=>{let ok=false;const mem={};try{localStorage.setItem('__ms_probe
     set(k,v){try{if(ok)localStorage.setItem(k,v);else mem[k]=v;return true;}catch(e){mem[k]=v;return false;}},
     del(k){try{if(ok)localStorage.removeItem(k);}catch(e){}delete mem[k];}};})();
 const randId=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
-function defaults(){return{v:1,settings:{sound:true,motion:true,theme:'signal'},
-  endless:{run:randId(),level:1,power:0,salt:0,clean:0,bestClean:0,maxLevel:0},
+function defaults(){return{v:2,settings:{sound:true,motion:true,theme:'signal'},
+  endless:{run:null,first:true,bestPoints:0,bestLevel:0,runs:[],rulesSeen:false,note:false,clean:0,bestClean:0},
   stats:{solved:0,points:0,bestPoints:0,hints:0,firstTry:0,skipped:0,byType:{number:0,geometry:0,equation:0,spatial:0,pattern:0,logic:0},byDiff:[0,0,0,0],bestTime:[0,0,0,0]},
   daily:{done:{},streak:0,longest:0,last:'',best:0,count:0,prog:null},
   unlocked:['signal'],seen:[],intro:[],record:null};}
@@ -1044,15 +1071,22 @@ function sanitize(raw){
   const fix=a=>[0,1,2,3].map(i=>nn(a[i]));s.stats.byDiff=fix(s.stats.byDiff);s.stats.bestTime=fix(s.stats.bestTime);
   ['solved','points','bestPoints','hints','firstTry','skipped'].forEach(k=>s.stats[k]=nn(s.stats[k]));
   TYPE_KEYS.forEach(k=>s.stats.byType[k]=nn(s.stats.byType[k]));
-  const e=s.endless;e.level=Math.floor(nn(e.level,1));e.power=nn(e.power);e.salt=Math.floor(nn(e.salt));e.clean=nn(e.clean);e.bestClean=nn(e.bestClean);e.maxLevel=nn(e.maxLevel);if(!e.run)e.run=randId();
+  // Endless: ab Version 2 Läufe mit Leben. Ältere Stände: das höchste Level wird zum Bestwert, ein Lauf beginnt neu.
+  const e=s.endless,re=raw&&raw.endless&&typeof raw.endless==='object'?raw.endless:{},old=!(raw&&typeof raw.v==='number'&&raw.v>=2);
+  e.clean=nn(e.clean);e.bestClean=nn(e.bestClean);e.bestPoints=Math.floor(nn(e.bestPoints));e.bestLevel=Math.floor(nn(e.bestLevel));
+  e.runs=(Array.isArray(e.runs)?e.runs:[]).filter(x=>x&&typeof x==='object').map(x=>({p:Math.floor(nn(x.p)),l:Math.max(1,Math.floor(nn(x.l,1))),d:isDate(String(x.d))?x.d:''})).sort((a,b)=>b.p-a.p||b.l-a.l).slice(0,5);
+  const rr=re.run;
+  e.run=!old&&rr&&typeof rr==='object'&&typeof rr.seed==='string'?{seed:rr.seed.slice(0,40),level:Math.max(1,Math.floor(nn(rr.level,1))),lives:Math.min(RUN_LIVES,Math.max(1,Math.floor(nn(rr.lives,1)))),
+    points:Math.floor(nn(rr.points)),salt:Math.floor(nn(rr.salt)),a:Math.floor(nn(rr.a)),h:Math.min(3,Math.floor(nn(rr.h))),ms:nn(rr.ms),fixed:rr.fixed===true,picked:rr.picked===true,start:isDate(String(rr.start))?rr.start:''}:null;
+  if(old){e.bestLevel=Math.floor(nn(re.maxLevel));e.bestPoints=0;e.runs=[];e.run=null;e.first=true;e.rulesSeen=false;e.note=e.bestLevel>0||nn(raw&&raw.stats&&raw.stats.solved)>0;}
   const d=s.daily;d.streak=nn(d.streak);d.longest=nn(d.longest);d.best=nn(d.best);d.count=nn(d.count);if(!isDate(d.last))d.last='';
-  s.v=1;return s;
+  s.v=2;return s;
 }
 let S,loadNote='';
 function load(){
   const raw=Store.get(KEY);if(raw==null)return defaults();
   try{const o=JSON.parse(raw);if(!o||typeof o!=='object'||Array.isArray(o))throw 0;
-    if(typeof o.v==='number'&&o.v>1)loadNote='Der Spielstand stammt aus einer neueren Version. Bekannte Werte wurden übernommen.';
+    if(typeof o.v==='number'&&o.v>2)loadNote='Der Spielstand stammt aus einer neueren Version. Bekannte Werte wurden übernommen.';
     return sanitize(o);
   }catch(e){Store.set(KEY+'.defekt',raw);loadNote='Der gespeicherte Spielstand war beschädigt und wurde durch einen neuen ersetzt.';return defaults();}
 }
@@ -1064,7 +1098,11 @@ function applySettings(){
 }
 function checkUnlocks(){const out=[];Object.keys(THEMES).forEach(k=>{if(!S.unlocked.includes(k)&&THEMES[k].test(S)){S.unlocked.push(k);out.push(THEMES[k].name);}});return out;}
 const curStreak=()=>{const t=utcDate(),d=S.daily;return d.last===t||d.last===addDays(t,-1)?d.streak:0;};
-const TIER=[0,7,20,40],tierOf=p=>p<TIER[1]?0:p<TIER[2]?1:p<TIER[3]?2:3;
+/* Endless-Läufe: Die Stufe folgt nur aus dem Level, damit Läufe vergleichbar sind. */
+const RUN_LIVES=3,RUN_BONUS=100,STAGE_AT=[1,4,9,16,Infinity],FIRST_ORDER=['number','pattern','equation','geometry','spatial','logic'];
+const levelDiff=l=>l>=16?3:l>=9?2:l>=4?1:0;
+const fmtN=n=>Number(n).toLocaleString('de-DE');
+const livesHTML=n=>`<span class="lives" role="img" aria-label="${n} von ${RUN_LIVES} Leben">${range(RUN_LIVES).map(i=>`<svg viewBox="0 0 20 20" aria-hidden="true"><polygon class="${i<n?'on':''}" points="10,1.8 17.2,10 10,18.2 2.8,10"/></svg>`).join('')}</span>`;
 
 /* ---------------------------------------------------------------- Sound (Web Audio, keine Dateien) */
 const SND={ctx:null,play(name){
@@ -1076,6 +1114,8 @@ const SND={ctx:null,play(name){
     else if(name==='select')tone(880,0,.08,'sine',.045);
     else if(name==='bad'){tone(196,0,.2,'sawtooth',.03);tone(147,.07,.24,'sawtooth',.03);}
     else if(name==='ok')[523,659,784].forEach((f,i)=>tone(f,i*.08,.24,'sine',.05));
+    else if(name==='life'){tone(330,0,.14,'triangle',.05);tone(233,.11,.26,'triangle',.05);}
+    else if(name==='over')[392,330,262,196].forEach((f,i)=>tone(f,i*.14,.34,'sawtooth',.026));
     else if(name==='done')[523,659,784,1047,1319].forEach((f,i)=>tone(f,i*.09,.34,'triangle',.05));
   }catch(e){}}};
 
@@ -1297,7 +1337,7 @@ function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clea
 function countdown(){const e=$('#cd');if(!e)return;const ms=864e5-(Date.now()%864e5),s=Math.floor(ms/1000);e.textContent=[Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(x=>String(x).padStart(2,'0')).join(':');}
 
 function viewMenu(){
-  const today=utcDate(),done=S.daily.done[today],e=S.endless,streak=curStreak();
+  const today=utcDate(),done=S.daily.done[today],e=S.endless,run=e.run,streak=curStreak();
   show(`<div class="wrap">
     <header class="top">
       <h1 class="brand"><span class="vh">MIND//SHAPES</span>${brandSVG()}</h1>
@@ -1308,11 +1348,15 @@ function viewMenu(){
       </div>
     </header>
     <main class="modes">
-      <button type="button" class="mode endless" data-act="endless"><span class="art">${streamSVG()}</span>
-        <span class="mname">ENDLESS</span><span class="mtag">An infinite stream of puzzles.</span>
-        <span class="mmeta">Level ${e.level}<i>${DIFF[tierOf(e.power)]}</i></span>
-        <span class="cta">${S.stats.solved?'Weiterspielen':'Losspielen'}</span>
-      </button>
+      <div class="mwrap">
+        <button type="button" class="mode endless" data-act="endless"><span class="art">${streamSVG()}</span>
+          <span class="mname">ENDLESS</span><span class="mtag">An infinite stream of puzzles.</span>
+          <span class="mmeta">${run?`Level ${run.level}<i>${DIFF[levelDiff(run.level)]}</i>${livesHTML(run.lives)}<i>${fmtN(run.points)} Punkte</i>`
+            :e.bestPoints?`Bester Lauf: ${fmtN(e.bestPoints)} Punkte<i>Level ${e.runs.length?e.runs[0].l:e.bestLevel}</i>`:e.bestLevel?`Höchstes Level: ${e.bestLevel}<i>Drei Leben je Lauf</i>`:'Drei Leben. Wie weit kommst du?'}</span>
+          <span class="cta">${run?'Weiterspielen':'Neuer Lauf'}</span>
+        </button>
+        ${run?'<button type="button" class="btn quit" data-act="giveup" data-label="Lauf aufgeben">Lauf aufgeben</button>':''}
+      </div>
       <button type="button" class="mode daily${done?' done':''}" data-act="daily"><span class="art">${sigilSVG(sigilData(today),true)}</span>
         <span class="mname">DAILY</span><span class="mtag">One puzzle. One world. Every day.</span>
         <span class="mmeta">Nr. ${dailyNo(today)}<i>${fmtDate(today)}</i></span>
@@ -1333,28 +1377,33 @@ function viewMenu(){
 }
 
 function viewGame(){
-  const p=G.p,daily=G.mode==='daily',e=S.endless,t=tierOf(e.power);
-  let intro='';
+  const p=G.p,daily=G.mode==='daily',e=S.endless,run=e.run,t=daily?0:levelDiff(run.level);
+  let intro='',rules='';
+  if(!daily&&!e.rulesSeen){rules=e.note?`Neu: Endless spielt sich jetzt in Läufen mit drei Leben. Eine falsche Antwort, „Anderes Rätsel“ und der erste Hinweis zu einem Rätsel kosten je ein Leben, jede neue Stufe bringt eines zurück. Dein bisher höchstes Level (${e.bestLevel}) steht als Bestwert.`
+      :'So geht Endless: Ein Lauf hat drei Leben. Eine falsche Antwort, „Anderes Rätsel“ und der erste Hinweis zu einem Rätsel kosten je eines – bei null ist der Lauf vorbei. Jede neue Stufe bringt ein Leben zurück.';
+    e.rulesSeen=true;e.note=false;save();}
   if(!daily&&!S.intro.includes(p.type)){intro=INTRO[p.type];S.intro.push(p.type);save();}
-  show(`<div class="game">
-    <header class="ghead">
+  show(`<div class="game" data-seed="${esc(p.seed)}" data-type="${p.type}" data-d="${p.diff}">
+    <header class="ghead${daily?'':' run'}">
       <button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button>
-      <div class="gmode"><b>${daily?'DAILY':'ENDLESS'}</b><span>${daily?`Nr. ${dailyNo(G.date)} vom ${fmtDate(G.date)}`:`Level ${e.level}`}</span></div>
+      <div class="gmode"><b>${daily?'DAILY':'ENDLESS'}</b><span>${daily?`Nr. ${dailyNo(G.date)} vom ${fmtDate(G.date)}`:`Level ${run.level} · <span id="rpts">${fmtN(run.points)}</span> P`}</span></div>
+      ${daily?'':'<span id="rlives"></span>'}
       <div class="timer" id="timer" role="timer" aria-label="Zeit">00:00</div>
     </header>
-    <div class="prog" ${daily?'hidden':''}><i style="width:${t===3?100:Math.round((e.power-TIER[t])/(TIER[t+1]-TIER[t])*100)}%"></i></div>
+    <div class="prog" ${daily?'hidden':''}><i style="width:${daily||t===3?100:Math.round((run.level-STAGE_AT[t])/(STAGE_AT[t+1]-STAGE_AT[t])*100)}%"></i></div>
     <div class="progl" id="progl"></div>
     <div class="ptype"><span><b>${p.title}</b>${p.fusion?' trifft '+p.fusion:''}</span><span class="tier d${p.diff}">${DIFF[p.diff]}</span></div>
-    ${intro?`<p class="intro">${intro}</p>`:''}
+    ${rules?`<p class="intro rulesintro">${rules}</p>`:''}${intro?`<p class="intro">${intro}</p>`:''}
     <h2 class="prompt">${p.prompt}</h2>
     <ul class="rules">${p.rules.map(r=>`<li>${r}</li>`).join('')}</ul>
     <div class="stage" id="stage"></div>
     <ol class="hints" id="hints" aria-label="Hinweise"></ol>
     <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    ${daily?'':'<p class="lock" id="lock" hidden>Letztes Leben: Hinweis und „Anderes Rätsel“ gesperrt.</p>'}
     <div class="bar" id="bar">
       <button type="button" class="btn" data-act="hint" id="bh">${IC.hint}<span>Hinweis</span></button>
       <button type="button" class="btn sq" data-act="restart" aria-label="Neustart">${IC.redo}<span>Neustart</span></button>
-      ${daily?'':`<button type="button" class="btn sq" data-act="skip" aria-label="Anderes Rätsel">${IC.skip}<span>Anderes Rätsel</span></button>`}
+      ${daily?'':`<button type="button" class="btn sq" data-act="skip" id="bskip" aria-label="Anderes Rätsel, kostet ein Leben">${IC.skip}<span>Anderes Rätsel</span></button>`}
       <button type="button" class="btn primary" data-act="check">Prüfen</button>
     </div>
     <section class="result" id="result" hidden aria-live="polite"></section>
@@ -1370,35 +1419,71 @@ function tick(){const t=$('#timer');if(t&&G)t.textContent=mmss(elapsed());}
 function meta(){
   const l=$('#progl'),b=$('#bh span');if(!l)return;
   if(G.mode==='daily')l.innerHTML=`<span>Versuche: ${G.attempts}</span><span>Hinweise: ${G.hints} von 3</span>`;
-  else{const t=tierOf(S.endless.power);l.innerHTML=`<span>Stufe ${DIFF[t]}</span><span>${t<3?'Nächste Stufe: '+DIFF[t+1]:'Höchste Stufe erreicht'}</span>`;}
-  if(b)b.textContent=G.hints?`Hinweis ${G.hints}/3`:'Hinweis';
+  else{const r=S.endless.run,t=levelDiff(r.level);
+    l.innerHTML=`<span>Stufe ${DIFF[t]}</span><span>${t<3?`Ab Level ${STAGE_AT[t+1]}: ${DIFF[t+1]} · ${r.lives<RUN_LIVES?'+1 Leben':`+${RUN_BONUS} Punkte`}`:'Höchste Stufe erreicht'}</span>`;
+    const lv=$('#rlives');if(lv)lv.innerHTML=livesHTML(r.lives);const pt=$('#rpts');if(pt)pt.textContent=fmtN(r.points);
+    const last=r.lives<=1,bh=$('#bh'),bs=$('#bskip'),lk=$('#lock');
+    if(bh&&!bh.classList.contains('armed')){bh.disabled=last&&G.hints===0&&!G.solved;bh.setAttribute('aria-label',G.hints===0?'Hinweis, kostet ein Leben':'Hinweis');}
+    if(bs&&!bs.classList.contains('armed'))bs.disabled=last;
+    if(lk)lk.hidden=!last||G.solved;}
+  if(b&&!$('#bh').classList.contains('armed'))b.textContent=G.hints?`Hinweis ${G.hints}/3`:'Hinweis';
 }
 function addHint(n){const li=document.createElement('li');li.dataset.n=n;li.textContent=G.p.hints[n-1];$('#hints').appendChild(li);if(G.ui.hint)G.ui.hint(n);}
 function begin(g){
   G=Object.assign({attempts:0,hints:0,ms:0,t0:performance.now(),paused:false,solved:false},g);
+  if(g.mode==='endless'){const r=S.endless.run;G.attempts=r.a;G.hints=r.h;G.ms=r.ms;}
   if(g.mode==='daily'){const pr=S.daily.prog;if(pr&&pr.date===g.date){G.attempts=pr.a;G.hints=pr.h;G.ms=pr.ms;}}
   viewGame();
 }
-function endlessPuzzle(){
-  const e=S.endless,first=['number','pattern','equation','geometry','spatial','logic'];let p;
-  for(let k=0;k<8;k++){
-    const seed=`E|${e.run}|${e.level}|${e.salt}`,R=makeRng(seed+'|meta');
-    let d=tierOf(e.power);if(d>0&&R.chance(.2))d--;if(e.level<=3)d=0;
-    const bag=e.level<=6?first:makeRng(`E|${e.run}|bag|${Math.floor((e.level-1)/6)}`).shuffle(TYPE_KEYS);
-    p=generate(seed,bag[(e.level-1+(e.level<=6?0:e.salt))%6],d);
-    if(!S.seen.includes(hashStr(p.sig)))break;
-    e.salt++;
-  }
-  return p;
+function runPick(r){                            // Rätsel zu Lauf, Level und salt: folgt vollständig aus dem Seed des Laufs
+  const seed=`E|${r.seed}|${r.level}|${r.salt}`,R=makeRng(seed+'|meta');
+  let d=levelDiff(r.level);if(d>0&&R.chance(.2))d--;          // gelegentlich eine Stufe leichter
+  const fixed=r.fixed&&r.level<=6,bag=fixed?FIRST_ORDER:makeRng(`E|${r.seed}|bag|${Math.floor((r.level-1)/6)}`).shuffle(TYPE_KEYS);
+  return generate(seed,bag[(r.level-1+(fixed?0:r.salt))%6],d);
 }
-function startEndless(){begin({mode:'endless',p:endlessPuzzle()});}
+function endlessPuzzle(){
+  const r=S.endless.run;
+  if(r.picked)return runPick(r);                  // nach Neuladen: dasselbe Rätsel
+  let p;for(let k=0;k<8;k++){p=runPick(r);if(!S.seen.includes(hashStr(p.sig)))break;r.salt++;}
+  r.picked=true;save();return p;
+}
+function newRun(){const e=S.endless;e.run={seed:randId(),level:1,lives:RUN_LIVES,points:0,salt:0,a:0,h:0,ms:0,fixed:e.first,picked:false,start:utcDate()};e.first=false;save();}
+function startEndless(){if(!S.endless.run)newRun();begin({mode:'endless',p:endlessPuzzle()});}
+function runOver(how){                            // Lauf beenden (keine Leben mehr oder aufgegeben); die Punkte zählen
+  const e=S.endless,r=e.run;if(!r)return;
+  const explain=how==='wrong'&&G&&G.p?G.p.explain:'';if(G)G.solved=true;clearTimers();
+  const best=r.points>e.bestPoints;
+  e.runs.push({p:r.points,l:r.level,d:utcDate()});e.runs.sort((a,b)=>b.p-a.p||b.l-a.l);e.runs=e.runs.slice(0,5);
+  if(best){e.bestPoints=r.points;S.record={text:`Bester Lauf: ${fmtN(r.points)} Punkte`,date:utcDate()};}
+  e.bestLevel=Math.max(e.bestLevel,r.level);e.run=null;
+  const un=checkUnlocks();save();G=null;
+  SND.play(best&&r.points?'done':'over');if(best&&r.points)burst();
+  viewRunOver({how,level:r.level,points:r.points,best:best&&r.points>0,explain,un});
+}
+function viewRunOver(o){
+  const e=S.endless;
+  show(`<div class="wrap narrow">
+    <div class="sub"><button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button><h2>Lauf beendet</h2></div>
+    <div class="card runend">
+      <div><h3>${o.how==='quit'?'Aufgegeben':'Keine Leben mehr'}</h3><p class="big">${fmtN(o.points)} Punkte</p>
+        <p class="when${o.best?' newbest':''}">${o.best?'Neuer Bestwert!':e.bestPoints?`Bester Lauf: ${fmtN(e.bestPoints)} Punkte`:'Noch kein Bestwert mit Punkten'}</p></div>
+      ${livesHTML(0)}
+      <dl class="kv"><div><dt>Erreichtes Level</dt><dd>${o.level}</dd></div><div><dt>Stufe</dt><dd>${DIFF[levelDiff(o.level)]}</dd></div><div><dt>Punkte</dt><dd>${fmtN(o.points)}</dd></div></dl>
+    </div>
+    ${o.un.map(n=>`<p class="note" style="margin-top:12px">Freigeschaltet: Akzentfarbe ${n}.</p>`).join('')}
+    ${o.explain?`<div class="sec"><h3>Das letzte Rätsel</h3><p class="explain">${o.explain}</p></div>`:''}
+    <div class="rowb" style="margin-top:20px"><button type="button" class="btn primary" data-act="newrun" id="bnew">Neuer Lauf</button><button type="button" class="btn" data-act="menu">Menü</button><button type="button" class="btn" data-act="stats">Fortschritt ansehen</button></div>
+  </div>`);
+  $('#bnew').focus({preventScroll:true});
+}
 function startDaily(){
   const date=utcDate();
   if(S.daily.done[date]){viewDailyResult(date,false);return;}
   if(S.daily.prog&&S.daily.prog.date!==date)S.daily.prog=null;
   begin({mode:'daily',p:dailyPuzzle(date),date});
 }
-function saveProg(){if(G&&G.mode==='daily'&&!G.solved){S.daily.prog={date:G.date,a:G.attempts,h:G.hints,ms:Math.round(elapsed())};save();}}
+function saveProg(){if(G&&G.mode==='daily'&&!G.solved){S.daily.prog={date:G.date,a:G.attempts,h:G.hints,ms:Math.round(elapsed())};save();}
+  if(G&&G.mode==='endless'&&!G.solved&&S.endless.run){const r=S.endless.run;r.a=G.attempts;r.h=G.hints;r.ms=Math.round(elapsed());save();}}
 function leaveGame(){saveProg();G=null;}
 function score(p,g){
   const base=Math.round(40+30*p.rating),mult=(g.attempts===1?1.5:Math.max(.5,1-.15*(g.attempts-1)))*(1-.2*g.hints),par=(30+14*p.rating)*1000;
@@ -1412,9 +1497,15 @@ function check(){
   G.attempts++;
   const r=G.p.validate(a);
   if(r===true){solved();return;}
-  SND.play('bad');const st=$('#stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake');
+  let lost='';
+  if(G.mode==='endless'){                          // erst speichern, dann Rückmeldung: Neuladen bringt kein Leben zurück
+    const run=S.endless.run;run.lives--;run.a=G.attempts;run.h=G.hints;run.ms=Math.round(elapsed());S.endless.clean=0;save();
+    if(run.lives<=0){runOver('wrong');return;}
+    lost=`Falsch. Ein Leben weniger, noch ${run.lives}.`;SND.play('life');
+  }else SND.play('bad');const st=$('#stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake');
   if(G.ui.wrong)G.ui.wrong(a);
-  say(typeof r==='string'?r:(G.hints<3&&G.attempts>=2?'Das passt noch nicht. Ein Hinweis kann die Richtung zeigen.':'Das passt noch nicht. Prüfe deine Überlegung und versuche es erneut.'),true);
+  if(lost)say(lost+(typeof r==='string'?' '+r:''),true);
+  else say(typeof r==='string'?r:(G.hints<3&&G.attempts>=2?'Das passt noch nicht. Ein Hinweis kann die Richtung zeigen.':'Das passt noch nicht. Prüfe deine Überlegung und versuche es erneut.'),true);
   meta();saveProg();
 }
 function solved(){
@@ -1439,20 +1530,25 @@ function solved(){
     D.prog=null;checkUnlocks().forEach(n=>notes.push(`Freigeschaltet: Akzentfarbe ${n}.`));save();
     SND.play('done');burst();G=null;viewDailyResult(date,true,notes,sc.total);return;
   }
-  const sc=finishStats(),e=S.endless,before=tierOf(e.power);
-  e.maxLevel=Math.max(e.maxLevel,e.level);e.clean=G.attempts===1?e.clean+1:0;
+  const sc=finishStats(),e=S.endless,run=e.run,before=levelDiff(run.level),done=run.level;
+  e.clean=G.attempts===1?e.clean+1:0;
   if(e.clean>e.bestClean){e.bestClean=e.clean;if(e.clean>=3)setRec(`${e.clean} Rätsel in Folge im ersten Versuch`);}
-  e.power+=G.attempts===1&&!G.hints?1.4:G.attempts<=2&&G.hints<=1?1:.5;
-  if(tierOf(e.power)>before){notes.push(`Neue Stufe erreicht: ${DIFF[tierOf(e.power)]}.`);party=true;}
-  if(e.level%10===0){notes.push(`Level ${e.level} geschafft.`);party=true;}
-  e.level++;e.salt=0;S.seen.push(hashStr(p.sig));if(S.seen.length>400)S.seen=S.seen.slice(-400);
+  run.points+=sc.total;run.level++;run.salt=0;run.a=0;run.h=0;run.ms=0;run.picked=false;
+  const now=levelDiff(run.level);
+  if(now>before){party=true;
+    if(run.lives<RUN_LIVES){run.lives++;notes.push(`Neue Stufe: ${DIFF[now]}. Ein Leben zurück, jetzt ${run.lives}.`);}
+    else{run.points+=RUN_BONUS;notes.push(`Neue Stufe: ${DIFF[now]}. Alle Leben sind voll – dafür +${RUN_BONUS} Punkte.`);}}
+  if(done%10===0){notes.push(`Level ${done} geschafft.`);party=true;}
+  if(run.level>e.bestLevel&&e.bestLevel){if(run.level===e.bestLevel+1)notes.push(`Neues höchstes Level: ${run.level}.`);}
+  e.bestLevel=Math.max(e.bestLevel,run.level);
+  S.seen.push(hashStr(p.sig));if(S.seen.length>400)S.seen=S.seen.slice(-400);
   const un=checkUnlocks();un.forEach(n=>notes.push(`Freigeschaltet: Akzentfarbe ${n}. Du findest sie in den Einstellungen.`));if(un.length)party=true;
   save();SND.play(party?'done':'ok');if(party)burst();
-  const stg=$('#stage');stg.classList.add('locked','win');$('#bar').hidden=true;say('');
+  const stg=$('#stage');stg.classList.add('locked','win');$('#bar').hidden=true;say('');meta();
   const tags=[];if(G.attempts===1)tags.push(['Im ersten Versuch',1]);else tags.push([`${G.attempts} Versuche`,0]);
   tags.push(G.hints?[`${G.hints} ${G.hints===1?'Hinweis':'Hinweise'}`,0]:['Ohne Hinweise',1]);tags.push([`Zeit ${mmss(G.ms)}`,0]);if(sc.tb)tags.push([`Tempo-Bonus +${sc.tb}`,1]);
   const res=$('#result');res.hidden=false;
-  res.innerHTML=`<h3>Gelöst</h3><p class="pts">+${sc.total} Punkte</p><ul class="tags">${tags.map(t=>`<li class="${t[1]?'good':''}">${t[0]}</li>`).join('')}</ul>
+  res.innerHTML=`<h3>Gelöst</h3><p class="pts">+${sc.total} Punkte</p><p class="runline">Lauf: <b>${fmtN(run.points)} Punkte</b> · ${livesHTML(run.lives)} · weiter mit Level ${run.level} (${DIFF[now]})</p><ul class="tags">${tags.map(t=>`<li class="${t[1]?'good':''}">${t[0]}</li>`).join('')}</ul>
     <p class="explain">${p.explain}</p>${notes.map(n=>`<p class="note">${n}</p>`).join('')}
     <button type="button" class="btn primary" data-act="next" id="bnext">Nächstes Level</button>`;
   const nb=$('#bnext');nb.focus({preventScroll:true});nb.scrollIntoView({block:'nearest',behavior:S.settings.motion?'smooth':'auto'});
@@ -1485,13 +1581,15 @@ function viewStats(){
   show(`<div class="wrap narrow">
     <div class="sub"><button type="button" class="ico" data-act="menu" aria-label="Zurück zum Menü">${IC.back}</button><h2>Fortschritt</h2></div>
     <div class="grid4">
-      <div class="tilebox"><span>Höchstes Endless-Level</span><b>${e.maxLevel}</b></div>
+      <div class="tilebox"><span>Bester Endless-Lauf</span><b>${e.bestPoints?fmtN(e.bestPoints)+' <small>Punkte</small>':'–'}</b></div>
+      <div class="tilebox"><span>Höchstes Level in einem Lauf</span><b>${e.bestLevel||'–'}</b></div>
       <div class="tilebox"><span>Gelöste Rätsel</span><b>${st.solved}</b></div>
-      <div class="tilebox"><span>Punkte gesamt</span><b>${st.points.toLocaleString('de-DE')}</b></div>
+      <div class="tilebox"><span>Punkte gesamt (alle Läufe und Dailys)</span><b>${st.points.toLocaleString('de-DE')}</b></div>
       <div class="tilebox"><span>Meiste Punkte für ein Rätsel</span><b>${st.bestPoints}</b></div>
       <div class="tilebox"><span>Im ersten Versuch gelöst</span><b>${st.solved?Math.round(st.firstTry/st.solved*100):0} %</b></div>
-      <div class="tilebox"><span>Längste fehlerfreie Serie</span><b>${e.bestClean}</b></div>
+      <div class="tilebox"><span>Längste Serie im ersten Versuch</span><b>${e.bestClean}</b></div>
     </div>
+    <div class="sec"><h3>Beste Endless-Läufe</h3>${e.runs.length?`<ol class="runs">${e.runs.map((x,i)=>`<li><span class="rk">${i+1}</span><b>${fmtN(x.p)} Punkte</b><span>Level ${x.l} · ${DIFF[levelDiff(x.l)]}</span><span class="rd">${x.d?fmtDate(x.d):''}</span></li>`).join('')}</ol>`:'<p class="empty">Noch kein Lauf beendet. Ein Lauf endet, wenn alle drei Leben verbraucht sind oder du ihn im Menü aufgibst.</p>'}</div>
     <div class="sec"><h3>Daily</h3><div class="grid4">
       <div class="tilebox"><span>Absolviert</span><b>${D.count}</b></div>
       <div class="tilebox"><span>Aktuelle Serie</span><b>${curStreak()}</b></div>
@@ -1574,6 +1672,11 @@ function burst(){
 }
 
 /* ---------------------------------------------------------------- Aktionen */
+function costArm(b,label,msg){                  // Aktionen, die ein Leben kosten: zweites Antippen, Preis wird genannt
+  if(b.classList.contains('armed')){b.classList.remove('armed');return true;}
+  const sp=$('span',b),old=sp?sp.textContent:'';b.classList.add('armed');if(sp)sp.textContent=label;say(msg,true);
+  setTimeout(()=>{if(b.isConnected&&b.classList.contains('armed')){b.classList.remove('armed');if(sp)sp.textContent=old;meta();}},4000);return false;
+}
 function armed(b){
   if(b.classList.contains('armed'))return true;
   b.classList.add('armed');b.textContent='Wirklich? Noch einmal tippen';
@@ -1590,15 +1693,29 @@ const ACT={
   theme(b){const k=b.dataset.k;if(S.unlocked.includes(k)){S.settings.theme=k;save();applySettings();viewSettings();}},
   check(){check();},
   next(){startEndless();},
+  newrun(){leaveGame();newRun();startEndless();},
+  giveup(b){if(!S.endless.run||!armed(b))return;leaveGame();runOver('quit');},
   restart(){if(G&&!G.solved){G.ui.reset();say('');SND.play('click');}},
-  hint(){
+  hint(b){
     if(!G||G.solved)return;
     if(G.hints>=3){say('Alle drei Hinweise liegen bereits offen.');return;}
-    G.hints++;S.stats.hints++;addHint(G.hints);meta();SND.play('select');saveProg();if(G.mode!=='daily')save();
+    let lost='';
+    if(G.mode==='endless'&&G.hints===0){             // nur der erste Hinweis eines Rätsels kostet ein Leben
+      const r=S.endless.run;
+      if(r.lives<=1){say('Mit dem letzten Leben ist der erste Hinweis gesperrt – er würde den Lauf beenden.');return;}
+      if(!costArm(b,'Kostet 1 Leben','Der erste Hinweis kostet ein Leben. Zum Bestätigen noch einmal tippen.'))return;
+      r.lives--;lost=`Hinweis genommen. Ein Leben weniger, noch ${r.lives}.`;
+    }
+    G.hints++;S.stats.hints++;saveProg();if(G.mode!=='daily')save();
+    addHint(G.hints);meta();SND.play(lost?'life':'select');if(lost)say(lost,true);
   },
-  skip(){
+  skip(b){
     if(!G||G.solved||G.mode!=='endless')return;
-    const e=S.endless;e.salt++;e.power=Math.max(0,e.power-.5);e.clean=0;S.stats.skipped++;S.seen.push(hashStr(G.p.sig));save();startEndless();
+    const e=S.endless,r=e.run;
+    if(r.lives<=1){say('Mit dem letzten Leben ist „Anderes Rätsel“ gesperrt – es würde den Lauf beenden.');return;}
+    if(!costArm(b,'Kostet 1 Leben','„Anderes Rätsel“ kostet ein Leben. Zum Bestätigen noch einmal tippen.'))return;
+    r.lives--;r.salt++;r.a=0;r.h=0;r.ms=0;r.picked=false;e.clean=0;S.stats.skipped++;S.seen.push(hashStr(G.p.sig));save();
+    SND.play('life');startEndless();say(`Anderes Rätsel. Ein Leben weniger, noch ${r.lives}.`,true);
   },
   copy(b){copyText(shareText(b.dataset.date));},
   png(b){sharePNG(b.dataset.date);},
