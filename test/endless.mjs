@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /* MIND//SHAPES – Browsertest der Endless-Läufe (Desktop 1280 px und Telefon 390 px)
    Braucht playwright-core und einen Chromium; beides ist nicht Teil des Spiels.
-     NODE_PATH=<ordner mit node_modules> CHROME=<pfad zu chrome> node test/endless.mjs [--shots <ordner>] */
+     NODE_PATH=<ordner mit node_modules> CHROME=<pfad zu chrome> node test/endless.mjs [--shots <ordner>]
+   Kein Zufall: Im Browser steht die Uhr fest (NOW, das Daily dieses Tages ist eine Zahleneingabe) und Math.random hat einen
+   festen Seed (SEED). Damit sind die Lauf-Seeds und damit alle Rätsel in jedem Lauf gleich. Würde eine Prüfung
+   übersprungen, wird der Test rot. Fehlercode 1, sobald eine Prüfung fehlschlägt oder der Test abbricht. */
 import { readFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -14,15 +17,19 @@ if (SHOTS) mkdirSync(SHOTS, { recursive: true });
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const a = html.indexOf("'use strict';"), b = html.indexOf('/* =====================================================================\n   UI');
 const E = new Function(html.slice(a + 13, b) + '\nreturn {generate};')();
+const NOW = Date.parse('2026-11-20T09:00:00Z'), SEED = 'basis';
+const seedNext = (page, s) => page.evaluate(x => { window.__testSeed = x; }, s);   // fester Seed für den nächsten neuen Lauf
 const results = [];
 const ok = (name, cond, info = '') => results.push({ name, ok: !!cond, info });
 
-async function puzzle(page) { const g = page.locator('.game'); return E.generate(await g.getAttribute('data-seed'), await g.getAttribute('data-type'), +(await g.getAttribute('data-d'))); }
+const played = [];                                          // alle gespielten Rätsel: Beleg, dass jeder Lauf dieselben Rätsel sieht
+async function puzzle(page) { const g = page.locator('.game'), seed = await g.getAttribute('data-seed'); played.push(seed); return E.generate(seed, await g.getAttribute('data-type'), +(await g.getAttribute('data-d'))); }
 async function click(page, sel) { await page.locator(sel).first().click(); }
 async function enter(page, p, ans) {                       // Antwort über die Oberfläche eingeben
   const v = p.view;
   switch (p.kind) {
-    case 'number': for (const ch of String(ans)) await click(page, `.key[data-k="${ch === '-' ? '±' : ch}"]`); break;
+    case 'number': { const vals = Array.isArray(ans) ? ans : [ans];
+      for (let i = 0; i < vals.length; i++) { if (vals.length > 1) await click(page, `.seq .qslot[data-q="${i}"]`); for (const ch of String(vals[i])) await click(page, `.key[data-k="${ch === '-' ? '±' : ch}"]`); } break; }
     case 'choice': await click(page, `.opt[data-i="${ans}"]`); break;
     case 'net': await click(page, `.face[data-i="${ans}"]`); break;
     case 'sym': for (const i of ans) await click(page, `rect.c[data-i="${i}"]`); break;
@@ -52,13 +59,19 @@ const shot = async (page, name, w) => { if (SHOTS) { await page.waitForTimeout(4
 const browser = await chromium.launch({ executablePath: process.env.CHROME });
 for (const width of [390, 1280]) {
   const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 900 }, deviceScaleFactor: width === 390 ? 2 : 1, hasTouch: width === 390 });
+  await ctx.addInitScript(({ now, seed }) => {             // feste Uhr; Math.random startet neu, sobald der Test window.__testSeed setzt
+    window.__testSeed = seed; let cur = null, a = 0;
+    Math.random = () => { if (window.__testSeed !== cur) { cur = window.__testSeed; a = 0; for (const ch of String(cur)) a = Math.imul(a ^ ch.charCodeAt(0), 16777619); }
+      a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const D = Date; globalThis.Date = class extends D { constructor(...x) { super(...(x.length ? x : [now])); } static now() { return now; } };
+  }, { now: NOW, seed: SEED });
   const page = await ctx.newPage(), errors = []; page.on('pageerror', e => errors.push(String(e)));
   const W = '@' + width, fresh = async () => { await page.goto(URL); await page.evaluate(() => localStorage.clear()); await page.goto(URL); };
   const noScroll = () => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1);
 
   // 1  Neuer Spieler: Regeln, Kopf, drei Fehler beenden den Lauf
   await fresh(); await shot(page, 'menu-neu', width);
-  await click(page, '[data-act="endless"]');
+  await seedNext(page, 'lauf-1'); await click(page, '[data-act="endless"]');
   ok('Regeln beim ersten Lauf' + W, await page.locator('.rulesintro').count());
   ok('drei Leben im Kopf' + W, (await lives(page)) === 3);
   const box = async s => (await page.locator(s).boundingBox()) || {};
@@ -84,13 +97,12 @@ for (const width of [390, 1280]) {
   await shot(page, 'abschluss', width);
 
   // 2  Leben zurück bei Level 4; zweiter Lauf hat gemischte Reihenfolge
-  await click(page, '[data-act="newrun"]');
+  await seedNext(page, 'lauf-2'); await click(page, '[data-act="newrun"]');
   ok('zweiter Lauf ohne Regel-Einblendung' + W, !(await page.locator('.rulesintro').count()));
   let p = await puzzle(page);
-  if (p.kind === 'number') { await enter(page, p, p.solution + 1); await click(page, '[data-act="check"]'); }
-  else {                                                         // Fehler über den ersten Hinweis (kostet ebenfalls ein Leben)
-    await click(page, '#bh'); ok('Hinweis verlangt zweites Antippen' + W, (await lives(page)) === 3 && /kostet ein Leben/.test(await msg(page)));
-    await click(page, '#bh'); }
+  ok('zweiter Lauf: anderer Seed als der erste' + W, (await page.locator('.game').getAttribute('data-seed')) !== first.seed);
+  await click(page, '#bh'); ok('Hinweis verlangt zweites Antippen' + W, (await lives(page)) === 3 && /kostet ein Leben/.test(await msg(page)));   // Leben über den ersten Hinweis
+  await click(page, '#bh');
   ok('ein Leben verloren' + W, (await lives(page)) === 2);
   for (let l = 1; l <= 3; l++) { await solve(page); if (l < 3) await click(page, '#bnext'); }
   const notes = await page.locator('#result').textContent();
@@ -116,7 +128,7 @@ for (const width of [390, 1280]) {
   await shot(page, 'fortschritt', width);
 
   // 3  Bonus statt Leben, wenn bei Level 4 alle Leben voll sind
-  await page.goto(URL); await click(page, '[data-act="endless"]');
+  await page.goto(URL); await seedNext(page, 'lauf-3'); await click(page, '[data-act="endless"]');
   for (let l = 1; l <= 3; l++) { await solve(page); if (l < 3) await click(page, '#bnext'); }
   ok('Level 4 mit vollen Leben: Punktebonus' + W, /\+100 Punkte/.test(await page.locator('#result').textContent()));
 
@@ -128,7 +140,7 @@ for (const width of [390, 1280]) {
   const mt = await page.locator('.mode.endless').textContent();
   ok('alter Stand: Bestwert Level 18 im Menü' + W, /Höchstes Level: 18/.test(mt) && mt.includes('Neuer Lauf'), mt);
   const sv = await page.evaluate(() => JSON.parse(localStorage.getItem('mindshapes.save') || 'null'));
-  await click(page, '[data-act="endless"]');
+  await seedNext(page, 'lauf-4'); await click(page, '[data-act="endless"]');
   ok('alter Stand: einmaliger Hinweis' + W, /Dein bisher höchstes Level \(18\)/.test(await page.locator('.rulesintro').textContent()));
   ok('alter Stand: Lauf beginnt bei Level 1' + W, /Level 1 /.test(await page.locator('.gmode').textContent()));
   await click(page, '[data-act="menu"]'); await click(page, '[data-act="stats"]');
@@ -163,7 +175,9 @@ for (const width of [390, 1280]) {
   await page.evaluate(() => localStorage.clear()); await page.goto(URL); await click(page, '[data-act="daily"]');
   ok('Daily ohne Lebensanzeige' + W, !(await page.locator('#rlives').count()) && !(await page.locator('#lock').count()));
   p = await puzzle(page);
-  if (p.kind === 'number') { await enter(page, p, p.solution + 1); await click(page, '[data-act="check"]'); ok('Daily: Fehler ohne Lebensverlust' + W, !/Leben/.test(await msg(page))); await click(page, '[data-act="restart"]'); }
+  if (p.kind !== 'number') ok('Daily: Fehler ohne Lebensverlust' + W, false, 'übersprungen: Daily ist ' + p.kind + ', NOW anders wählen');
+  else { await enter(page, p, p.solution + 1); await click(page, '[data-act="check"]'); ok('Daily: Fehler ohne Lebensverlust' + W, /passt noch nicht/.test(await msg(page)) && !/Leben/.test(await msg(page)), await msg(page)); await click(page, '[data-act="restart"]'); }
+  ok('Daily vom festen Tag' + W, p.seed === 'MINDSHAPES_DAILY_V2_2026-11-20', p.seed);
   await click(page, '#bh'); ok('Daily: Hinweis ohne Rückfrage' + W, (await page.locator('#hints li').count()) === 1);
   await solve(page).catch(() => {});
   ok('Daily gelöst, Ergebnisansicht' + W, /Daily gelöst/.test(await page.locator('h2').textContent()));
@@ -172,4 +186,6 @@ for (const width of [390, 1280]) {
 }
 await browser.close();
 for (const r of results) if (!r.ok) console.log('FEHLER', r.name, r.info);
+console.log(`Rätsel gespielt: ${played.length}, Prüfsumme der Seeds ${played.reduce((h, x) => [...x].reduce((y, c) => Math.imul(y ^ c.charCodeAt(0), 16777619) >>> 0, h), 2166136261).toString(16)}`);
 console.log(`${results.filter(r => r.ok).length} von ${results.length} Prüfungen bestanden`);
+process.exitCode = results.every(r => r.ok) ? 0 : 1;

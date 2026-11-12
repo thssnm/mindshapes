@@ -8,6 +8,7 @@
             node test/difficulty.mjs --n 1000            mehr Rätsel
             node test/difficulty.mjs --file alt.html     eine andere Fassung messen (z. B. git show main:index.html > alt.html)
             node test/difficulty.mjs --json out.json     zusätzlich alle Rohwerte
+            Fehlercode 1, sobald eine Prüfung Fehler hat oder der Test abbricht.
             node test/difficulty.mjs --ref alt.html      Vergleich mit einer älteren Fassung: Dailys der nächsten 60 Tage ab heute
                                                          und alle Rätsel von Normal bis Insane müssen gleich sein
 
@@ -543,3 +544,6 @@ Object.entries(checks).forEach(([k, c]) => out.push(`| ${k} | ${c.n} | ${c.bad} 
 if (bad.length) out.push('\n' + bad.map(x => '- ' + x).join('\n'));
 console.log(out.join('\n'));
 if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify(rows.map(({ p, ...r }) => ({ ...r, sig: p.sig })), null, 1));
+const failed = Object.entries(checks).filter(([, c]) => c.bad);
+console.log(failed.length ? `\nROT: ${failed.length} Prüfung(en) mit Fehlern: ${failed.map(([k]) => k).join('; ')}` : '\nGRÜN: alle Prüfungen ohne Fehler.');
+process.exitCode = failed.length ? 1 : 0;              // Abbruch (Ausnahme) endet ohnehin mit Fehlercode 1

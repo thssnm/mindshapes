@@ -4,7 +4,8 @@
    dann „Neustart“, dann die richtige Antwort per Klick oder Tastatur. Prüft außerdem: kein waagerechtes
    Scrollen, keine Konsolenfehler, Spielstand bleibt unberührt.
    Braucht playwright-core und einen Chromium; beides ist nicht Teil des Spiels.
-     NODE_PATH=<ordner mit playwright-core> CHROME=<pfad zu chrome> node test/ui.mjs [--shots <ordner>] */
+     NODE_PATH=<ordner mit playwright-core> CHROME=<pfad zu chrome> node test/ui.mjs [--shots <ordner>]
+   Fehlercode 1, sobald eine Prüfung fehlschlägt oder der Test abbricht. */
 import { readFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -130,3 +131,7 @@ console.log('Lab-Tabelle: ' + tableRows + ' Zeilen, ' + labRounds + ' Runden pro
 console.log('Spielstand im Lab unverändert: ' + (saveBefore === saveAfter));
 console.log('Konsolenfehler: ' + (errors.length ? errors.join(' | ') : 'keine'));
 await browser.close();
+const red = [results.some(r => !r.ok) && 'Unterarten nicht gelöst', saveBefore !== saveAfter && 'Spielstand im Lab verändert', errors.length && 'Konsolenfehler',
+  tableRows !== results.length && 'Lab-Tabelle hat nicht eine Zeile je Unterart-Stufe', labRounds !== results.length && 'nicht jede Runde protokolliert'].filter(Boolean);
+console.log(red.length ? 'ROT: ' + red.join('; ') : 'GRÜN');
+process.exitCode = red.length ? 1 : 0;                   // Abbruch (Ausnahme) endet ohnehin mit Fehlercode 1
