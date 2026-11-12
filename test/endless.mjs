@@ -144,7 +144,22 @@ for (const width of [390, 1280]) {
   await page.goto(URL);
   ok('altes Backup importiert' + W, /Höchstes Level: 6/.test(await page.locator('.mode.endless').textContent()) && (await page.evaluate(() => JSON.parse(localStorage.getItem('mindshapes.save')).stats.points)) === 1500);
 
-  // 5  Daily unverändert: keine Leben, Fehler kosten nichts
+  // 5  Spielstand mit laufendem Lauf, gemerktes Rätsel ist Easy (nach einer Änderung der Easy-Generatoren wird es neu erzeugt)
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('mindshapes.save', JSON.stringify({ v: 2, settings: { sound: false, motion: true, theme: 'signal' },
+    endless: { run: { seed: 'easylauf', level: 2, lives: 2, points: 140, salt: 0, a: 1, h: 1, ms: 12000, fixed: true, picked: true, start: '2026-11-10' }, first: false, bestPoints: 300, bestLevel: 6, runs: [{ p: 300, l: 6, d: '2026-11-09' }], rulesSeen: true, note: false, clean: 0, bestClean: 2 },
+    stats: { solved: 8 }, daily: { done: {} }, unlocked: ['signal'], seen: [], intro: ['number', 'pattern', 'equation', 'geometry', 'spatial', 'logic'], record: null })); });
+  await page.goto(URL);
+  ok('Easy-Lauf: Menü bietet Weiterspielen bei Level 2' + W, /Level 2/.test(await page.locator('.mode.endless').textContent()) && (await page.locator('.mode.endless').textContent()).includes('Weiterspielen'));
+  await click(page, '[data-act="endless"]');
+  const g = page.locator('.game');
+  ok('Easy-Lauf: gemerktes Rätsel ist Easy, Seed aus dem Lauf' + W, (await g.getAttribute('data-d')) === '0' && (await g.getAttribute('data-seed')) === 'E|easylauf|2|0' && /Easy/.test(await page.locator('.tier').textContent()));
+  ok('Easy-Lauf: Leben, Versuche und bezahlter Hinweis übernommen' + W, (await lives(page)) === 2 && (await page.locator('#hints li').count()) === 1 && /Level 2 · 140/.test(await page.locator('.gmode').textContent()));
+  await page.reload(); await click(page, '[data-act="endless"]');
+  ok('Easy-Lauf: nach Neuladen dasselbe Rätsel' + W, (await g.getAttribute('data-seed')) === 'E|easylauf|2|0' && (await lives(page)) === 2);
+  await solve(page);
+  ok('Easy-Lauf: lösbar, weiter mit Level 3' + W, /weiter mit Level 3 \(Easy\)/.test(await page.locator('#result').textContent()));
+
+  // 6  Daily unverändert: keine Leben, Fehler kosten nichts
   await page.evaluate(() => localStorage.clear()); await page.goto(URL); await click(page, '[data-act="daily"]');
   ok('Daily ohne Lebensanzeige' + W, !(await page.locator('#rlives').count()) && !(await page.locator('#lock').count()));
   p = await puzzle(page);

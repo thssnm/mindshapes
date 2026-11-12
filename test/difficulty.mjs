@@ -8,6 +8,8 @@
             node test/difficulty.mjs --n 1000            mehr Rätsel
             node test/difficulty.mjs --file alt.html     eine andere Fassung messen (z. B. git show main:index.html > alt.html)
             node test/difficulty.mjs --json out.json     zusätzlich alle Rohwerte
+            node test/difficulty.mjs --ref alt.html      Vergleich mit einer älteren Fassung: Dailys der nächsten 60 Tage ab heute
+                                                         und alle Rätsel von Normal bis Insane müssen gleich sein
 
    Kennzahlen je Rätsel:
    raten   Chance, beim ersten Versuch blind zu treffen. Auswahl: 1/Optionen. „Alle wählen“: 1/(2^Optionen − 1).
@@ -31,16 +33,18 @@ import { performance } from 'node:perf_hooks';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2), opt = k => { const i = args.indexOf(k); return i < 0 ? null : (args[i + 1] ?? true); };
-const N = +(opt('--n') || 300), JSON_OUT = opt('--json'), FILE = opt('--file') || join(ROOT, 'index.html');
+const N = +(opt('--n') || 300), JSON_OUT = opt('--json'), FILE = opt('--file') || join(ROOT, 'index.html'), REF = opt('--ref');
 const BUDGET = 150;
 
 /* ---------------------------------------------------------------- Engine laden */
-const html = readFileSync(FILE, 'utf8');
-const a0 = html.indexOf("'use strict';"), b0 = html.indexOf('/* =====================================================================\n   UI');
-if (a0 < 0 || b0 < 0) throw new Error('Engine-Marker nicht gefunden');
+const engine = file => {
+  const html = readFileSync(file, 'utf8'), a0 = html.indexOf("'use strict';"), b0 = html.indexOf('/* =====================================================================\n   UI');
+  if (a0 < 0 || b0 < 0) throw new Error('Engine-Marker nicht gefunden');
+  return new Function(html.slice(a0 + 13, b0) + `\nreturn {${EXPORTS.map(n => `${n}:typeof ${n}==='undefined'?undefined:${n}`).join(',')}};`)();
+};
 const EXPORTS = ['generate', 'dailyPuzzle', 'DAILY_VERSION', 'TYPE_KEYS', 'DIFF', 'evalTokens', 'fillTpl', 'foldNet', 'foldFrames', 'foldHinge', 'ROT24', 'ROT24B',
   'canonRot', 'pNorm', 'P_ROT', 'P_MIR', 'pKey', 'has2x2', 'pDims', 'ATTR'];
-const E = new Function(html.slice(a0 + 13, b0) + `\nreturn {${EXPORTS.map(n => `${n}:typeof ${n}==='undefined'?undefined:${n}`).join(',')}};`)();
+const E = engine(FILE);
 const V2 = !!E.foldFrames;
 
 /* ---------------------------------------------------------------- Hilfen */
@@ -119,6 +123,8 @@ function logicParse(p) {
     else if ((m = t.match(/^(.*) steht (nicht )?am Rand\.$/))) C.push({ ty: m[2] ? 'nedge' : 'edge', x: find(m[1]) });
     else if ((m = t.match(/^(.*) steht irgendwo links (?:von|vom) (.*)\.$/))) C.push({ ty: 'lo', x: find(m[1]), y: find(m[2]) });
     else if ((m = t.match(/^(.*) steht direkt links (?:von|vom) (.*)\.$/))) C.push({ ty: 'dl', x: find(m[1]), y: find(m[2]) });
+    else if ((m = t.match(/^(.*) steht irgendwo rechts (?:von|vom) (.*)\.$/))) C.push({ ty: 'lo', x: find(m[2]), y: find(m[1]) });
+    else if ((m = t.match(/^(.*) steht direkt rechts (?:von|vom) (.*)\.$/))) C.push({ ty: 'dl', x: find(m[2]), y: find(m[1]) });
     else if ((m = t.match(/^(.*) steht (nicht )?direkt neben (.*)\.$/))) C.push({ ty: m[2] ? 'nadj' : 'adj', x: find(m[1]), y: find(m[3]) });
     else throw new Error('Hinweis nicht verstanden: ' + t);
   }
@@ -440,6 +446,19 @@ for (const type of E.TYPE_KEYS) for (let d = 0; d < 4; d++) for (let i = 0; i < 
   rows.push({ type, d, sub: p.sub, kind: p.kind, rating: p.rating, par: V2 ? 60 * p.rating : 30 + 14 * p.rating, sol: JSON.stringify(p.solution), ...m, p });
 }
 check('Würfelnetz von Hand (Kreuz)', !V2 || handCross(), 'Kreuznetz');
+/* Easy: feste Grenzen. Kein Rätsel ohne Schluss, der Blick-Trick höchstens in der Hälfte der Fälle je Unterart,
+   keine Antwortformen von Normal, klar leichter als Normal. Logikgitter: höchstens eine Platzangabe, mindestens eine Beziehung. */
+for (const r of rows.filter(r => r.d === 0)) {
+  check('Easy: kein Rätsel ohne Schluss lösbar', r.read === 0, r.type + ' ' + r.sub + ' ' + r.p.sig);
+  check('Easy: Abkürzung je Rätsel gemessen', r.short != null, r.type + ' ' + r.sub);
+  check('Easy: keine Antwortform von Normal', !['multi', 'order', 'build'].includes(r.kind) && !(r.kind === 'number' && Array.isArray(r.p.solution)), r.type + ' ' + r.kind);
+  if (r.sub === 'grid') check('Easy-Logikgitter: höchstens 1 Platzangabe, mindestens 1 Beziehung, Löser braucht einen Schluss', r.at <= 1 && r.rel >= 1 && r.read === 0 && r.sols === 1, r.p.view.clues.join(' '));
+}
+for (const type of E.TYPE_KEYS) {
+  const es = rows.filter(r => r.type === type && r.d === 0), ns = rows.filter(r => r.type === type && r.d === 1);
+  for (const sub of new Set(es.map(r => r.sub))) { const sh = es.filter(r => r.sub === sub && r.short != null); check('Easy: Abkürzung höchstens 50 % je Unterart', mean(sh.map(r => r.short)) <= .5, `${type} ${sub} ${pc(mean(sh.map(r => r.short)))}`); }
+  check('Easy: Richtzeit klar unter Normal', Math.max(...es.map(r => r.rating)) <= .5 * Math.min(...ns.map(r => r.rating)), type);
+}
 const bucket = new Map();
 rows.forEach(r => { const k = r.type + r.sub + r.d + (r.tag || ''); if (!bucket.has(k)) bucket.set(k, []); bucket.get(k).push(r); });
 bucket.forEach(rs => { if (!rs[0].num) return; const cnt = {}; rs.forEach(r => cnt[r.sol] = (cnt[r.sol] || 0) + 1); const mx = Math.max(...Object.values(cnt)) / rs.length; rs.forEach(r => r.guess = mx); });
@@ -486,6 +505,17 @@ out.push('| Typ | Normal | Hard | par s Ø | Unterarten |'); out.push('|---|---:
 for (const type of E.TYPE_KEYS) { const s = days.filter(x => x.p.type === type), subs = {}; s.forEach(x => subs[x.p.sub] = (subs[x.p.sub] || 0) + 1);
   out.push(`| ${type} | ${s.filter(x => x.p.diff === 1).length} | ${s.filter(x => x.p.diff === 2).length} | ${f1(mean(s.map(x => (V2 ? 60 : 14) * x.p.rating + (V2 ? 0 : 30))))} | ${Object.entries(subs).map(([k, n]) => k + ' ' + n).join(', ')} |`); }
 out.push(`\nDailys mit Einzelauswahl: ${days.filter(isChoice).length} von 730. Dailys mit nur einem Denkschritt: ${days.filter(x => x.m.steps <= 1).length} von 730.`);
+
+if (REF) {                                           // Vergleich mit einer älteren Fassung: Dailys und Normal bis Insane unverändert
+  const A = engine(REF), same = (p, q) => JSON.stringify(p) === JSON.stringify(q) && p.validate(q.solution) === true && q.validate(p.solution) === true;
+  const today = new Date().toISOString().slice(0, 10), t0 = Date.parse(today + 'T00:00:00Z'), dl = [];
+  check('Vergleich: DAILY_VERSION gleich', A.DAILY_VERSION === E.DAILY_VERSION, A.DAILY_VERSION + ' / ' + E.DAILY_VERSION);
+  for (let i = 0; i < 60; i++) { const date = new Date(t0 + i * 864e5).toISOString().slice(0, 10), p = E.dailyPuzzle(date), q = A.dailyPuzzle(date); dl.push(p.sig);
+    check('Vergleich: Daily gleich (60 Tage ab heute)', same(p, q), date + ' ' + p.sig + ' / ' + q.sig); }
+  for (const type of E.TYPE_KEYS) for (let d = 1; d < 4; d++) for (let i = 0; i < N; i++) { const p = E.generate(`MASS|${i}`, type, d), q = A.generate(`MASS|${i}`, type, d);
+    check('Vergleich: Normal bis Insane gleich bei gleichem Seed', same(p, q), type + d + ' ' + p.sig); }
+  out.push(`\nVergleich mit ${REF}: Dailys ${today} bis ${new Date(t0 + 59 * 864e5).toISOString().slice(0, 10)}, Prüfsumme der Signaturen ${(A.generate && E.generate) ? dl.reduce((h, s) => (h * 31 + [...s].reduce((x, c) => (x * 33 + c.charCodeAt(0)) >>> 0, 5381)) >>> 0, 7).toString(16) : ''}.`);
+}
 
 out.push('\n## Prüfungen\n');
 out.push('| Prüfung | geprüft | Fehler |'); out.push('|---|---:|---:|');
