@@ -437,8 +437,8 @@ const isPrime=x=>{if(x<2)return false;for(let i=2;i*i<=x;i++)if(x%i===0)return f
 const isSquare=x=>Number.isInteger(Math.sqrt(x));
 
 const SEQ=[
- [ R=>{const a=R.int(1,15),d=R.int(2,9);return{t:series(6,i=>a+d*i),h:'Der Abstand zwischen zwei Nachbarn ist immer gleich.',x:`Jede Zahl ist um ${d} größer als die vorige.`};},
-   R=>{const d=R.int(2,7),a=R.int(40,70);return{t:series(6,i=>a-d*i),h:'Der Abstand zwischen zwei Nachbarn ist immer gleich.',x:`Jede Zahl ist um ${d} kleiner als die vorige.`};},
+ [ R=>{const a=R.int(1,9),d=R.int(1,4);const t=[a];for(let i=0;i<5;i++)t.push(t[i]+d+i);return{t,h:'Die Abstände sind nicht gleich, aber jeder ist um 1 größer als der vorige.',x:`Die Abstände wachsen jeweils um 1: +${d}, +${d+1}, +${d+2} …`};},   // Easy: kein fester Abstand, eine Überlegung
+   R=>{const a=R.int(40,60),d=R.int(6,9);const t=[a];for(let i=0;i<5;i++)t.push(t[i]-(d-i));return{t,h:'Es geht abwärts, aber nicht in gleichen Schritten: Schau auf die Abstände.',x:`Die Abstände werden jeweils um 1 kleiner: −${d}, −${d-1}, −${d-2} …`};},
    R=>{const a=R.int(1,4),q=R.pick([2,2,3]);return{t:series(q===2?6:5,i=>a*Math.pow(q,i)),h:'Hier wird nicht addiert, sondern vervielfacht.',x:`Jede Zahl ist das ${q}-Fache der vorigen.`};},
    R=>{const a=R.int(1,9),p=R.int(1,4),q=R.int(5,9);const t=[a];for(let i=0;i<6;i++)t.push(t[i]+(i%2?q:p));return{t,h:'Zwei verschiedene Schritte wechseln sich ab.',x:`Es wird abwechselnd ${p} und ${q} addiert.`};} ],
  [ R=>{const a=R.int(1,9),d=R.int(1,4),k=R.int(1,3);const t=[a];for(let i=0;i<6;i++)t.push(t[i]+d+k*i);return{t,h:'Die Abstände sind nicht gleich, aber sie wachsen gleichmäßig.',x:`Die Abstände wachsen jeweils um ${k}: +${d}, +${d+k}, +${d+2*k} …`};},
@@ -466,7 +466,7 @@ function genSeq(R,d,opt){
     if(other==null)return null;gaps=[inner,other].sort((a,b)=>a-b);
   }
   const two=gaps.length>1,vals=gaps.map(g=>t[g]),list=vals.join(' und ');
-  return{sub:'seq',kind:'number',rating:[0.4,1.5,3,4.5][d]+(two?.2:0),
+  return{sub:'seq',kind:'number',rating:[0.5,1.5,3,4.5][d]+(two?.2:0),
     prompt:two?'Welche Zahlen gehören an die Stellen der beiden Fragezeichen?':'Welche Zahl gehört an die Stelle des Fragezeichens?',
     rules:two?['Die Folge gehorcht von Anfang bis Ende derselben Regel.','Tippe ein Fragezeichen an, um es auszuwählen.']:['Die Folge gehorcht von Anfang bis Ende derselben Regel.'],
     view:{fig:'seq',terms:t.map((v,i)=>gaps.includes(i)?null:v)},solution:two?vals:vals[0],
@@ -498,8 +498,11 @@ function linFam(pts){                          // alle Regeln a·x+b (ganz, a≠
   return[{a,b}];
 }
 function genMachine(R,d){
-  if(d===0){                                     // eine Maschine, vier sortierte Beispiele
-    const a=R.int(2,6),b=R.int(0,9),f=x=>a*x+b,xs=R.shuffle(range(9).map(i=>i+1)).slice(0,5),ex=xs.slice(0,4).sort((x,y)=>x-y),q=xs[4];
+  if(d===0){                                     // eine Maschine, vier sortierte Beispiele; immer mit Plus-Teil (sonst verrät eine Zeile alles)
+    let a,b,f,ex,q;
+    for(let t=0;t<40;t++){a=R.int(2,6);b=R.int(1,9);f=x=>a*x+b;const xs=R.shuffle(range(9).map(i=>i+1)).slice(0,5);ex=xs.slice(0,4).sort((x,y)=>x-y);q=xs[4];
+      if(q!==2*ex[3]-ex[2])break;}                // die Ausgaben einfach als Folge fortsetzen darf nicht reichen
+    if(q===2*ex[3]-ex[2])return null;
     const fam=linFam(ex.map(x=>[x,f(x)]));if(!fam||fam.length!==1)return null;
     return{sub:'machine',kind:'number',rating:0.5,prompt:'Die Maschine verwandelt jede Zahl nach derselben Regel. Was kommt unten heraus?',
       rules:['Links steht, was hineingeht – rechts, was herauskommt.',MACH_RULE],
@@ -720,6 +723,7 @@ function genEquation(R,d,forced){
     if(cfg.near&&nums.some((a,i)=>nums.some((b,j)=>i<j&&(Math.abs(a*b-target)<=2||Math.abs(a+b-target)<=2))))continue;  // keine Abkürzung über zwei Kacheln
     const sols=eqSolve(tpl,nums,ops,target,cap);
     if(!sols.length||sols.length>cap)continue;
+    if(d===0&&sols.some(s=>new Set(s.filter(x=>typeof x==='string')).size<2))continue;   // Easy: nie nur addieren oder nur malnehmen
     const sol=sols[0],sn=R.shuffle(nums),so=R.shuffle(ops),uniq=[...new Set(sol.filter(x=>typeof x==='string'))];
     return{sub:'build',kind:'equation',rating:[0.5,1.6,3.2,5][d]+(sols.length===1&&d?.2:0),
       prompt:'Setze Zahlen und Rechenzeichen so in die Felder, dass das Ziel herauskommt.',
@@ -840,16 +844,17 @@ const viewKey=v=>v.f.join(':')+(v.a?'|'+v.a.map(vkey).join('/'):'');
 const FACE_COL=['Cyan','Violett','Magenta','Gelb','Weiß','Grün'];
 
 /* ---------------------------------------------------------------- D · SPATIAL LOGIC */
-function genNetOpp(R,d){
-  const line4=q=>[0,1].some(ax=>{const m={};q.forEach(p=>m[p[1-ax]]=(m[p[1-ax]]||0)+1);return Object.values(m).includes(4);});
-  let c=randNet(R,d===0?line4:null);if(!c)return null;
+function genNetOpp(R,d){                         // nur Easy. Die gesuchte Fläche liegt nie zwei Felder weiter in gerader Reihe – das sähe man ohne Falten.
+  const at=(q,x,y)=>q.findIndex(p=>p[0]===x&&p[1]===y),straight=(q,i,j)=>DIRS.some(([dx,dy])=>at(q,q[i][0]+dx,q[i][1]+dy)>=0&&at(q,q[i][0]+2*dx,q[i][1]+2*dy)===j);
+  const bent=q=>{const l=foldNet(q);return range(6).filter(i=>!straight(q,i,l.findIndex(x=>x===(l[i]^1))));};
+  let c=randNet(R,q=>bent(q).length>0);if(!c)return null;
   for(let k=R.int(0,3);k>0;k--)c=P_ROT(c);if(R.chance(.5))c=P_MIR(c);c=pNorm(c);
-  const lab=foldNet(c),m=R.int(0,5),opp=lab.findIndex(l=>l===(lab[m]^1));
+  const lab=foldNet(c),m=R.pick(bent(c)),opp=lab.findIndex(l=>l===(lab[m]^1));
   const adj=range(6).filter(i=>i!==m&&i!==opp),two=R.shuffle(adj).slice(0,2).sort();
   const pairs=[];range(6).forEach(i=>{const j=lab.findIndex(l=>l===(lab[i]^1));if(i<j)pairs.push(LETTERS[i]+'–'+LETTERS[j]);});
   return{sub:'netopp',kind:'net',rating:0.5,prompt:`Dieses Netz wird zu einem Würfel gefaltet. Welche Fläche liegt dann der Fläche ${LETTERS[m]} genau gegenüber?`,
     rules:['Tippe die Fläche im Netz an.'],view:{cells:c,mark:m},solution:opp,
-    hints:['Lass eine Fläche als Boden liegen und klappe die anderen gedanklich hoch.','Gegenüberliegende Flächen berühren sich nie. In einer geraden Reihe liegt immer genau eine Fläche dazwischen.',`Die Flächen ${LETTERS[two[0]]} und ${LETTERS[two[1]]} grenzen am Würfel an ${LETTERS[m]} – sie scheiden aus.`],
+    hints:[`Lass ${LETTERS[m]} als Boden liegen und klappe die anderen Flächen gedanklich hoch.`,`Gegenüberliegende Flächen berühren sich nie – auch nicht nach dem Falten. Vier Flächen werden zu Wänden rund um ${LETTERS[m]}, die übrige liegt gegenüber.`,`Die Flächen ${LETTERS[two[0]]} und ${LETTERS[two[1]]} grenzen am Würfel an ${LETTERS[m]} – sie scheiden aus.`],
     explain:`Gegenüber von ${LETTERS[m]} liegt ${LETTERS[opp]}. Die drei Paare sind ${pairs.join(', ')}.`,sig:'net:'+pKey(c)+'@'+m};
 }
 const MULTI_RULE='Es kann mehr als eine Antwort richtig sein. Wähle alle passenden aus.';
@@ -937,6 +942,7 @@ function genCubes(R,d,force){
       if(!i&&!j){h[0][0]=R.int(d>=1?3:2,maxH);continue;}
       const m=Math.min(i?h[i-1][j]:99,j?h[i][j-1]:99);h[i][j]=Math.max(floor,m-R.pick([0,0,1,1,2]));}
     const s=cubeStats(h),flat=h.flat();if(new Set(flat).size<2||s.sum<4)continue;
+    if(d===0&&mode==='count'&&!s.hid)continue;                   // Easy: mindestens ein Würfel ist verdeckt und muss erschlossen werden
     const full=W*D*s.mx,sol=mode==='count'?s.sum:full-s.sum;
     if(mode==='fill'&&(sol<8||(t<1400&&sol!==T0)))continue;
     const rows=flat.filter(v=>v).sort((a,b)=>b-a).join(' + ');
@@ -1156,12 +1162,12 @@ function genPolyArea(R){
   }
   return null;
 }
-/* Legepuzzle: Zerlegungen der Zielfläche zählen (nur Drehen, wie im Spiel). */
-function asmCount(target,pieces,cap){
+/* Legepuzzle: Zerlegungen der Zielfläche zählen (nur Drehen, wie im Spiel). fixed: nur in der gezeigten Lage, ohne Drehen. */
+function asmCount(target,pieces,cap,fixed){
   const tg=new Set(target.map(([x,y])=>x+','+y)),cells=target.slice().sort((a,b)=>a[1]-b[1]||a[0]-b[0]);
   const rots=pieces.map(pc=>{const out=[],seen=new Set();let c=pc.map(q=>[q[0],q[1],0]);
-    for(let r=0;r<4;r++){const nn=pNorm(c),k=pKey(nn);if(!seen.has(k)){seen.add(k);out.push(nn.map(q=>[q[0],q[1]]));}c=P_ROT(c);}return out;});
-  const shape=pieces.map(pc=>canonRot(pc.map(q=>[q[0],q[1],0]))),used=pieces.map(()=>false),filled=new Set();let count=0;
+    for(let r=0;r<(fixed?1:4);r++){const nn=pNorm(c),k=pKey(nn);if(!seen.has(k)){seen.add(k);out.push(nn.map(q=>[q[0],q[1]]));}c=P_ROT(c);}return out;});
+  const shape=pieces.map(pc=>(fixed?pKey:canonRot)(pc.map(q=>[q[0],q[1],0]))),used=pieces.map(()=>false),filled=new Set();let count=0;
   (function rec(){
     if(count>=cap)return;
     const first=cells.find(([x,y])=>!filled.has(x+','+y));if(!first){count++;return;}
@@ -1175,24 +1181,21 @@ function asmCount(target,pieces,cap){
   return count;
 }
 
-function genSym(R,d){
-  const type=R.pick([['V'],['V','H'],['D1','D2','VH','R2'],['R4','DD','VH','R4']][d]),n=[6,6,7,8][d],G=SYM[type].g(n);
+function genSym(R,d){                            // nur Easy: Achse sichtbar, Vorgaben und Lücken auf beiden Seiten, einige Paare schon vollständig
+  const type=R.pick(['V','H','V','H','D1','D2']),n=6,G=SYM[type].g(n);
   const orbit=(r,c)=>{const s=new Set([r*n+c]);G.forEach(f=>{const [a,b]=f(r,c);s.add(a*n+b);});return[...s].sort((a,b)=>a-b);};
   for(let t=0;t<200;t++){
-    const orbs=new Map(),k=G.length===3?R.int(3,5):R.int(5,7);
-    for(let i=0;i<k;i++){const o=d===0?orbit(R.int(0,n-1),R.int(0,n/2-1)):orbit(R.int(0,n-1),R.int(0,n-1));orbs.set(o[0],o);}
-    const given=[],miss=[];
-    orbs.forEach(o=>{
-      if(o.length===1){given.push(o[0]);return;}
-      const sh=d===0?o.slice().sort((a,b)=>a%n-b%n):R.shuffle(o),g=d===0?1:d===3?1:R.int(1,o.length-1);
-      sh.forEach((c,i)=>(i<g?given:miss).push(c));});
-    if(miss.length<3||miss.length>16||given.length<3)continue;
+    const orbs=new Map(),k=R.int(6,8),whole=R.int(1,2);
+    for(let i=0;i<4*k&&orbs.size<k;i++){const o=orbit(R.int(0,n-1),R.int(0,n-1));if(o.length>1)orbs.set(o[0],o);}
+    const given=[],miss=[],side=[0,0];let w=0;
+    orbs.forEach(o=>{if(w++<whole){given.push(...o);return;}const g=R.int(0,1);given.push(o[g]);miss.push(o[1-g]);side[1-g]++;});   // side: Lücken auf der Seite des kleineren / größeren Index
+    if(miss.length<4||miss.length>7||!side[0]||!side[1])continue;
     miss.sort((a,b)=>a-b);const full=new Set(given.concat(miss)),gs=new Set(given),m0=R.pick(miss);
     return{sub:'sym',kind:'sym',rating:0.5,prompt:SYM[type].p,
       rules:['Tippe Felder an, um sie zu füllen oder wieder zu leeren.','Fülle nur die Felder, die für die Symmetrie nötig sind.'],
       view:{n,type,given:given.sort((a,b)=>a-b)},solution:miss,
-      hints:['Jedes gefüllte Feld braucht sein Gegenstück.',SYM[type].h,`Es fehlen genau ${miss.length} Felder. Eines davon liegt in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1}.`],
-      explain:`Es fehlten ${miss.length} Felder – jeweils die Gegenstücke der vorgegebenen.`,sig:'sym:'+type+':'+given.join(','),
+      hints:['Jedes gefüllte Feld braucht sein Gegenstück. Es fehlt auf beiden Seiten der Achse etwas.',SYM[type].h,`Es fehlen genau ${miss.length} Felder. Eines davon liegt in Zeile ${Math.floor(m0/n)+1}, Spalte ${m0%n+1}.`],
+      explain:`Es fehlten ${miss.length} Felder – jeweils die Gegenstücke der vorgegebenen, auf beiden Seiten der Achse. Paare, die schon vollständig waren, brauchten nichts.`,sig:'sym:'+type+':'+given.join(','),
       validate(ans){
         if(!Array.isArray(ans))return false;const a=new Set(ans);
         if(a.size===miss.length&&miss.every(c=>a.has(c)))return true;
@@ -1219,7 +1222,7 @@ function randShape(R){
   return{fam,p,a:polyArea(p)};
 }
 function genArea(R,d){
-  const mode=[ 'max',R.pick(['max','min']),R.pick(['equal','equal','min']),'equal'][d],n=d===0?3:4;
+  const mode=[ 'max',R.pick(['max','min']),R.pick(['equal','equal','min']),'equal'][d],n=4,boxOK=d===0&&R.chance(.35);
   for(let t=0;t<400;t++){
     if(mode==='equal'){
       const ref=randShape(R);if(ref.a<4)continue;let twin=null;
@@ -1239,6 +1242,9 @@ function genArea(R,d){
     const sorted=opts.slice().sort((a,b)=>mode==='max'?b.a-a.a:a.a-b.a),gap=Math.abs(sorted[0].a-sorted[1].a);
     if(d===0?gap<1:gap>1.5&&t<300)continue;
     const ans=opts.indexOf(sorted[0]);
+    if(d===0){const bx=opts.map(o=>bboxArea(o.p)),mb=Math.max(...bx);
+      if(opts.every((o,i)=>i===ans||bx[i]<sorted[0].a))continue;               // sonst sieht man es ohne zu zählen
+      if((boxOK?bx[ans]!==mb||bx.filter(x=>x===mb).length>1:bx[ans]===mb)&&t<350)continue;}   // die größte Umrandung ist nur manchmal die Antwort
     return{sub:'area',kind:'choice',rating:0.5,prompt:mode==='max'?'Welche Form bedeckt die größte Fläche?':'Welche Form bedeckt die kleinste Fläche?',rules:['Ein Kästchen im Raster ist eine Flächeneinheit.'],
       view:{fig:'area',opts:opts.map(o=>o.p),cols:n===3?3:2},solution:ans,
       hints:['Zähle ganze Kästchen und setze halbe zu ganzen zusammen.','Dreiecke sind halbe Rechtecke: Grundseite × Höhe ÷ 2. Schräge Vierecke lassen sich zu Rechtecken umlegen.',`Die gesuchte Form bedeckt ${fmt(sorted[0].a)} Kästchen.`],
@@ -1270,13 +1276,15 @@ function genAssemble(R,d){
     const pieces=R.shuffle(P).map(p=>{
       const sol=p.map(([a,b])=>[a+ox,b]);let c=pNorm(p).map(q=>[q[0],q[1]]);
       if(d>0){for(let k=R.int(0,3);k>0;k--)c=pNorm(P_ROT(c)).map(q=>[q[0],q[1]]);const dm=pDims(c);if(dm[1]>dm[0])c=pNorm(P_ROT(c)).map(q=>[q[0],q[1]]);}
+      else for(let k=R.int(1,3);k>0;k--)c=pNorm(P_ROT(c)).map(q=>[q[0],q[1]]);   // Easy: gedreht ausgelegt
       const [pw,ph]=pDims(c);if(x+pw>cfg.cols){x=0;y+=rowH+1;rowH=0;}
       const out={cells:c,x,y,sol};x+=pw+1;rowH=Math.max(rowH,ph);return out;});
+    if(d===0&&asmCount(cells,pieces.map(p=>p.cells),1,true))continue;   // Easy: ohne Drehen geht es nicht
     const tset=new Set(target.map(c=>key(...c)));
-    return{sub:'assemble',kind:'assemble',rating:[0.6,1.6,3,4.8][d],prompt:'Lege alle Teile so in die markierte Fläche, dass sie lückenlos gefüllt ist.',
+    return{sub:'assemble',kind:'assemble',rating:[0.7,1.6,3,4.8][d],prompt:'Lege alle Teile so in die markierte Fläche, dass sie lückenlos gefüllt ist.',
       rules:['Ziehe ein Teil, um es zu bewegen. Tippe es an, um es zu drehen.','Teile dürfen sich nicht überlappen und nicht über den Rand ragen.'],
       view:{cols:cfg.cols,rows:y+rowH,target,pieces},solution:pieces.map(p=>p.sol),
-      hints:['Beginne mit dem sperrigsten Teil – es passt an die wenigsten Stellen.','Schau auf die Ecken der Zielfläche: Welches Teil kann eine Ecke ausfüllen, ohne ein einzelnes Feld abzuschneiden?','Die gestrichelte Kontur zeigt, wo eines der Teile in einer möglichen Lösung liegt.'],
+      hints:[d?'Beginne mit dem sperrigsten Teil – es passt an die wenigsten Stellen.':'So, wie die Teile daliegen, passen sie nicht zusammen. Überlege, welches Teil gedreht in eine Ecke passt.','Schau auf die Ecken der Zielfläche: Welches Teil kann eine Ecke ausfüllen, ohne ein einzelnes Feld abzuschneiden?','Die gestrichelte Kontur zeigt, wo eines der Teile in einer möglichen Lösung liegt.'],
       explain:`Alle ${pieces.length} Teile füllen die Fläche aus ${target.length} Feldern lückenlos.`,sig:'asm:'+pieces.map(p=>canonRot(p.cells)).sort().join('/'),
       validate(ans){
         if(!Array.isArray(ans))return false;const seen=new Set();let out=false,over=false;
@@ -1305,18 +1313,25 @@ function genMatrix(R,d){
     spec[a]={vals,rule,k:lk,o:R.int(0,2)};if(rule==='latin')lk=3-lk;});
   const val=(a,r,c)=>{const s=spec[a];return s.rule==='const'?s.vals[0]:s.rule==='row'?s.vals[r]:s.rule==='col'?s.vals[c]:s.vals[(r+s.k*c+s.o)%3];};
   const cells=range(9).map(i=>{const o={};keys.forEach(a=>o[a]=val(a,Math.floor(i/3),i%3));return o;});
-  const miss=d<2?8:R.int(0,8),right=cells[miss],K=o=>keys.map(a=>o[a]).join(''),opts=[right],seen=new Set([K(right)]);
-  const nOpt=d===0?4:6;let guard=0;
-  while(opts.length<nOpt&&guard++<400){
-    const o=Object.assign({},right),m=R.chance(.7)?1:2;
-    R.shuffle(R.chance(.8)?vary:keys).slice(0,m).forEach(a=>{const pool=(spec[a].rule==='const'?range(ATTR[a].n):spec[a].vals).filter(v=>v!==right[a]);o[a]=R.pick(pool);});
-    if(!seen.has(K(o))){seen.add(K(o));opts.push(o);}
+  const miss=d<2?8:R.int(0,8),right=cells[miss],K=o=>keys.map(a=>o[a]).join(''),nOpt=d===0?4:6;
+  // Die Antwort darf nicht die „Mitte“ der Auswahl sein: Wer nur die Option wählt, die mit den anderen am meisten teilt, trifft höchstens jedes dritte Mal.
+  const central=os=>{const sc=os.map(x=>keys.reduce((s,k)=>s+os.filter(q=>q[k]===x[k]).length,0)),mx=Math.max(...sc),top=sc.map((s,i)=>s===mx?i:-1).filter(i=>i>=0);return top.includes(0)?1/top.length:0;};
+  let opts;
+  for(let a=0;a<40;a++){                        // Ablenker um eine falsche Mitte: ein Element, das sich in einer Eigenschaft von der Antwort unterscheidet
+    const dec=Object.assign({},right),k0=R.pick(vary);dec[k0]=R.pick(spec[k0].vals.filter(v=>v!==right[k0]));
+    opts=[right,dec];const seen=new Set([K(right),K(dec)]);let guard=0;
+    while(opts.length<nOpt&&guard++<400){
+      const src=R.chance(.6)?dec:right,o=Object.assign({},src),m=R.chance(.7)?1:2;
+      R.shuffle(R.chance(.8)?vary:keys).slice(0,m).forEach(k=>{const pool=(spec[k].rule==='const'?range(ATTR[k].n):spec[k].vals).filter(v=>v!==src[k]);o[k]=R.pick(pool);});
+      if(!seen.has(K(o))){seen.add(K(o));opts.push(o);}
+    }
+    if(opts.length===nOpt&&central(opts)<=1/3)break;
   }
-  if(opts.length<nOpt)return null;
+  if(opts.length<nOpt||central(opts)>1/3)return null;
   const order=R.shuffle(range(nOpt)),ans=order.indexOf(0);
   const txt={row:'ist in jeder Zeile gleich',col:'ist in jeder Spalte gleich',latin:'kommt in jeder Zeile und jeder Spalte in allen drei Varianten genau einmal vor'};
   const lines=vary.map(a=>`${ATTR[a].name} ${txt[spec[a].rule]}.`);
-  return{sub:'matrix',kind:'choice',rating:0.4,prompt:'Welches Element gehört in das leere Feld?',
+  return{sub:'matrix',kind:'choice',rating:0.5,prompt:'Welches Element gehört in das leere Feld?',
     rules:['Das Raster folgt in Zeilen und Spalten festen Regeln.'],view:{fig:'matrix',cells,miss,opts:order.map(i=>opts[i]),cols:nOpt===4?4:3},solution:ans,
     hints:['Betrachte jede Eigenschaft für sich: Form, Farbe, Anzahl und Füllung.',`Hier ${nv===1?'verändert sich nur eine Eigenschaft':'verändern sich '+nv+' Eigenschaften'}: ${vary.map(a=>ATTR[a].name.split(' ')[1]).join(', ')}.`,lines[0]],
     explain:lines.join(' '),sig:'mx:'+cells.map(K).join('')+'@'+miss};
@@ -1333,9 +1348,9 @@ const PAINT={
 };
 const PCOL_NAME=['Cyan','Violett','Magenta','Gelb'];
 function genPaint(R,d){
-  const n=[5,5,6,7][d],k=[2,3,R.pick([3,4]),4][d],nm=[3,4,5,7][d];
+  const n=[5,5,6,7][d],k=[3,3,R.pick([3,4]),4][d],nm=[3,4,5,7][d];   // Easy: drei Farben, kein Schachbrett
   for(let t=0;t<200;t++){
-    const rule=R.pick([['diag','anti','ring','blocks'],['diag','anti','ring','diamond','blocks'],['lin','ring','diamond','sym4','blocks'],['lin','mult','sym4','diamond']][d]);
+    const rule=R.pick([['diag','anti','ring','blocks','diamond'],['diag','anti','ring','diamond','blocks'],['lin','ring','diamond','sym4','blocks'],['lin','mult','sym4','diamond']][d]);
     const q={o:R.int(0,k-1),a:1,b:1};
     if(rule==='lin'){const ab=R.pick(k===3?[[1,2],[2,1]]:[[1,2],[2,1],[1,3],[3,1],[2,3],[3,2]]);q.a=ab[0];q.b=ab[1];}
     if(rule==='sym4'){const m=Math.ceil(n/2);q.q=series(m,()=>series(m,()=>R.int(0,k-1)));}
@@ -1351,6 +1366,10 @@ function genPaint(R,d){
     }
     if(!miss)continue;
     const vis=new Set(grid.filter((v,i)=>!miss.includes(i)));if(vis.size<k)continue;
+    if(d===0){const g=(r,c)=>r<0||c<0||r>=n||c>=n||miss.includes(r*n+c)?-1:grid[r*n+c];
+      const sandw=miss.every(i=>{const r=Math.floor(i/n),c=i%n;return[[0,1],[1,0]].some(([a,b])=>g(r-a,c-b)===grid[i]&&g(r+a,c+b)===grid[i]);});   // jede Lücke zwischen zwei gleichen Nachbarn: abzulesen
+      const copy=miss.every(i=>{const r=Math.floor(i/n),c=i%n;return[g(r,c-1),g(r,c+1),g(r-1,c),g(r+1,c)].find(x=>x>=0)===grid[i];});   // Nachbarfarbe übernehmen reicht
+      if(sandw||copy)continue;}
     const m0=miss[R.int(0,miss.length-1)];
     return{sub:'paint',kind:'paint',rating:0.5,prompt:'Färbe die leeren Felder so, dass sie das Muster fortsetzen.',
       rules:['Tippe ein leeres Feld an, um durch die Farben zu wechseln.'],view:{n,k,grid:grid.map((v,i)=>miss.includes(i)?-1:v),miss},solution:miss.map(i=>grid[i]),
@@ -1451,7 +1470,7 @@ function genPattern(R,d){
 const L_SHAPE=[{n:'Kreis',nom:'Der Kreis',dat:'dem Kreis'},{n:'Dreieck',nom:'Das Dreieck',dat:'dem Dreieck'},{n:'Quadrat',nom:'Das Quadrat',dat:'dem Quadrat'},{n:'Raute',nom:'Die Raute',dat:'der Raute'},{n:'Sechseck',nom:'Das Sechseck',dat:'dem Sechseck'}];
 const L_COLOR=[{n:'cyan',nom:'Die cyanfarbene Form',dat:'der cyanfarbenen Form'},{n:'violett',nom:'Die violette Form',dat:'der violetten Form'},{n:'magenta',nom:'Die magentafarbene Form',dat:'der magentafarbenen Form'},{n:'gelb',nom:'Die gelbe Form',dat:'der gelben Form'},{n:'weiß',nom:'Die weiße Form',dat:'der weißen Form'}];
 function perms(n){const out=[];(function rec(a,rest){if(!rest.length){out.push(a);return;}rest.forEach((x,i)=>rec(a.concat(x),rest.slice(0,i).concat(rest.slice(i+1))));})([],range(n));return out;}
-const L_RANK=[{at:0,dl:0,lo:1,na:1.5,adj:1,nadj:3,edge:2,same:0,ns:2,gap:9},{at:1.2,dl:0,lo:.5,na:1,adj:.5,nadj:1.5,edge:1,same:.3,ns:1,gap:.6},
+const L_RANK=[{at:1.2,dl:0,lo:.3,na:.8,adj:.3,nadj:3,edge:2,same:0,ns:2,gap:9},{at:1.2,dl:0,lo:.5,na:1,adj:.5,nadj:1.5,edge:1,same:.3,ns:1,gap:.6},
               {at:3,dl:.8,lo:0,na:.6,adj:.3,nadj:.6,edge:.6,same:1.2,ns:.4,gap:.3},{at:5,dl:1.5,lo:0,na:.5,adj:.2,nadj:.4,edge:.5,same:2.5,ns:.3,gap:.1}];
 /* Menschenähnlicher Löser: Einzelhinweise auf Wertebereiche anwenden, dazu „jede Form/Farbe genau einmal“
    (nur noch ein Platz / nur noch ein Kandidat). Gezählt werden die Runden; bleibt er stecken, braucht das
@@ -1478,6 +1497,13 @@ function logicDepth(N,items,clues){
   }
   return{rounds,stuck:!done()};
 }
+/* Easy: Was sich ohne Schluss ergibt – Platzangaben übernehmen, dann den letzten freien Platz füllen. */
+function logicRead(N,items,clues){
+  const pos=items.map(()=>-1);clues.forEach(c=>{if(c.ty==='at')pos[c.a]=c.p;});
+  for(let ch=true;ch;){ch=false;for(const cat of [0,1]){const its=range(items.length).filter(k=>items[k][0]===cat),open=its.filter(k=>pos[k]<0);
+    if(open.length===1){const used=its.map(k=>pos[k]);pos[open[0]]=range(N).find(q=>!used.includes(q));ch=true;}}}
+  return pos.every(q=>q>=0);
+}
 function genLogic(R,d){
   const [N,cats]=[[3,1],R.pick([[4,1],[3,2]]),[4,2],[5,2]][d],PM=perms(N);
   const lowerFirst=s=>s[0].toLowerCase()+s.slice(1);
@@ -1497,8 +1523,9 @@ function genLogic(R,d){
       if(N>=4){const e=px===0||px===N-1;add('edge',`${nm(x).nom} steht ${e?'':'nicht '}am Rand.`,(S,Cc)=>{const q=pos(x,S,Cc);return(q===0||q===N-1)===e;},{a:xa,e});}});
     items.forEach((x,a)=>items.forEach((y,b)=>{
       if(a===b)return;const px=pos(x,sp,cp),py=pos(y,sp,cp);if(px===py)return;const m={a,b};
-      if(px<py){add('lo',`${nm(x).nom} steht irgendwo links von ${nm(y).dat}.`,(S,Cc)=>pos(x,S,Cc)<pos(y,S,Cc),m);
-        if(py-px===1)add('dl',`${nm(x).nom} steht direkt links von ${nm(y).dat}.`,(S,Cc)=>pos(y,S,Cc)-pos(x,S,Cc)===1,m);}
+      if(px<py){const rt=d===0&&R.chance(.5);      // Easy: dieselbe Beziehung auch von rechts her erzählt (Reihenfolge im Satz ≠ Reihenfolge der Plätze)
+        add('lo',rt?`${nm(y).nom} steht irgendwo rechts von ${nm(x).dat}.`:`${nm(x).nom} steht irgendwo links von ${nm(y).dat}.`,(S,Cc)=>pos(x,S,Cc)<pos(y,S,Cc),Object.assign({o:rt?[b,a]:[a,b]},m));
+        if(py-px===1)add('dl',rt?`${nm(y).nom} steht direkt rechts von ${nm(x).dat}.`:`${nm(x).nom} steht direkt links von ${nm(y).dat}.`,(S,Cc)=>pos(y,S,Cc)-pos(x,S,Cc)===1,Object.assign({o:rt?[b,a]:[a,b]},m));}
       if(a<b){if(Math.abs(px-py)===1)add('adj',`${nm(x).nom} steht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))===1,m);
         else if(N>=4)add('nadj',`${nm(x).nom} steht nicht direkt neben ${nm(y).dat}.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))>1,m);
         if(N>=4&&d>=1&&Math.abs(px-py)===2)add('gap',`Zwischen ${nm(x).dat} und ${nm(y).dat} steht genau eine Form.`,(S,Cc)=>Math.abs(pos(x,S,Cc)-pos(y,S,Cc))===2,m);}}));
@@ -1512,16 +1539,25 @@ function genLogic(R,d){
       x=x-((x>>>1)&0x55555555);x=(x&0x33333333)+((x>>>2)&0x33333333);n+=(((x+(x>>>4))&0x0F0F0F0F)*0x01010101)>>>24;}return n;};
     for(const c of R.shuffle(chosen)){const rest=chosen.filter(q=>q!==c);if(rest.length&&countAnd(rest)===1)chosen=rest;}
     if(chosen.length>[4,6,7,9][d]||chosen.length<2)continue;
+    let shown=null;
+    if(d===0){                                       // Easy: höchstens eine Platzangabe, mindestens eine Beziehung, nicht abzulesen
+      if(chosen.filter(c=>c.ty==='at').length>1||!chosen.some(c=>c.b!=null)||logicRead(N,items,chosen))continue;
+      const mention=list=>{const at=Array(N).fill(-1),ord=[];list.forEach(c=>{if(c.ty==='at')at[c.p]=c.a;});   // Blick-Trick: Plätze in der Reihenfolge der Erwähnung
+        list.forEach(c=>(c.o||(c.b!=null?[c.a,c.b]:[c.a])).forEach(k=>{if(!ord.includes(k))ord.push(k);}));range(N).forEach(k=>{if(!ord.includes(k))ord.push(k);});
+        const rest=ord.filter(k=>!at.includes(k));return at.map(k=>k>=0?k:rest.shift()).every((k,q)=>sp[k]===q);};
+      for(let k=0;k<6&&!shown;k++){const s=R.shuffle(chosen);if(!mention(s))shown=s;}
+      if(!shown&&!relax)continue;
+    }
     const dep=logicDepth(N,items,chosen);
     const okDepth=d===0?true:d===1?dep.rounds>=2||dep.stuck:d===2?(relax?dep.rounds>=2||dep.stuck:dep.rounds>=3||dep.stuck):(relax?dep.rounds>=4||dep.stuck:dep.rounds>=4&&dep.stuck);
     if(!okDepth)continue;
     const solS=Array(N),solC=Array(N);sp.forEach((p,i)=>solS[p]=i);cp.forEach((p,i)=>solC[p]=i);
     const hp=R.int(0,N-1);
-    return{sub:'grid',kind:'logic',rating:[0.6,1.6,3,4.8][d]+Math.min(.4,chosen.length*.04)+(dep.stuck&&d?.2:0),
+    return{sub:'grid',kind:'logic',rating:d?[0.6,1.6,3,4.8][d]+Math.min(.4,chosen.length*.04)+(dep.stuck?.2:0):0.6,
       prompt:cats===2?`${N} Formen stehen in einer Reihe, jede in einer anderen Farbe. Finde heraus, welche Form wo steht und welche Farbe sie hat.`:`${N} Formen stehen in einer Reihe. Finde heraus, welche Form auf welchem Platz steht.`,
       rules:['Platz 1 ist ganz links.',cats===2?'Jede Form und jede Farbe kommt genau einmal vor.':'Jede Form kommt genau einmal vor.'],
-      view:{N,cats,shapes,colors,clues:R.shuffle(chosen).map(c=>c.t.replace(/ von dem /g,' vom '))},solution:{s:solS,c:cats===2?solC:null},
-      hints:['Suche zuerst Hinweise, die einen Platz fest vorgeben oder ausschließen.',dep.stuck?'Irgendwann hilft nur eine Fallunterscheidung: Nimm eine Möglichkeit an und prüfe, ob sie zu einem Widerspruch führt.':'Kombiniere zwei Hinweise, die dasselbe Objekt erwähnen. Oft bleibt dann nur eine Möglichkeit.',`Auf Platz ${hp+1} steht ${lowerFirst(L_SHAPE[shapes[solS[hp]]].nom)}.`],
+      view:{N,cats,shapes,colors,clues:(shown||R.shuffle(chosen)).map(c=>c.t.replace(/ von dem /g,' vom '))},solution:{s:solS,c:cats===2?solC:null},
+      hints:[d?'Suche zuerst Hinweise, die einen Platz fest vorgeben oder ausschließen.':'Kein Hinweis verrät die Lösung allein. Überlege für eine Form, welche Plätze nach den Hinweisen noch frei sind.',dep.stuck?'Irgendwann hilft nur eine Fallunterscheidung: Nimm eine Möglichkeit an und prüfe, ob sie zu einem Widerspruch führt.':'Kombiniere zwei Hinweise, die dasselbe Objekt erwähnen. Oft bleibt dann nur eine Möglichkeit.',`Auf Platz ${hp+1} steht ${lowerFirst(L_SHAPE[shapes[solS[hp]]].nom)}.`],
       explain:'Lösung von links nach rechts: '+range(N).map(p=>L_SHAPE[shapes[solS[p]]].n+(cats===2?' ('+L_COLOR[colors[solC[p]]].n+')':'')).join(', ')+'.',
       sig:'lg:'+shapes+':'+colors+':'+chosen.map(c=>c.t).sort().join('|'),depth:dep,
       validate(ans){return!!ans&&ans.s.join()===solS.join()&&(cats===1||ans.c.join()===solC.join());}};
@@ -1557,7 +1593,7 @@ function generate(seed,type,d){
 }
 
 /* ---------------------------------------------------------------- Daily */
-const DAILY_VERSION='MINDSHAPES_DAILY_V2_',GEN_VERSION=2;   // Generator-Version: wird bei jeder Änderung an den Generatoren hochgezählt
+const DAILY_VERSION='MINDSHAPES_DAILY_V2_',GEN_VERSION=2;   // Generator-Version der Dailys: wird hochgezählt, sobald sich ein Daily ändert (Normal und Hard). Änderungen nur an Easy zählen nicht.
 const utcDate=(t)=>new Date(t==null?Date.now():t).toISOString().slice(0,10);
 const dayNum=date=>Math.floor(Date.parse(date+'T00:00:00Z')/864e5);
 const addDays=(date,n)=>utcDate(Date.parse(date+'T00:00:00Z')+n*864e5);
